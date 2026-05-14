@@ -115,14 +115,6 @@ Cliptate는 이미 사용 중인 툴로 직접 내보냅니다:
 
 Cliptate는 Swift로 완전히 구축되어 Apple 네이티브 프레임워크 위에서 실행됩니다:
 
-- **[MLX Swift](https://github.com/ml-explore/mlx-swift)** — Apple Silicon 최적화 ML 프레임워크(ASR 및 TTS 추론)
-- **[AudioKit](https://github.com/AudioKit/AudioKit)** — 오디오 처리 및 파형 렌더링
-- **[mlx-audio-swift](https://github.com/ml-explore/mlx-audio-swift)** — VAD, ASR, TTS 모델 통합
-- **Apple Translation** — 온디바이스 다국어 번역
-- **KeyboardShortcuts** — 글로벌 단축키 관리
-- **RevenueCat** — 구독 및 페이월 관리
-- **SwiftAssRenderer** — ASS 자막 렌더링
-
 ---
 
 ## 활용 사례
