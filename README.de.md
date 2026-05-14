@@ -115,14 +115,6 @@ Kompatibel mit **Final Cut Pro**, **DaVinci Resolve** und **Adobe Premiere Pro**
 
 Cliptate ist vollständig in Swift geschrieben und basiert auf Apple-nativen Frameworks:
 
-- **[MLX Swift](https://github.com/ml-explore/mlx-swift)** — Apple-Silicon-optimiertes ML-Framework für ASR- und TTS-Inferenz
-- **[AudioKit](https://github.com/AudioKit/AudioKit)** — Audioverarbeitung und Wellenform-Rendering
-- **[mlx-audio-swift](https://github.com/ml-explore/mlx-audio-swift)** — VAD-, ASR- und TTS-Modellintegration
-- **Apple Übersetzer** — Mehrsprachige Übersetzung auf dem Gerät
-- **KeyboardShortcuts** — Globale Tastaturkürzel-Verwaltung
-- **RevenueCat** — Abonnement- und Paywall-Management
-- **SwiftAssRenderer** — ASS-Untertitel-Rendering
-
 ---
 
 ## Anwendungsfälle
