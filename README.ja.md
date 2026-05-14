@@ -115,14 +115,6 @@ Cliptate はすでに使用しているツールへ直接出力します：
 
 Cliptate は Swift で構築された Apple ネイティブフレームワーク使用のアプリです：
 
-- **[MLX Swift](https://github.com/ml-explore/mlx-swift)** — Apple Silicon 最適化の ML フレームワーク（ASR・TTS 推論）
-- **[AudioKit](https://github.com/AudioKit/AudioKit)** — 音声処理と波形レンダリング
-- **[mlx-audio-swift](https://github.com/ml-explore/mlx-audio-swift)** — VAD・ASR・TTS モデル統合
-- **Apple Translation** — オンデバイス多言語翻訳
-- **KeyboardShortcuts** — グローバルショートカット管理
-- **RevenueCat** — サブスクリプション・ペイウォール管理
-- **SwiftAssRenderer** — ASS 字幕レンダリング
-
 ---
 
 ## 活用シーン
