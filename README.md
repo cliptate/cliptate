@@ -18,6 +18,14 @@
     <a href="https://cliptate.github.io#voice">Voice & TTS</a> ·
     <a href="https://apps.apple.com/">Download</a>
   </p>
+
+  <p>
+    <a href="README.md">English</a> ·
+    <a href="README.zh.md">中文</a> ·
+    <a href="README.ja.md">日本語</a> ·
+    <a href="README.ko.md">한국어</a> ·
+    <a href="README.de.md">Deutsch</a>
+  </p>
 </div>
 
 ---
@@ -106,7 +114,7 @@ Compatible with **Final Cut Pro**, **DaVinci Resolve**, and **Adobe Premiere Pro
 
 ## Tech Stack
 
-Cliptate is built entirely in Swift and runs on Apple-native frameworks
+Cliptate is built entirely in Swift and runs on Apple-native frameworks:
 
 ---
 
