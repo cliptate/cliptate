@@ -4,7 +4,7 @@
   <p><strong>Mac 오디오·비디오 크리에이터를 위한 온디바이스 AI 워크스페이스</strong></p>
 
   <p>
-    <a href="https://apps.apple.com/"><img alt="App Store에서 다운로드" src="https://img.shields.io/badge/App%20Store-다운로드-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
+    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12"><img alt="App Store에서 다운로드" src="https://img.shields.io/badge/App%20Store-다운로드-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
     <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
     <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-MLX-ff6900?style=flat-square" />
     <img alt="Swift" src="https://img.shields.io/badge/Swift-5.10-f05138?logo=swift&logoColor=white&style=flat-square" />
@@ -15,7 +15,7 @@
     <a href="https://cliptate.github.io">웹사이트</a> ·
     <a href="https://cliptate.github.io#features">기능</a> ·
     <a href="https://cliptate.github.io#voice">음성 및 TTS</a> ·
-    <a href="https://apps.apple.com/">다운로드</a>
+    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12">다운로드</a>
   </p>
 
   <p>
@@ -132,7 +132,7 @@ Cliptate는 Swift로 완전히 구축되어 Apple 네이티브 프레임워크 �
 ## 링크
 
 - **웹사이트:** [cliptate.github.io](https://cliptate.github.io)
-- **App Store:** [Cliptate 다운로드](https://apps.apple.com/)
+- **App Store:** [Cliptate 다운로드](https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12)
 - **문의 및 피드백:** [GitHub Issues](https://github.com/cliptate/cliptate.github.io/issues)
 
 ---

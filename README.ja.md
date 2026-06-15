@@ -4,7 +4,7 @@
   <p><strong>Mac 向け映像・音声クリエイターのためのオンデバイス AI ワークスペース</strong></p>
 
   <p>
-    <a href="https://apps.apple.com/"><img alt="App Store からダウンロード" src="https://img.shields.io/badge/App%20Store-ダウンロード-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
+    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12"><img alt="App Store からダウンロード" src="https://img.shields.io/badge/App%20Store-ダウンロード-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
     <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
     <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-MLX-ff6900?style=flat-square" />
     <img alt="Swift" src="https://img.shields.io/badge/Swift-5.10-f05138?logo=swift&logoColor=white&style=flat-square" />
@@ -15,7 +15,7 @@
     <a href="https://cliptate.github.io">ウェブサイト</a> ·
     <a href="https://cliptate.github.io#features">機能</a> ·
     <a href="https://cliptate.github.io#voice">音声・TTS</a> ·
-    <a href="https://apps.apple.com/">ダウンロード</a>
+    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12">ダウンロード</a>
   </p>
 
   <p>
@@ -132,7 +132,7 @@ Cliptate は Swift で構築された Apple ネイティブフレームワーク
 ## リンク
 
 - **ウェブサイト：** [cliptate.github.io](https://cliptate.github.io)
-- **App Store：** [Cliptate をダウンロード](https://apps.apple.com/)
+- **App Store：** [Cliptate をダウンロード](https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12)
 - **問題・フィードバック：** [GitHub Issues](https://github.com/cliptate/cliptate.github.io/issues)
 
 ---

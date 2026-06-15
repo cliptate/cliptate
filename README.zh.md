@@ -4,7 +4,7 @@
   <p><strong>面向 Mac 音视频创作者的端侧 AI 工作台</strong></p>
 
   <p>
-    <a href="https://apps.apple.com/"><img alt="在 App Store 下载" src="https://img.shields.io/badge/App%20Store-下载-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
+    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12"><img alt="在 App Store 下载" src="https://img.shields.io/badge/App%20Store-下载-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
     <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
     <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-MLX-ff6900?style=flat-square" />
     <img alt="Swift" src="https://img.shields.io/badge/Swift-5.10-f05138?logo=swift&logoColor=white&style=flat-square" />
@@ -15,7 +15,7 @@
     <a href="https://cliptate.github.io">官网</a> ·
     <a href="https://cliptate.github.io#features">功能介绍</a> ·
     <a href="https://cliptate.github.io#voice">语音与 TTS</a> ·
-    <a href="https://apps.apple.com/">立即下载</a>
+    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12">立即下载</a>
   </p>
 
   <p>
@@ -132,7 +132,7 @@ Cliptate 完全使用 Swift 开发，基于 Apple 原生框架构建：
 ## 链接
 
 - **官网：** [cliptate.github.io](https://cliptate.github.io)
-- **App Store：** [下载 Cliptate](https://apps.apple.com/)
+- **App Store：** [下载 Cliptate](https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12)
 - **问题与反馈：** [GitHub Issues](https://github.com/cliptate/cliptate.github.io/issues)
 
 ---

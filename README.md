@@ -5,7 +5,7 @@
   <p>面向 Mac 音视频创作者的端侧 AI 工作台</p>
 
   <p>
-    <a href="https://apps.apple.com/"><img alt="Download on the App Store" src="https://img.shields.io/badge/App%20Store-Download-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
+    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12"><img alt="Download on the App Store" src="https://img.shields.io/badge/App%20Store-Download-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
     <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
     <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-MLX-ff6900?style=flat-square" />
     <img alt="Swift" src="https://img.shields.io/badge/Swift-5.10-f05138?logo=swift&logoColor=white&style=flat-square" />
@@ -16,7 +16,7 @@
     <a href="https://cliptate.github.io">Website</a> ·
     <a href="https://cliptate.github.io#features">Features</a> ·
     <a href="https://cliptate.github.io#voice">Voice & TTS</a> ·
-    <a href="https://apps.apple.com/">Download</a>
+    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12">Download</a>
   </p>
 
   <p>
@@ -133,7 +133,7 @@ Cliptate is built entirely in Swift and runs on Apple-native frameworks:
 ## Links
 
 - **Website:** [cliptate.github.io](https://cliptate.github.io)
-- **App Store:** [Download Cliptate](https://apps.apple.com/)
+- **App Store:** [Download Cliptate](https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12)
 - **Issues & Feedback:** [GitHub Issues](https://github.com/cliptate/cliptate.github.io/issues)
 
 ---
