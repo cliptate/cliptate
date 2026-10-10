@@ -43,7 +43,7 @@ git clone https://github.com/cliptate/cliptate.git
 cd cliptate
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 swift test
-./run.sh
+./scripts/run.sh
 ```
 
 [개발 가이드](docs/development.md), [아키텍처](docs/architecture/README.md),

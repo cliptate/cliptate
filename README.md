@@ -50,7 +50,7 @@ git clone https://github.com/cliptate/cliptate.git
 cd cliptate
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 swift test
-./run.sh
+./scripts/run.sh
 ```
 
 Source code is in `Sources/Cliptate`, tests in `Tests`, the Xcode project at the

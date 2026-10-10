@@ -35,7 +35,7 @@ to unit tests. [CONTEXT.md](../../CONTEXT.md) defines the domain vocabulary.
 - [Development and build instructions](../development.md)
 - [Migration record](../migration.md)
 - [Historical architecture investigations](archive/ARCHITECTURE_INDEX.md)
-- Existing design records under `docs/plans/`, `docs/superpowers/`, and `openspec/`
+- Existing design records under `docs/plans/` and `docs/superpowers/`
 
 The archived investigations and historical plans describe earlier revisions. Use
 the current source, manifests, and this guide for present-day paths and behavior.

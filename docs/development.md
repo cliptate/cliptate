@@ -22,7 +22,7 @@ swift package resolve
 swift build
 swift test
 ./scripts/build-and-run.sh build
-./run.sh
+./scripts/run.sh
 ```
 
 SwiftPM builds the library and runs unit tests. It deliberately excludes the `@main`
@@ -223,7 +223,6 @@ config/                  shared build settings and local configuration template
 scripts/                 build, run, and asset generation tools
 assets/                  design source images
 docs/                    development, architecture, ADRs, plans, and release notes
-openspec/                existing change proposals and specifications
 .github/                 CI and contributor templates
 .agents/skills/          repository-local agent skills and supporting references
 ```

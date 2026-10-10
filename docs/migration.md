@@ -13,13 +13,15 @@ The application was migrated from `sysulq/WhisperCutPro` revision
 | `Sources/CliptateUITests` | `Tests/CliptateUITests` |
 | `script/build_and_run.sh` | `scripts/build-and-run.sh` |
 | `generate_icons.sh` | `scripts/generate-icons.sh` |
+| `run.sh` and `run-xcode.sh` | `scripts/run.sh` and `scripts/run-xcode.sh` |
 | Root architecture investigation documents | `docs/architecture/archive/` |
 | `icon_clean.png` | `assets/design/icon-clean.png` |
 | `test.wav` | `Tests/Fixtures/manual/test.wav` |
 
-All tracked application sources, tests, resources, design assets, specifications,
-and engineering records are retained. Existing multilingual Cliptate READMEs remain
-the public entry points. Root run scripts remain compatibility entry points.
+The migration retained application sources, tests, resources, design assets,
+specifications, and engineering records. Existing multilingual Cliptate READMEs
+remain the public entry points. Build and run scripts now live under `scripts/`.
+The legacy OpenSpec directory was removed during the subsequent repository cleanup.
 
 Machine/editor settings and transient brainstorming state were omitted.
 The source repository's `.agents` directory is included unchanged, with all 14
