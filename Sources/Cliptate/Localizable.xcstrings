@@ -2446,7 +2446,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AI Cut"
+            "value" : "KI-Schnitt"
           }
         },
         "ja" : {
@@ -8237,7 +8237,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dictionary"
+            "value" : "Wörterbuch"
           }
         },
         "ja" : {
@@ -8775,12 +8775,40 @@
         }
       }
     },
+    "Drop videos here or click to browse" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Videos hierher ziehen oder per Klick auswählen"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "動画をここにドロップするか、クリックして選択"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "동영상을 여기에 드롭하거나 클릭하여 선택"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将视频拖到这里，或点击选择"
+          }
+        }
+      }
+    },
     "Drag and drop files or click to choose from Finder" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag and drop files or click to choose from Finder"
+            "value" : "Dateien hierher ziehen oder per Klick im Finder auswählen"
           }
         },
         "ja" : {
@@ -12284,7 +12312,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Free Access"
+            "value" : "Kostenloser Zugang"
           }
         },
         "ja" : {
@@ -12515,7 +12543,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Generate narration clips"
+            "value" : "Sprecherclips erstellen"
           }
         },
         "ja" : {
@@ -13322,7 +13350,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "History"
+            "value" : "Verlauf"
           }
         },
         "ja" : {
@@ -13465,7 +13493,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Import one or more videos to transcribe, edit, and export."
+            "value" : "Importieren Sie ein oder mehrere Videos zum Transkribieren, Bearbeiten und Exportieren."
           }
         },
         "ja" : {
@@ -13695,7 +13723,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Intelligent Video Editing"
+            "value" : "Intelligenter Videoschnitt"
           }
         },
         "ja" : {
@@ -15456,7 +15484,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Manage AI models"
+            "value" : "KI-Modelle verwalten"
           }
         },
         "ja" : {
@@ -15485,7 +15513,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Manage AI vocabulary"
+            "value" : "KI-Wortschatz verwalten"
           }
         },
         "ja" : {
@@ -16804,7 +16832,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Models"
+            "value" : "Modelle"
           }
         },
         "ja" : {
@@ -16918,7 +16946,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MP4, MOV, AVI, MKV and other common video formats"
+            "value" : "MP4, MOV, AVI, MKV und weitere gängige Videoformate"
           }
         },
         "ja" : {
@@ -21956,7 +21984,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Real-time dictation"
+            "value" : "Echtzeit-Diktat"
           }
         },
         "ja" : {
@@ -24771,7 +24799,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setting"
+            "value" : "Einstellungen"
           }
         },
         "ja" : {
@@ -25926,7 +25954,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start Your Video Editing Journey"
+            "value" : "Starten Sie Ihre Videobearbeitung"
           }
         },
         "ja" : {
@@ -26636,7 +26664,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Supported Formats"
+            "value" : "Unterstützte Formate"
           }
         },
         "ja" : {
@@ -27159,7 +27187,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Text To Sound"
+            "value" : "Text zu Sprache"
           }
         },
         "ja" : {
@@ -28206,7 +28234,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transcript archives"
+            "value" : "Transkriptarchiv"
           }
         },
         "ja" : {
@@ -31057,7 +31085,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Voice To Text"
+            "value" : "Sprache zu Text"
           }
         },
         "ja" : {

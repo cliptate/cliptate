@@ -31,7 +31,7 @@
 
 Cliptate는 전사, 받아쓰기, 편집, 음성 합성을 통합한 네이티브 macOS 앱입니다. 음성 모델은 Mac에서 실행되며 온라인 AI 교정 및 번역 서비스는 선택적으로 설정할 수 있습니다.
 
-![Cliptate 홈 화면](assets/screenshots/home.jpg)
+![Cliptate 홈 화면](assets/screenshots/home.ko.jpg)
 
 ---
 

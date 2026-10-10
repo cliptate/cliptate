@@ -31,7 +31,7 @@
 
 Cliptate は、文字起こし、音声入力、編集、音声合成をまとめたネイティブ macOS アプリです。音声モデルは Mac 上で動作し、オンラインの AI 校正・翻訳サービスは任意で設定できます。
 
-![Cliptate のホーム画面](assets/screenshots/home.jpg)
+![Cliptate のホーム画面](assets/screenshots/home.ja.jpg)
 
 ---
 

@@ -29,7 +29,7 @@ struct AICutLandingView: View {
       }
 
       DropAreaView(
-        title: "Drop videos here or click to browse",
+        title: String(localized: "Drop videos here or click to browse"),
         onDropURLs: onImportURLs,
         style: .hero,
         onTap: onTap

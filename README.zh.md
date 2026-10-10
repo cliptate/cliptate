@@ -31,7 +31,7 @@
 
 Cliptate 是一款原生 macOS 应用，将转写、听写、剪辑和语音合成整合到同一工作流。语音模型在 Mac 本地运行，也可以单独配置在线 AI 纠错和翻译服务。
 
-![Cliptate 首页](assets/screenshots/home.jpg)
+![Cliptate 首页](assets/screenshots/home.zh-Hans.jpg)
 
 ---
 

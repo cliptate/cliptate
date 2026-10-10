@@ -32,7 +32,7 @@
 
 Cliptate is a native macOS application that brings transcription, dictation, editing, and speech synthesis into one workflow. Speech models run on your Mac; optional online AI correction and translation providers can be configured separately.
 
-![Cliptate home screen](assets/screenshots/home.jpg)
+![Cliptate home screen](assets/screenshots/home.en.jpg)
 
 ---
 
