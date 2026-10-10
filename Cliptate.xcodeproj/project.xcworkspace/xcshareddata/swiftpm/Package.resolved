@@ -1,5 +1,5 @@
 {
-  "originHash" : "7433b941bf159a7c6eb41e79e865889dd8c94d0b70af61664097de9383665b60",
+  "originHash" : "9247ea954565eee36cb76b51388069277c550ca3ec8b00c9d56a0401789d44b0",
   "pins" : [
     {
       "identity" : "audiokit",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/combine-schedulers",
       "state" : {
-        "revision" : "114354e8c1667a2edc4993700fb9fa4f90157b56",
-        "version" : "1.2.2"
+        "revision" : "dcccb979a2183b8df3334237e3dc1ae2b4116a86",
+        "version" : "1.2.0"
       }
     },
     {
@@ -136,15 +136,6 @@
       }
     },
     {
-      "identity" : "swift-issue-reporting",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/pointfreeco/swift-issue-reporting",
-      "state" : {
-        "revision" : "75b000cea2ca6d7527a57e1b9cc0bdf21a9abe9f",
-        "version" : "2.1.1"
-      }
-    },
-    {
       "identity" : "swift-jinja",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/huggingface/swift-jinja.git",
@@ -187,6 +178,15 @@
       "state" : {
         "revision" : "48473106a93b2d8dfb114b82f0628ebbb71734e7",
         "version" : "1.3.5"
+      }
+    },
+    {
+      "identity" : "xctest-dynamic-overlay",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
+      "state" : {
+        "revision" : "8f6abcf4c8950e2679d5b2fee4ca284fd7c34886",
+        "version" : "1.11.0"
       }
     },
     {

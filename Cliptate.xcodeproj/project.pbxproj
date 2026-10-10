@@ -249,6 +249,8 @@
 			mainGroup = 29F2C4B52E46DE8700B5995C;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				C11F00000000000000000020 /* XCRemoteSwiftPackageReference "combine-schedulers" */,
+				C11F00000000000000000021 /* XCRemoteSwiftPackageReference "xctest-dynamic-overlay" */,
 				C11F00000000000000000010 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */,
 				C11F00000000000000000007 /* XCRemoteSwiftPackageReference "mlx-swift" */,
 				C11F00000000000000000004 /* XCRemoteSwiftPackageReference "swift-huggingface" */,
@@ -695,6 +697,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		C11F00000000000000000021 /* XCRemoteSwiftPackageReference "xctest-dynamic-overlay" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/xctest-dynamic-overlay";
+			requirement = {
+				kind = exactVersion;
+				version = 1.11.0;
+			};
+		};
+		C11F00000000000000000020 /* XCRemoteSwiftPackageReference "combine-schedulers" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/combine-schedulers";
+			requirement = {
+				kind = exactVersion;
+				version = 1.2.0;
+			};
+		};
 		C11F00000000000000000010 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ml-explore/mlx-swift-lm.git";

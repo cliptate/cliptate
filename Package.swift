@@ -17,6 +17,10 @@ let package = Package(
         .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.4.0"),
         .package(url: "https://github.com/sindresorhus/LaunchAtLogin-Modern.git", from: "1.1.0"),
         .package(url: "https://github.com/mihai8804858/swift-ass-renderer", from: "1.3.1"),
+        // Newer manifests change the IssueReporting package identity across Swift versions.
+        // Use the same dependency graph with Xcode 26 and Xcode 27.
+        .package(url: "https://github.com/pointfreeco/combine-schedulers", exact: "1.2.0"),
+        .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", exact: "1.11.0"),
         .package(url: "https://github.com/AudioKit/AudioKit", from: "5.6.5"),
         .package(url: "https://github.com/RevenueCat/purchases-ios-spm.git", from: "5.44.1"),
         // Keep the inference graph compatible with the pinned MLX Audio revision.

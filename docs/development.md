@@ -51,6 +51,11 @@ When updating a dependency, update both the SwiftPM manifest and Xcode reference
 resolve both graphs, run `python3 scripts/update-dependency-notices.py`, and run the builds and tests.
 MLX Swift 0.31.3 and MLX Swift LM 3.31.3 are intentionally pinned for compatibility
 with the selected MLX Audio revision; update that inference graph as a unit.
+Combine Schedulers 1.2.0 and XCTest Dynamic Overlay 1.11.0 are pinned in both build
+graphs because later releases select different IssueReporting package identities
+with Swift 6.3 and Swift 6.4.
+CI explicitly selects Xcode 26.6 on the macOS 26 Apple Silicon runner. Keep locked
+resolution enabled so a clean checkout verifies the complete dependency graph.
 
 ## Billing and distribution configuration
 

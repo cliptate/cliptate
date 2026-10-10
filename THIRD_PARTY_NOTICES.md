@@ -13,6 +13,8 @@ by the committed dependency locks.
 | KeyboardShortcuts | MIT | https://github.com/sindresorhus/KeyboardShortcuts |
 | LaunchAtLogin Modern | MIT | https://github.com/sindresorhus/LaunchAtLogin-Modern |
 | SwiftAssRenderer | MIT | https://github.com/mihai8804858/swift-ass-renderer |
+| Combine Schedulers | MIT | https://github.com/pointfreeco/combine-schedulers |
+| XCTest Dynamic Overlay | MIT | https://github.com/pointfreeco/xctest-dynamic-overlay |
 | AudioKit | MIT | https://github.com/AudioKit/AudioKit |
 | RevenueCat | MIT | https://github.com/RevenueCat/purchases-ios-spm |
 | MLX Audio Swift | MIT | https://github.com/Blaizzy/mlx-audio-swift |
