@@ -160,8 +160,8 @@ App-Specific Passwords**. Enter it directly into the repository secret or a trus
 local setup terminal; do not put it in chat, logs, shell history, or source files.
 Test runs do not consume signing credentials.
 
-Release builds disable Xcode's base entitlement injection so distribution apps
-do not carry the debugging-only `com.apple.security.get-task-allow` permission.
+Release builds disable Xcode's base entitlement injection for the app and embedded CLI
+so neither carries the debugging-only `com.apple.security.get-task-allow` permission.
 Signed packaging checks the actual app entitlements before creating the DMG;
 Debug builds retain Xcode's normal debugger configuration.
 

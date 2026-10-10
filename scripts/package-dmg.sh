@@ -40,6 +40,15 @@ if [[ -n "${CODE_SIGN_IDENTITY:-}" && "$CODE_SIGN_IDENTITY" != - ]]; then
   fi
   /usr/bin/codesign -d --entitlements :- "$APP_BUNDLE" 2>/dev/null |
     python3 "$ROOT_DIR/scripts/verify-distribution-entitlements.py"
+  CLI_BINARY="$APP_BUNDLE/Contents/Helpers/cliptate"
+  if [[ -f "$CLI_BINARY" ]]; then
+    CLI_ENTITLEMENTS="$(/usr/bin/codesign -d --entitlements :- "$CLI_BINARY" 2>/dev/null)"
+    # A command-line tool may have no entitlements at all; debug access is forbidden.
+    if [[ -n "$CLI_ENTITLEMENTS" ]]; then
+      printf '%s\n' "$CLI_ENTITLEMENTS" |
+        python3 "$ROOT_DIR/scripts/verify-distribution-entitlements.py"
+    fi
+  fi
 fi
 
 mkdir -p "$OUTPUT_DIR"

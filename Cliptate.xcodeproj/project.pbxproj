@@ -694,7 +694,7 @@
 			name = Release;
 		};
 		C11C00000000000000000007 = {isa = XCBuildConfiguration; buildSettings = {ARCHS = arm64; CODE_SIGN_STYLE = Manual; ENABLE_HARDENED_RUNTIME = YES; MACOSX_DEPLOYMENT_TARGET = 15.0; PRODUCT_NAME = cliptate; PRODUCT_BUNDLE_IDENTIFIER = com.cliptate.cli; SDKROOT = macosx; SKIP_INSTALL = YES; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; }; name = Debug; };
-		C11C00000000000000000008 = {isa = XCBuildConfiguration; buildSettings = {ARCHS = arm64; CODE_SIGN_STYLE = Manual; ENABLE_HARDENED_RUNTIME = YES; MACOSX_DEPLOYMENT_TARGET = 15.0; PRODUCT_NAME = cliptate; PRODUCT_BUNDLE_IDENTIFIER = com.cliptate.cli; SDKROOT = macosx; SKIP_INSTALL = YES; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; }; name = Release; };
+		C11C00000000000000000008 = {isa = XCBuildConfiguration; buildSettings = {ARCHS = arm64; CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO; CODE_SIGN_STYLE = Manual; ENABLE_HARDENED_RUNTIME = YES; MACOSX_DEPLOYMENT_TARGET = 15.0; PRODUCT_NAME = cliptate; PRODUCT_BUNDLE_IDENTIFIER = com.cliptate.cli; SDKROOT = macosx; SKIP_INSTALL = YES; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; }; name = Release; };
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
