@@ -2,11 +2,12 @@ import Foundation
 import Observation
 import ServiceManagement
 
-/// ServiceManagement uses synchronous IPC. Keep it off the main actor, including
-/// the status reads that SwiftUI would otherwise repeat during layout.
+/// ServiceManagement uses synchronous IPC. Keep it off both the main actor and
+/// Swift's cooperative pool so a slow query cannot prevent callers from resuming.
 actor LoginItemService {
   private let readEnabled: @Sendable () -> Bool
   private let writeEnabled: @Sendable (Bool) throws -> Void
+  private let queue = DispatchQueue(label: "com.cliptate.login-item", qos: .userInitiated)
 
   init(
     readEnabled: @escaping @Sendable () -> Bool = { SMAppService.mainApp.status == .enabled },
@@ -22,17 +23,32 @@ actor LoginItemService {
     self.writeEnabled = writeEnabled
   }
 
-  func isEnabled() -> Bool { readEnabled() }
+  func isEnabled() async -> Bool { await perform(readEnabled) }
 
-  func setEnabled(_ enabled: Bool) -> (enabled: Bool, errorMessage: String?) {
-    var errorMessage: String?
-    do {
-      try writeEnabled(enabled)
-    } catch {
-      errorMessage = error.localizedDescription
+  func setEnabled(_ enabled: Bool) async -> (enabled: Bool, errorMessage: String?) {
+    let readEnabled = readEnabled
+    let writeEnabled = writeEnabled
+    return await perform {
+      var errorMessage: String?
+      do {
+        try writeEnabled(enabled)
+      } catch {
+        errorMessage = error.localizedDescription
+      }
+      // Registration may fail or require system approval. Display the real state.
+      return (readEnabled(), errorMessage)
     }
-    // Registration may fail or require system approval. Display the real state.
-    return (readEnabled(), errorMessage)
+  }
+
+  private func perform<Result: Sendable>(
+    _ operation: @escaping @Sendable () -> Result
+  ) async -> Result {
+    await withCheckedContinuation { continuation in
+      // Preserve read/write ordering while releasing the caller's cooperative worker.
+      queue.async {
+        continuation.resume(returning: operation())
+      }
+    }
   }
 }
 

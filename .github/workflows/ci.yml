@@ -33,5 +33,9 @@ jobs:
         run: python3 scripts/update-dependency-notices.py --check
       - name: Run unit tests
         run: swift test
+      - name: Verify login item queries with one cooperative worker
+        env:
+          LIBDISPATCH_COOPERATIVE_POOL_STRICT: '1'
+        run: swift test --skip-build --filter LoginItemSettingsTests
       - name: Check dependency locks remain unchanged
         run: git diff --exit-code -- Package.resolved Cliptate.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
