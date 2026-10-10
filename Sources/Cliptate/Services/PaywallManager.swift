@@ -77,6 +77,7 @@ final class PaywallManager: ObservableObject {
     func showPaywall(
         for model: ModelVariant, reason: PaywallContext.PaywallReason = .attemptedPaidModelDownload
     ) async -> Bool {
+        guard SubscriptionPolicy.isBillingEnabled else { return false }
         await resetIfNeeded()
 
         let isManualPresentation = reason == .userInitiated

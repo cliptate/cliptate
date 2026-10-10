@@ -9,6 +9,35 @@ struct ProHubView: View {
     @StateObject private var subscriptionStatusViewModel = SubscriptionStatusViewModel()
 
     var body: some View {
+        if SubscriptionPolicy.isBillingEnabled {
+            subscriptionContent
+        } else {
+            freeAccessContent
+        }
+    }
+
+    private var freeAccessContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Label("All features are free", systemImage: "checkmark.seal.fill")
+                    .font(.title2.weight(.semibold))
+                Text("All models and Pro features are available for free. No subscription or purchase is required.")
+                    .foregroundStyle(.secondary)
+                featureHighlightsRow
+            }
+            .padding(24)
+            .frame(maxWidth: 820, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color(NSColor.controlBackgroundColor))
+            )
+            .padding(28)
+            .frame(maxWidth: .infinity)
+        }
+        .background(Color(NSColor.windowBackgroundColor))
+    }
+
+    private var subscriptionContent: some View {
         ScrollView {
             VStack(spacing: 0) {
                 mainCard

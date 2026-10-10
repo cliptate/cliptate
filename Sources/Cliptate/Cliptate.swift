@@ -62,8 +62,9 @@ struct CliptateApp: App {
     }
 
     if !RuntimeEnvironment.isRunningTests {
-      // Billing is optional for source builds; developers supply their own public SDK key.
-      if let apiKey = (ProcessInfo.processInfo.environment["CLIPTATE_REVENUECAT_API_KEY"]
+      // App Store billing is optional; direct builds never initialize the SDK.
+      if SubscriptionPolicy.isBillingEnabled,
+        let apiKey = (ProcessInfo.processInfo.environment["CLIPTATE_REVENUECAT_API_KEY"]
         ?? Bundle.main.object(forInfoDictionaryKey: "CliptateRevenueCatAPIKey") as? String)?
         .trimmingCharacters(in: .whitespacesAndNewlines),
         !apiKey.isEmpty, !apiKey.hasPrefix("$(")

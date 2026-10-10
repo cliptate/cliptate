@@ -58,7 +58,7 @@ struct LightweightMenuView: View {
     Divider()
 
     Button(action: openProSection) {
-      Text(String(localized: "Subscription and benefits", comment: "Menu bar: open Pro and subscription page"))
+      Text(AppSection.pro.description)
     }
 
     if lightweightManager.isActive {

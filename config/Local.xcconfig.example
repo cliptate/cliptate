@@ -2,6 +2,9 @@
 // Never use RevenueCat secret REST API keys here.
 CLIPTATE_REVENUECAT_API_KEY =
 
+// Uncomment for the free direct-distribution channel (also enables Accessibility support).
+// CLIPTATE_CHANNEL_CONDITIONS =
+
 // Public Ed25519 key printed by Sparkle's generate_keys tool (never the private key).
 CLIPTATE_SPARKLE_PUBLIC_KEY =
 // Set to NO for Mac App Store distribution. APP_STORE still controls accessibility.

@@ -1191,6 +1191,7 @@ struct ModelsView: View {
   }
 
   private var shouldShowProPromo: Bool {
+    guard SubscriptionPolicy.isBillingEnabled else { return false }
     let isProActive = subscriptionStatus?.isActive ?? false
     return !isProActive && !hasDismissedProPromo
   }
@@ -1468,6 +1469,7 @@ struct ModelsView: View {
   }
 
   private func fetchSubscriptionStatus(forceRefresh: Bool) async -> SubscriptionStatus? {
+    guard SubscriptionPolicy.isBillingEnabled else { return nil }
     do {
       return try await ModelAccessController.shared.getCurrentSubscriptionStatus(
         forceRefresh: forceRefresh
@@ -1558,6 +1560,7 @@ struct ModelsView: View {
   }
 
   private func startSubscriptionMonitoringIfNeeded() {
+    guard SubscriptionPolicy.isBillingEnabled else { return }
     guard subscriptionMonitorTask == nil else { return }
     subscriptionMonitorTask = Task {
       let stream = await ModelAccessController.shared.subscriptionStatusStream()

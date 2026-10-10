@@ -17,6 +17,10 @@ test -s "$CHECKSUM_PATH"
 
 ASSET_PATHS=("$DMG_PATH" "$CHECKSUM_PATH")
 if [[ -n "${APPCAST_PATH:-}" ]]; then
+  if [[ "$TAG" == nightly ]]; then
+    echo 'Nightly builds use the latest stable feed and cannot publish their own appcast.' >&2
+    exit 1
+  fi
   if [[ "${SIGNING_STATUS:-}" != developer-id-notarized ]]; then
     echo 'Only notarized Developer ID releases can publish update feeds.' >&2
     exit 1
@@ -55,7 +59,7 @@ else
   # Never create or move a version tag: it must already identify the built commit.
   ENCODED_TAG="$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$TAG")"
   test "$(gh api "repos/$GH_REPO/commits/$ENCODED_TAG" --jq .sha)" = "$COMMIT"
-  FLAGS=(--prerelease=false)
+  FLAGS=(--prerelease=false --latest=true)
 fi
 
 if ! gh release view "$TAG" --json id >/dev/null 2>&1; then
@@ -84,7 +88,7 @@ if [[ "$TAG" == nightly ]]; then
     esac
   done <<< "$ASSETS"
 else
-  gh release edit "$TAG" --draft=false
+  gh release edit "$TAG" --draft=false --prerelease=false --latest=true
 fi
 
 URL="$(gh release view "$TAG" --json url --jq .url)"

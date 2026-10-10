@@ -1,6 +1,151 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "View Releases" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看发行版本"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リリースを表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "릴리스 보기"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veröffentlichungen ansehen"
+          }
+        }
+      }
+    },
+    "This update channel does not have a published update feed yet. Please check the GitHub releases page for available downloads." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此更新渠道尚未发布更新信息。请前往 GitHub 发行页面查看可下载的版本。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この更新チャンネルには、まだ更新情報が公開されていません。ダウンロード可能なバージョンは GitHub のリリースページでご確認ください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 업데이트 채널에는 아직 업데이트 정보가 게시되지 않았습니다. GitHub 릴리스 페이지에서 다운로드 가능한 버전을 확인해 주세요."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für diesen Update-Kanal wurde noch kein Update-Feed veröffentlicht. Verfügbare Downloads finden Sie auf der GitHub-Releases-Seite."
+          }
+        }
+      }
+    },
+    "Update information is not published yet." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未发布更新信息。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新情報はまだ公開されていません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "업데이트 정보가 아직 게시되지 않았습니다."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Update-Informationen wurden noch nicht veröffentlicht."
+          }
+        }
+      }
+    },
+    "All models and Pro features are available for free. No subscription or purchase is required." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有模型和 Pro 功能均免费开放，无需订阅或购买。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのモデルと Pro 機能を無料で利用できます。サブスクリプションや購入は不要です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모든 모델과 Pro 기능을 무료로 이용할 수 있습니다. 구독이나 구매가 필요하지 않습니다."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Modelle und Pro-Funktionen sind kostenlos verfügbar. Ein Abonnement oder Kauf ist nicht erforderlich."
+          }
+        }
+      }
+    },
+    "All features are free" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部功能免费开放"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべての機能が無料"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모든 기능 무료"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Funktionen sind kostenlos"
+          }
+        }
+      }
+    },
     "Check for Updates…" : {
       "extractionState" : "manual",
       "localizations" : {

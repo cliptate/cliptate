@@ -6,7 +6,7 @@ struct CheckForAppUpdatesButton: View {
   var body: some View {
     if updates.isAvailable {
       Button("Check for Updates…", action: updates.checkForUpdates)
-        .disabled(!updates.canCheckForUpdates)
+        .disabled(!updates.canCheckForUpdates || updates.isCheckingFeed)
     }
   }
 }

@@ -8,6 +8,10 @@ APP_BUNDLE="$DERIVED_DATA_PATH/Build/Products/$CONFIGURATION/Cliptate.app"
 SIGNING_IDENTITY="${CODE_SIGN_IDENTITY:--}"
 SIGNING_TEAM="${DEVELOPMENT_TEAM:-}"
 SIGNING_FLAGS=(CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$SIGNING_TEAM")
+if [[ "${CLIPTATE_APP_STORE:-YES}" == NO ]]; then
+  # Explicitly select the free direct-distribution channel, including Accessibility support.
+  SIGNING_FLAGS+=(CLIPTATE_CHANNEL_CONDITIONS=)
+fi
 for setting in CLIPTATE_SPARKLE_PUBLIC_KEY CLIPTATE_UPDATE_FEED_URL CLIPTATE_UPDATES_ENABLED CURRENT_PROJECT_VERSION; do
   if [[ -n "${!setting:-}" ]]; then
     SIGNING_FLAGS+=("$setting=${!setting}")
@@ -19,6 +23,9 @@ if [[ "$SIGNING_IDENTITY" != - ]]; then
     exit 1
   fi
   SIGNING_FLAGS+=(OTHER_CODE_SIGN_FLAGS=--timestamp)
+else
+  # Ad-hoc signatures have no Team ID and cannot satisfy runtime library validation.
+  SIGNING_FLAGS+=(ENABLE_HARDENED_RUNTIME=NO)
 fi
 case "$MODE" in
   run|build|--debug|--logs|--verify) ;;

@@ -25,16 +25,19 @@ jobs:
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
       CONFIGURATION: Release
+      CLIPTATE_APP_STORE: 'NO'
     outputs:
       commit: ${{ steps.source.outputs.commit }}
       release-tag: ${{ steps.source.outputs.release-tag }}
       dmg-name: ${{ steps.package.outputs.dmg-name }}
-      artifact-ids: ${{ steps.upload-dmg.outputs.artifact-id }},${{ steps.upload-checksum.outputs.artifact-id }},${{ steps.upload-appcast.outputs.artifact-id }}
+      artifact-ids: ${{ steps.upload-appcast.outputs.artifact-id != '' && format('{0},{1},{2}', steps.upload-dmg.outputs.artifact-id, steps.upload-checksum.outputs.artifact-id, steps.upload-appcast.outputs.artifact-id) || format('{0},{1}', steps.upload-dmg.outputs.artifact-id, steps.upload-checksum.outputs.artifact-id) }}
       signing-status: ${{ steps.notarize.outputs.signing-status }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+          # Nightly always packages main; stable releases preserve the triggering version tag.
+          ref: ${{ github.ref_type == 'tag' && github.ref_name != 'nightly' && github.ref || 'main' }}
       - name: Identify release source
         id: source
         env:
@@ -73,13 +76,13 @@ jobs:
         run: |
           python3 - <<'PY'
           import base64, os
-          if not os.environ["SPARKLE_PRIVATE_KEY"]:
+          if os.environ["RELEASE_TAG"] != "nightly" and not os.environ["SPARKLE_PRIVATE_KEY"]:
               raise SystemExit("Configure secrets.SPARKLE_PRIVATE_KEY with the exported signing key")
           key = os.environ["SPARKLE_PUBLIC_KEY"]
           if len(base64.b64decode(key, validate=True)) != 32:
               raise SystemExit("Configure vars.SPARKLE_PUBLIC_KEY with a 32-byte public Ed25519 key")
-          feed = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/"
-          feed += "download/nightly" if os.environ["RELEASE_TAG"] == "nightly" else "latest/download"
+          repository = os.environ["GITHUB_REPOSITORY"]
+          feed = f"https://github.com/{repository}/releases/latest/download"
           with open(os.environ["GITHUB_ENV"], "a") as output:
               output.write(f"CLIPTATE_SPARKLE_PUBLIC_KEY={key}\n")
               output.write(f"CLIPTATE_UPDATE_FEED_URL={feed}/appcast.xml\n")
@@ -111,12 +114,15 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
         run: ./scripts/notarize-dmg.sh "$DMG_PATH"
       - name: Generate signed appcast
+        if: ${{ steps.source.outputs.release-tag != 'nightly' }}
         env:
           RELEASE_TAG: ${{ steps.source.outputs.release-tag }}
+          BUILT_COMMIT: ${{ steps.source.outputs.commit }}
           SIGNING_STATUS: ${{ steps.notarize.outputs.signing-status }}
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: ./scripts/generate-appcast.sh "${{ steps.package.outputs.dmg-path }}"
       - name: Upload appcast
+        if: ${{ steps.source.outputs.release-tag != 'nightly' }}
         id: upload-appcast
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
@@ -158,6 +164,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+          ref: ${{ needs.build.outputs.commit }}
       - name: Download verified packages
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
@@ -171,5 +178,5 @@ jobs:
           BUILT_COMMIT: ${{ needs.build.outputs.commit }}
           DMG_NAME: ${{ needs.build.outputs.dmg-name }}
           SIGNING_STATUS: ${{ needs.build.outputs.signing-status }}
-          APPCAST_PATH: dist/appcast.xml
+          APPCAST_PATH: ${{ needs.build.outputs.release-tag != 'nightly' && 'dist/appcast.xml' || '' }}
         run: ./scripts/publish-release.sh "dist/$DMG_NAME"

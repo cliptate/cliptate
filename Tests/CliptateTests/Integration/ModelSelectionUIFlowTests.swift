@@ -87,7 +87,7 @@ struct ModelSelectionUIFlowTests {
       downloadStatuses: parakeetStatuses,
       permissions: parakeetPermissions
     )
-    #expect(parakeetShortcuts == [ModelVariant.parakeetV3])
+    #expect(parakeetShortcuts == (SubscriptionPolicy.isBillingEnabled ? [ModelVariant.parakeetV3] : []))
 
     let qwenStatuses: [ModelVariant: ModelDownloadStatus] = [
       .qwen3ASR: .downloaded,
@@ -112,7 +112,7 @@ struct ModelSelectionUIFlowTests {
       downloadStatuses: qwenStatuses,
       permissions: qwenPermissions
     )
-    #expect(qwenShortcuts == [ModelVariant.qwen3ASR17B4bit, .qwen3ASR17B8bit])
+    #expect(qwenShortcuts == (SubscriptionPolicy.isBillingEnabled ? [ModelVariant.qwen3ASR17B4bit, .qwen3ASR17B8bit] : []))
 
     let fireRedStatuses: [ModelVariant: ModelDownloadStatus] = [
       .fireRedASR2: .notDownloaded
@@ -129,7 +129,7 @@ struct ModelSelectionUIFlowTests {
       downloadStatuses: fireRedStatuses,
       permissions: fireRedPermissions
     )
-    #expect(fireRedShortcuts == [ModelVariant.fireRedASR2])
+    #expect(fireRedShortcuts == (SubscriptionPolicy.isBillingEnabled ? [ModelVariant.fireRedASR2] : []))
 
     let cohereType = try #require(TranscriberType(rawValue: "cohere"))
     let cohereFP16 = try #require(ModelVariant(rawValue: "cohere-transcribe-03-2026-mlx-fp16"))
@@ -155,7 +155,7 @@ struct ModelSelectionUIFlowTests {
       downloadStatuses: cohereStatuses,
       permissions: coherePermissions
     )
-    #expect(cohereShortcuts == [cohereFP16, cohere8Bit])
+    #expect(cohereShortcuts == (SubscriptionPolicy.isBillingEnabled ? [cohereFP16, cohere8Bit] : []))
   }
 
   @Test("models header demotes cache memory to secondary stat below downloaded and disk usage")

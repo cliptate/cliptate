@@ -51,7 +51,9 @@ actor ModelAccessController {
                 cachedPlansTimestamp = storedPlans.timestamp
             }
         }
-        Task { await observeRevenueCatChanges() }
+        if SubscriptionPolicy.isBillingEnabled {
+            Task { await observeRevenueCatChanges() }
+        }
     }
 
     func canDownloadModel(_ model: ModelVariant) async throws -> Bool {
@@ -148,7 +150,10 @@ actor ModelAccessController {
     }
 
     func subscriptionStatusStream() -> AsyncStream<SubscriptionStatus> {
-        AsyncStream { continuation in
+        guard SubscriptionPolicy.isBillingEnabled else {
+            return AsyncStream { $0.finish() }
+        }
+        return AsyncStream { continuation in
             Task { await self.registerContinuation(continuation) }
         }
     }

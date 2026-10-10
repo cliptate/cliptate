@@ -142,19 +142,25 @@ class PublishReleaseTests(unittest.TestCase):
                 self.assertEqual(state["deleted"], [])
                 self.assertFalse(any("/git/" in " ".join(c) for c in state["calls"]))
 
+    def test_stable_release_is_explicitly_marked_latest(self):
+        result, state = self.run_release(tag="v1.0", signing_status="developer-id-notarized", appcast=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        publish = next(c for c in state["calls"] if c[:2] == ["release", "edit"])
+        self.assertIn("--latest=true", publish)
+
     def test_moved_version_tag_is_rejected_before_upload(self):
         result, state = self.run_release(tag="v1.8.0", tag_commit="b" * 40)
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse(any(c[:2] == ["release", "upload"] for c in state["calls"]))
 
     def test_verified_signed_release_notes_describe_notarization(self):
-        result, state = self.run_release(signing_status="developer-id-notarized", appcast=True)
+        result, state = self.run_release(signing_status="developer-id-notarized")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Developer ID signed and Apple-notarized.", state["notes"])
         self.assertNotIn("ad-hoc", state["notes"])
 
     def test_signed_feed_upload_follows_installer_upload(self):
-        result, state = self.run_release(signing_status="developer-id-notarized", appcast=True)
+        result, state = self.run_release(tag="v1.0", signing_status="developer-id-notarized", appcast=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         uploads = [c for c in state["calls"] if c[:2] == ["release", "upload"]]
         self.assertEqual(len(uploads), 2)
@@ -162,12 +168,17 @@ class PublishReleaseTests(unittest.TestCase):
         self.assertTrue(any(path.endswith("appcast.xml") for path in uploads[1]))
 
     def test_wrong_feed_is_rejected_before_github_calls(self):
-        result, state = self.run_release(signing_status="developer-id-notarized", appcast=True, wrong_feed=True)
+        result, state = self.run_release(tag="v1.0", signing_status="developer-id-notarized", appcast=True, wrong_feed=True)
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(state["calls"], [])
 
     def test_adhoc_release_cannot_publish_an_update_feed(self):
-        result, state = self.run_release(appcast=True)
+        result, state = self.run_release(tag="v1.0", appcast=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(state["calls"], [])
+
+    def test_nightly_cannot_publish_its_own_update_feed(self):
+        result, state = self.run_release(signing_status="developer-id-notarized", appcast=True)
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(state["calls"], [])
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Cliptate</title>
+    <link>https://github.com/cliptate/cliptate/releases</link>
+    <description>Cliptate macOS application updates.</description>
+    <language>en</language>
+    <!-- Stable packaging fills the release item from the final signed v1.0 DMG.
+         Both stable and Nightly apps fetch the Latest release asset. -->
+  </channel>
+</rss>

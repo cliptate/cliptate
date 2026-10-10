@@ -29,7 +29,7 @@ struct ModelVariantAccessLevelTests {
         ]
 
         for variant in ModelVariant.allCases {
-            let shouldRequireSubscription = premiumModels.contains(variant)
+            let shouldRequireSubscription = SubscriptionPolicy.isBillingEnabled && premiumModels.contains(variant)
             #expect(variant.requiresProSubscription == shouldRequireSubscription)
             #expect(variant.accessLevel == (shouldRequireSubscription ? .pro : .free))
         }
@@ -43,8 +43,8 @@ struct ModelVariantAccessLevelTests {
 
         #expect(Set(variants.map(\.rawValue)) == Set(cohereRawValues))
         for variant in variants {
-            #expect(variant.requiresProSubscription)
-            #expect(variant.accessLevel == .pro)
+            #expect(variant.requiresProSubscription == SubscriptionPolicy.isBillingEnabled)
+            #expect(variant.accessLevel == (SubscriptionPolicy.isBillingEnabled ? .pro : .free))
             #expect(variant.provider.rawValue == "cohere")
         }
     }

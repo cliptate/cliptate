@@ -42,6 +42,9 @@ DMGs and SHA-256 checksums are available from
 CI packages require Developer ID signing and Apple notarization; see the
 [installation guide](docs/development.md#dmg-packages-and-ci-downloads).
 
+Direct-download builds are fully free, with all models and Pro features unlocked
+and no subscription or purchase required. App Store builds retain subscription billing.
+
 The complete application is open source under the [MIT license](LICENSE).
 Builds require Apple Silicon, macOS 15+, and Xcode 26+ (Swift 6.2+).
 
@@ -49,6 +52,7 @@ Builds require Apple Silicon, macOS 15+, and Xcode 26+ (Swift 6.2+).
 git clone https://github.com/cliptate/cliptate.git
 cd cliptate
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+export CLIPTATE_APP_STORE=NO
 swift test
 ./scripts/run.sh
 ```
@@ -57,7 +61,7 @@ Source code is in `Sources/Cliptate`, tests in `Tests`, the Xcode project at the
 repository root, and tooling in `scripts`. See [development](docs/development.md),
 [architecture](docs/architecture/README.md), [contributing](CONTRIBUTING.md),
 [third-party notices](THIRD_PARTY_NOTICES.md), and the [migration record](docs/migration.md).
-Source builds use optional local billing configuration; model weights are downloaded separately.
+App Store source builds use optional local billing configuration; model weights are downloaded separately.
 
 
 ## Features

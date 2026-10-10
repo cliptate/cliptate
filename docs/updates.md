@@ -14,16 +14,32 @@ the integration does not enable automatic installation.
 
 ## Feeds and versions
 
-- Stable builds: `https://github.com/cliptate/cliptate/releases/latest/download/appcast.xml`
-- Nightly builds: `https://github.com/cliptate/cliptate/releases/download/nightly/appcast.xml`
+All direct-download builds, including Nightly and local source builds, use the
+latest stable feed: `https://github.com/cliptate/cliptate/releases/latest/download/appcast.xml`.
+Nightly still builds `main` as a rolling prerelease, but checks for stable updates.
+It does not publish a separate update feed. Version tags identify stable source;
+the publication job explicitly marks the verified version release as Latest.
 
-Each feed is a release asset generated from the final notarized and stapled DMG
-using Sparkle's `generate_appcast` tool. The feed contains that release's build
-number, display version, minimum macOS version, download URL, byte length, and
-Ed25519 signature. A new Nightly replaces the previous feed and installer. Stable
-and Nightly builds stay on their respective feeds; users change channel by
-installing the other distribution. Before the first release with an appcast, its
-feed URL will return 404.
+The feed follows [VoiceInk's appcast structure](https://github.com/Beingpax/VoiceInk/blob/main/appcast.xml).
+Each stable release has one item containing the build number, display version,
+publication date, minimum macOS version, embedded release notes, installer URL,
+byte length, and Ed25519 signature. Packaging generates it from the final
+notarized and stapled DMG with Sparkle's `generate_appcast`, then validates it.
+The checked-in [appcast.xml](../appcast.xml) supplies channel metadata and can
+hold a snapshot of a published stable feed; apps fetch the Latest release asset.
+Generation removes existing items so a previous snapshot never advertises a stale
+installer. GitHub Pages and commits to `main` are unnecessary for serving updates.
+
+The initial stable release is `v1.0`, with display version `1.0`. Its internal build
+number continues above existing installations even though the display version
+starts at 1.0. Before the first signed stable feed is published, the Latest feed
+URL will return 404. Publishing a tag runs **Package and release**, which uploads
+the verified installer and appcast before publishing the release as Latest.
+
+Manual checks detect an unpublished feed (HTTP 404) and explain that update
+information is not published yet, with a link to GitHub Releases. They do not
+report that the app is up to date or switch between stable and Nightly channels.
+Other network failures and all update validation remain handled by Sparkle.
 
 CI assigns `CFBundleVersion` as `1000 + GITHUB_RUN_NUMBER`, followed by the run
 attempt (for example `1042.1`). This increases even when the marketing version is
@@ -65,10 +81,11 @@ embedded public key against the signing key. Missing credentials or a mismatched
 key prevents publication. The private key reaches the tool only through stdin.
 
 The publication job validates the feed's signature shape, file length, and release
-URL, uploads the DMG and checksum, then uploads `appcast.xml`. It publishes the
-release and only then removes obsolete Nightly installers. No branch write or
-GitHub Pages setup is required. Feed validation is structural; cryptographic
-archive verification is performed by Sparkle when installing the update.
+URL, uploads the DMG and checksum, then uploads `appcast.xml`. Only stable version
+releases publish update feeds. Nightly publication keeps its prerelease status
+and `latest=false`, and only replaces its installer and checksum. The source
+branch is never written by the release workflow. Feed validation is structural;
+cryptographic archive verification is performed by Sparkle when installing.
 
 ## Local builds and App Store distribution
 

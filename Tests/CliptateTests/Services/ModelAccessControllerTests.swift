@@ -11,6 +11,8 @@ private actor MockRevenueCatManager {
     var shouldFailStatusFetch: Bool = false
     var shouldFailOfferings: Bool = false
     var offeringsFetchCount: Int = 0
+    var statusFetchCount: Int = 0
+    var statusStreamCount: Int = 0
 
     private var streamContinuation: AsyncStream<SubscriptionStatus>.Continuation?
 
@@ -31,6 +33,7 @@ private actor MockRevenueCatManager {
     }
 
     func subscriptionStatus() async throws -> SubscriptionStatus {
+        statusFetchCount += 1
         if shouldFailStatusFetch {
             throw MockError.failure
         }
@@ -38,7 +41,8 @@ private actor MockRevenueCatManager {
     }
 
     func subscriptionStatusStream() async -> AsyncStream<SubscriptionStatus> {
-        AsyncStream { continuation in
+        statusStreamCount += 1
+        return AsyncStream { continuation in
             streamContinuation = continuation
             continuation.yield(currentStatus)
         }
@@ -59,6 +63,10 @@ private actor MockRevenueCatManager {
 
     func currentOfferingsFetchCount() -> Int {
         offeringsFetchCount
+    }
+
+    func billingCallCount() -> Int {
+        offeringsFetchCount + statusFetchCount + statusStreamCount
     }
 }
 
@@ -123,6 +131,66 @@ private func clearDefaults(suite: String) {
 
 @Suite("ModelAccessController permission checks")
 struct ModelAccessControllerPermissionTests {
+    @Test("direct builds allow every model offline without reading or persisting billing status")
+    func directBuildsAllowAllModelsWithoutBilling() async throws {
+        guard !SubscriptionPolicy.isBillingEnabled else { return }
+        let suite = "ModelAccessControllerTests.direct.\(UUID().uuidString)"
+        let defaults = makeDefaults(suite: suite)
+        defer { clearDefaults(suite: suite) }
+
+        let status = SubscriptionStatus.inactive()
+        let cached = SubscriptionCacheData(status: status, timestamp: Date())
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let originalCache = try encoder.encode(cached)
+        defaults.set(originalCache, forKey: SubscriptionKeys.subscriptionCacheKey)
+
+        let mock = MockRevenueCatManager(currentStatus: status)
+        await mock.setShouldFailStatusFetch(true)
+        await mock.setShouldFailOfferings(true)
+        let controller = ModelAccessController(
+            revenueCat: .mock(using: mock), userDefaults: UserDefaults(suiteName: suite)!)
+
+        for model in ModelVariant.allCases {
+            let permission = try await controller.checkPermission(for: model)
+            #expect(permission.isAllowed)
+            #expect(permission.reason == nil)
+            #expect(try await controller.canDownloadModel(model))
+            #expect(await controller.shouldShowPaywall(for: model) == false)
+        }
+        #expect(ModelVariant.freeModels == ModelVariant.allCases)
+        #expect(ModelVariant.proModels.isEmpty)
+        let stream = await controller.subscriptionStatusStream()
+        var iterator = stream.makeAsyncIterator()
+        #expect(await iterator.next() == nil)
+        #expect(await mock.billingCallCount() == 0)
+        #expect(defaults.data(forKey: SubscriptionKeys.subscriptionCacheKey) == originalCache)
+    }
+
+    @Test("direct builds suppress automatic and manual paywalls without contacting billing")
+    @MainActor
+    func directBuildsNeverPresentPaywalls() async throws {
+        guard !SubscriptionPolicy.isBillingEnabled else { return }
+        let suite = "ModelAccessControllerTests.directPaywall.\(UUID().uuidString)"
+        let defaults = makeDefaults(suite: suite)
+        defer { clearDefaults(suite: suite) }
+        let mock = MockRevenueCatManager(currentStatus: .inactive())
+        let controller = ModelAccessController(
+            revenueCat: .mock(using: mock), userDefaults: makeDefaults(suite: suite + ".access"))
+        defer { clearDefaults(suite: suite + ".access") }
+        let manager = PaywallManager(modelAccessController: controller, userDefaults: defaults)
+
+        for reason in [PaywallContext.PaywallReason.attemptedPaidModelDownload, .userInitiated, .subscriptionExpired] {
+            #expect(await manager.showPaywall(for: .parakeetV3, reason: reason) == false)
+        }
+        #expect(!manager.isPresented)
+        #expect(!manager.isLoading)
+        #expect(manager.context == nil)
+        #expect(manager.errorMessage == nil)
+        #expect(await mock.billingCallCount() == 0)
+        #expect(defaults.object(forKey: SubscriptionKeys.paywallLastPresentedDateKey) == nil)
+    }
+
     @Test
     func freeModelsAlwaysAllowed() async throws {
         let suite = "ModelAccessControllerTests.free"
@@ -154,11 +222,11 @@ struct ModelAccessControllerPermissionTests {
         )
 
         #expect(try await controller.canDownloadModel(.parakeetV2))
-        #expect(try await controller.canDownloadModel(.parakeetV3) == false)
-        #expect(try await controller.canDownloadModel(.fireRedASR2) == false)
-        #expect(try await controller.canDownloadModel(.sortformerStreaming) == false)
+        #expect(try await controller.canDownloadModel(.parakeetV3) == !SubscriptionPolicy.isBillingEnabled)
+        #expect(try await controller.canDownloadModel(.fireRedASR2) == !SubscriptionPolicy.isBillingEnabled)
+        #expect(try await controller.canDownloadModel(.sortformerStreaming) == !SubscriptionPolicy.isBillingEnabled)
         let cohereModel = try #require(ModelVariant(rawValue: "cohere-transcribe-03-2026-mlx-8bit"))
-        #expect(try await controller.canDownloadModel(cohereModel) == false)
+        #expect(try await controller.canDownloadModel(cohereModel) == !SubscriptionPolicy.isBillingEnabled)
     }
 
     @Test
@@ -245,6 +313,7 @@ struct ModelAccessControllerPermissionTests {
 struct ModelAccessControllerUtilityTests {
     @Test
     func subscriptionStatusStreamPublishesUpdates() async throws {
+        guard SubscriptionPolicy.isBillingEnabled else { return }
         let suite = "ModelAccessControllerTests.stream"
         let defaults = makeDefaults(suite: suite)
         defer { clearDefaults(suite: suite) }

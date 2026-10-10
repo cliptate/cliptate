@@ -38,4 +38,29 @@ struct AppUpdateConfigurationTests {
       #expect(!AppUpdateConfiguration(info: info, hasAppStoreReceipt: false).isEnabled)
     }
   }
+
+  @Test func unpublishedFeedIsReportedBeforeStartingSparkle() async throws {
+    let url = URL(string: "https://github.com/cliptate/cliptate/releases/latest/download/appcast.xml")!
+    let missing = try await AppUpdateManager.isFeedMissing(url) { request in
+      #expect(request.url == url)
+      #expect(request.httpMethod == "HEAD")
+      return HTTPURLResponse(url: url, statusCode: 404, httpVersion: nil, headerFields: nil)!
+    }
+    #expect(missing)
+  }
+
+  @Test func publishedFeedsAndServerFailuresContinueThroughSparkle() async throws {
+    let url = URL(string: "https://example.com/appcast.xml")!
+    for code in [200, 403, 500] {
+      let missing = try await AppUpdateManager.isFeedMissing(url) { _ in
+        HTTPURLResponse(url: url, statusCode: code, httpVersion: nil, headerFields: nil)!
+      }
+      #expect(!missing)
+    }
+    await #expect(throws: URLError(.notConnectedToInternet)) {
+      try await AppUpdateManager.isFeedMissing(url) { _ in
+        throw URLError(.notConnectedToInternet)
+      }
+    }
+  }
 }

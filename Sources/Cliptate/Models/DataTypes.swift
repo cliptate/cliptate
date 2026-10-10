@@ -791,6 +791,7 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
 extension ModelVariant {
   /// Access level classification for this model variant
   public var accessLevel: ModelAccessLevel {
+    guard SubscriptionPolicy.isBillingEnabled else { return .free }
     switch self {
     case .parakeetV3,
       .qwen3ASR17B4bit, .qwen3ASR17B5bit, .qwen3ASR17B6bit, .qwen3ASR17B8bit,

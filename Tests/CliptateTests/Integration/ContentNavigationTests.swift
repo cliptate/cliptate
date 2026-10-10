@@ -60,7 +60,8 @@ struct ContentNavigationTests {
   func proSectionIsAvailableInNavigation() {
     #expect(AppSection.allCases.contains(.pro))
     #expect(AppSection.pro.icon == "crown")
-    #expect(AppSection.pro.description == "Subscription and benefits")
+    #expect(AppSection.pro.description == (SubscriptionPolicy.isBillingEnabled
+      ? "Subscription and benefits" : "All features are free"))
   }
 
   @Test("pro section notification is available")

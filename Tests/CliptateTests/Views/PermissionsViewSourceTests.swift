@@ -52,11 +52,8 @@ struct PermissionsViewSourceTests {
     // that it uses the non-prompting variant and never the prompting one.
     let content = try accessibilityGateSource()
 
-    #expect(
-      content.contains(
-        #"[kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: false] as NSDictionary"#
-      )
-    )
+    #expect(content.contains("return AXIsProcessTrusted()"))
+    #expect(content.contains("AXIsProcessTrustedWithOptions") == false)
     #expect(
       content.contains(
         #"[kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as NSDictionary"#
@@ -92,8 +89,10 @@ struct PermissionsViewSourceTests {
   func defaultXcodeAppConfigurationsBuildAppStoreVariant() throws {
     let content = try xcodeProjectSource()
 
-    #expect(content.contains(#"SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited) APP_STORE";"#))
-    #expect(content.contains(#"SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) APP_STORE";"#))
+    #expect(content.contains(#"SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited) $(CLIPTATE_CHANNEL_CONDITIONS)";"#))
+    #expect(content.contains(#"SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) $(CLIPTATE_CHANNEL_CONDITIONS)";"#))
+    let configuration = try projectFileSource("config/Cliptate.xcconfig")
+    #expect(configuration.contains("CLIPTATE_CHANNEL_CONDITIONS = APP_STORE"))
   }
 
   @Test("generated Xcode app Info.plist declares no non-exempt encryption")

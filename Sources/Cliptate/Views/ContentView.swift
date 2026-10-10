@@ -20,6 +20,7 @@ enum AppSection: String, CaseIterable, Identifiable {
   var label: LocalizedStringKey {
     switch self {
     case .permissions: return "Getting Started"
+    case .pro: return SubscriptionPolicy.isBillingEnabled ? "Pro" : "Free Access"
     default: return LocalizedStringKey(rawValue)
     }
   }
@@ -52,7 +53,10 @@ enum AppSection: String, CaseIterable, Identifiable {
         localized: "Permissions and setup guidance",
         comment: "Getting started sidebar description"
       )
-    case .pro: return String(localized: "Subscription and benefits", comment: "Pro sidebar description")
+    case .pro:
+      return SubscriptionPolicy.isBillingEnabled
+        ? String(localized: "Subscription and benefits", comment: "Pro sidebar description")
+        : String(localized: "All features are free", comment: "Free distribution sidebar description")
     }
   }
 }

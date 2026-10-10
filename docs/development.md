@@ -44,26 +44,30 @@ DMG. It runs manually, daily at **03:17 Beijing time** (19:17 UTC on the previou
 day), or when a tag other than the reserved `nightly` tag is pushed. Ordinary
 branch pushes and pull requests do not build installers.
 
-- Scheduled builds use the latest `main` commit and update the rolling
+- Scheduled and manual branch builds use the latest `main` commit and update the rolling
   [Nightly prerelease](https://github.com/cliptate/cliptate/releases/tag/nightly).
 - To package manually, open **Package and release** on the
   [Actions page](https://github.com/cliptate/cliptate/actions/workflows/package.yml)
-  and choose **Run workflow**. A branch build updates `nightly`; a tag build
+  and choose **Run workflow**. A branch run packages `main` and updates `nightly`; a tag run
   publishes to that tag's release.
 - To publish a version, update the app version/build settings, commit, then push
-  a tag such as `git tag v1.8.0 && git push origin v1.8.0`. The workflow publishes
+  a tag such as `git tag v1.0 && git push origin v1.0`. The workflow publishes
   the tagged source to that version's release and never moves version tags.
   The DMG filename and application version come from the app's build settings.
 
-Releases include the DMG, SHA-256 checksum, and signed `appcast.xml` update feed and are publicly downloadable
-without signing in. Nightly updates replace the previous installer pair and move
-the `nightly` tag to the packaged commit; they do not become the latest stable
-release. Release publication runs separately from the build with `contents: write`
-permission and the built-in `GITHUB_TOKEN`; no personal access token is required.
+Stable releases include the DMG, SHA-256 checksum, and signed `appcast.xml` feed,
+and are publicly downloadable without signing in. Stable publication explicitly
+sets Latest. All builds, including Nightly, check that latest stable feed.
+Nightly updates replace the previous installer pair and move the `nightly` tag to
+the packaged commit; they remain prereleases and do not replace Latest.
+Release publication runs separately from the build with `contents: write` and
+the built-in `GITHUB_TOKEN`; no personal access token or branch write is required.
+See [in-app updates](updates.md) for feed and version ordering.
 
-Each successful packaging run also retains the DMG, checksum, and appcast as separate
-Actions artifacts for 14 days. These artifact downloads require signing in to
-GitHub and contain the files themselves, without an additional ZIP archive.
+Each successful packaging run retains the DMG and checksum as separate Actions
+artifacts for 14 days; stable runs also retain the signed appcast. These artifact
+downloads require signing in to GitHub and contain the files themselves, without
+an additional ZIP archive.
 
 To reproduce packaging locally:
 
@@ -86,6 +90,8 @@ automation safeguards without contacting GitHub or publishing anything.
 
 Local source builds default to ad-hoc signing. CI packages require the Developer ID
 distribution setup below and fail before building if credentials are missing.
+Ad-hoc builds disable Hardened Runtime so embedded frameworks can load without a
+Team ID; Developer ID builds retain Hardened Runtime and timestamped signatures.
 An existing release produced before this setup may still be ad-hoc signed; check
 its release notes. Only successfully notarized packages are marked as such.
 
@@ -93,8 +99,8 @@ its release notes. Only successfully notarized packages are marked as such.
 
 Direct-download builds use Sparkle and a signed appcast. Configure the Actions
 variable `SPARKLE_PUBLIC_KEY` and secret `SPARKLE_PRIVATE_KEY` before the next
-package run. See [in-app updates](updates.md) for key generation, stable/Nightly
-feeds, version ordering, local testing, and App Store distribution requirements.
+package run. See [in-app updates](updates.md) for key generation, the shared stable
+feed, version ordering, local testing, and App Store distribution requirements.
 The `APP_STORE` accessibility capability flag remains unchanged.
 
 ## Apple signing and notarization
@@ -185,9 +191,28 @@ resolution enabled so a clean checkout verifies the complete dependency graph.
 
 ## Billing and distribution configuration
 
-The complete subscription implementation is included. Public source builds contain
-no RevenueCat SDK key; billing stays unconfigured until you provide one. Premium
-model download access continues to follow the existing subscription policy.
+Non-`APP_STORE` builds are fully free: all models and Pro features are available
+without a subscription, purchase, or RevenueCat SDK key. These builds do not
+initialize billing, show upgrade promotions, or present paywalls. GitHub Release
+and Nightly packages explicitly select this channel.
+
+Default Xcode and SwiftPM builds retain `APP_STORE` and the existing subscription
+policy. Public source builds contain no RevenueCat SDK key, so App Store billing
+stays unconfigured until you provide one.
+
+To build and test the free direct-distribution channel with either entry point:
+
+```bash
+CLIPTATE_APP_STORE=NO swift build
+CLIPTATE_APP_STORE=NO swift test
+CLIPTATE_APP_STORE=NO ./scripts/build-and-run.sh build
+```
+
+The option removes `APP_STORE`; it also enables the existing Accessibility-backed
+capabilities described in [ADR 0001](adr/0001-accessibility-gate-for-app-store.md).
+For an App Store build, omit the option (or set it to `YES`). When building directly
+in Xcode, set `CLIPTATE_CHANNEL_CONDITIONS =` in `config/Local.xcconfig` to select
+the free channel.
 
 To connect your own RevenueCat application:
 
@@ -200,8 +225,9 @@ configuration is consumed by both Debug and Release builds. The same environment
 variable can override the key when launching a development build from a terminal
 or an Xcode scheme. Secret REST keys must never be embedded in an app.
 
-App Store or Developer ID distribution requires your own signing configuration,
-store products, and RevenueCat application. The existing production bundle identifier
+App Store distribution requires your own signing configuration, store products,
+and RevenueCat application. Developer ID distribution requires signing configuration
+but no billing configuration. The existing production bundle identifier
 is retained to avoid breaking app data and product integration; forks intended for
 distribution should choose their own identifier and product IDs.
 

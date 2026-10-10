@@ -35,9 +35,7 @@ enum AccessibilityGate {
     #if APP_STORE
       return false
     #else
-      let options =
-        [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: false] as NSDictionary
-      return AXIsProcessTrustedWithOptions(options)
+      return AXIsProcessTrusted()
     #endif
   }
 

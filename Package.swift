@@ -1,5 +1,9 @@
 // swift-tools-version: 6.2
 import PackageDescription
+import Foundation
+
+// Keep the default App Store-safe; explicitly opt out for direct distribution.
+let appStoreBuild = ProcessInfo.processInfo.environment["CLIPTATE_APP_STORE"] != "NO"
 
 let package = Package(
     name: "Cliptate",
@@ -58,9 +62,7 @@ let package = Package(
                 .process("Assets.xcassets"),
                 .process("Localizable.xcstrings")
             ],
-            swiftSettings: [
-                .define("APP_STORE")
-            ]
+            swiftSettings: appStoreBuild ? [.define("APP_STORE")] : []
         ),
         .testTarget(
             name: "CliptateTests",

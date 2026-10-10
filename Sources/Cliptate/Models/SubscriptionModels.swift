@@ -1,5 +1,16 @@
 import Foundation
 
+/// Billing is available only in App Store builds. Direct distribution is fully free.
+enum SubscriptionPolicy {
+    static var isBillingEnabled: Bool {
+        #if APP_STORE
+        true
+        #else
+        false
+        #endif
+    }
+}
+
 /// Describes a purchasable subscription plan offered in the paywall.
 public struct SubscriptionPlan: Identifiable, Codable, Sendable, Equatable {
     public let id: String
