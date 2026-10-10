@@ -39,6 +39,12 @@ class ReleaseChannelTests(unittest.TestCase):
         self.assertIn("CLIPTATE_UPDATE_FEED_URL = https:/$()/github.com/cliptate/cliptate/releases/latest/download/appcast.xml",
                       configuration)
 
+    def test_notes_are_checked_before_building(self):
+        workflow = WORKFLOW.read_text()
+        self.assertIn('python3 scripts/release-notes.py "$RELEASE_TAG" --check', workflow)
+        self.assertLess(workflow.index("- name: Verify version release notes"),
+                        workflow.index("- name: Install Developer ID certificate"))
+
     def test_no_main_feed_publication_step_remains(self):
         self.assertNotIn("publish-main-appcast", WORKFLOW.read_text())
 

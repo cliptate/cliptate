@@ -10,6 +10,10 @@ REPOSITORY="${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$WORK/tools" "$WORK/updates"
+NOTES_PATH="$WORK/updates/$(basename "${DMG_PATH%.dmg}").txt"
+python3 "$ROOT_DIR/scripts/release-notes.py" "$TAG" > "$NOTES_PATH"
+printf '\nRelease: https://github.com/%s/releases/tag/%s\nSource: https://github.com/%s/commit/%s\n' \
+  "$REPOSITORY" "$TAG" "$REPOSITORY" "${BUILT_COMMIT:?BUILT_COMMIT is required}" >> "$NOTES_PATH"
 # Same pinned release as Package.swift; verify the complete tool distribution.
 curl --fail --location --retry 3 \
   https://github.com/sparkle-project/Sparkle/releases/download/2.10.0/Sparkle-2.10.0.tar.xz \
@@ -34,9 +38,6 @@ for key, value in {
     ET.SubElement(channel, key).text = value
 ET.ElementTree(root).write(sys.argv[2], encoding="utf-8", xml_declaration=True)
 PY
-NOTES_PATH="$WORK/updates/$(basename "${DMG_PATH%.dmg}").txt"
-printf 'Cliptate direct-download release.\nRelease: https://github.com/%s/releases/tag/%s\nSource: https://github.com/%s/commit/%s\n' \
-  "$REPOSITORY" "$TAG" "$REPOSITORY" "${BUILT_COMMIT:?BUILT_COMMIT is required}" > "$NOTES_PATH"
 PREFIX="$(python3 "$ROOT_DIR/scripts/release-policy.py" download-prefix "$REPOSITORY" "$TAG")"
 # Pass the secret through stdin, never through command arguments or a disk file.
 printf '%s\n' "$SPARKLE_PRIVATE_KEY" | "$WORK/tools/bin/generate_appcast" \

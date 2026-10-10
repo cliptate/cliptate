@@ -30,6 +30,11 @@ generates a fresh `appcast.xml` for each stable release. The feed is a generated
 Release asset, not a tracked source file; apps fetch the Latest release asset.
 GitHub Pages and commits to `main` are unnecessary for serving updates.
 
+Embedded notes come from the same detailed
+[version document](release-notes/README.md) used for GitHub Release. The generator
+includes its content as plain text plus release and source links; missing or
+incomplete version notes stop generation before the signing tool is downloaded.
+
 The initial stable release is `v1.0`, with display version `1.0`. Its internal build
 number continues above existing installations even though the display version
 starts at 1.0. Before the first signed stable feed is published, the Latest feed

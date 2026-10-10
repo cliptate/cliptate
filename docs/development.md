@@ -50,10 +50,17 @@ branch pushes and pull requests do not build installers.
   [Actions page](https://github.com/cliptate/cliptate/actions/workflows/package.yml)
   and choose **Run workflow**. A branch run packages `main` and updates `nightly`; a tag run
   publishes to that tag's release.
-- To publish a version, update the app version/build settings, commit, then push
+- To publish a version, update the app version/build settings and write the detailed
+  [version release document](release-notes/README.md), commit both, then push
   a tag such as `git tag v1.0 && git push origin v1.0`. The workflow publishes
   the tagged source to that version's release and never moves version tags.
   The installer is always named `Cliptate.dmg`; its version comes from the app's build settings.
+
+Version release notes are maintained in `docs/release-notes/<tag>.md` and checked
+before building. GitHub Release and the Sparkle feed use that document from the
+packaged commit; publication appends verified signing, installation, and build
+details. Rerunning publication also refreshes an existing release's description.
+Nightly keeps its generated build summary and does not require a version document.
 
 Stable releases include the DMG, SHA-256 checksum, and signed `appcast.xml` feed
 generated during packaging (the XML is not tracked in Git),

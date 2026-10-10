@@ -1,6 +1,7 @@
 """Feed publication guards, without network or signing credentials."""
 import base64
 import importlib.util
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -49,6 +50,28 @@ class AppcastTests(unittest.TestCase):
     def test_generation_embeds_notes_in_the_feed(self):
         script = (ROOT / "scripts/generate-appcast.sh").read_text()
         self.assertIn("--embed-release-notes", script)
+
+    def test_generation_uses_the_full_version_document_before_download(self):
+        script = (ROOT / "scripts/generate-appcast.sh").read_text()
+        preparation = script[script.index('NOTES_PATH='):script.index('# Same pinned release')]
+        with tempfile.TemporaryDirectory() as directory:
+            work = Path(directory)
+            (work / "updates").mkdir()
+            env = {**os.environ, "ROOT_DIR": str(ROOT), "WORK": str(work),
+                   "DMG_PATH": str(work / "Cliptate.dmg"), "TAG": "v1.0",
+                   "REPOSITORY": "cliptate/cliptate", "BUILT_COMMIT": "a" * 40}
+            result = subprocess.run(["bash", "-euc", preparation], env=env,
+                                    cwd=work, text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            notes = (work / "updates/Cliptate.txt").read_text()
+            self.assertIn((ROOT / "docs/release-notes/v1.0.md").read_text().rstrip(), notes)
+            self.assertIn("https://github.com/cliptate/cliptate/releases/tag/v1.0", notes)
+            self.assertIn("https://github.com/cliptate/cliptate/commit/" + "a" * 40, notes)
+            env["TAG"] = "missing-version"
+            result = subprocess.run(["bash", "-euc", preparation], env=env,
+                                    cwd=work, text=True, capture_output=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Missing release notes", result.stderr)
 
     def check(self, *, tag="v1.8.0", url=None, length=9, signature=None, version="23", minimum="15.0"):
         with tempfile.TemporaryDirectory() as temp:

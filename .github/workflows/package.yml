@@ -45,6 +45,10 @@ jobs:
         run: |
           echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           python3 scripts/release-policy.py build --format github >> "$GITHUB_OUTPUT"
+      - name: Verify version release notes
+        env:
+          RELEASE_TAG: ${{ steps.source.outputs.release-tag }}
+        run: python3 scripts/release-notes.py "$RELEASE_TAG" --check
       - name: Inspect toolchain
         run: |
           test "$(uname -m)" = arm64

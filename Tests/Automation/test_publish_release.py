@@ -5,14 +5,43 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import tempfile
 import unittest
+from urllib.parse import quote
 
 
 ROOT = Path(__file__).resolve().parents[2]
 COMMIT = "a" * 40
 DMG = "Cliptate.dmg"
+
+
+def version_notes(tag):
+    return f"""# Cliptate {tag}
+
+## Highlights
+
+- Transcribe files from the command line using the app's selected model.
+
+## Changes
+
+- Fix startup waiting when the application is launched in the background.
+
+## Upgrade notes
+
+- Restart Cliptate after replacing the application in Applications.
+
+## Known limitations
+
+- Model weights are downloaded separately on first use.
+
+## Validation
+
+- Offline release automation checks passed.
+"""
+
+
 FAKE_GH = r'''#!/usr/bin/env python3
 import json, os, sys
 from pathlib import Path
@@ -64,9 +93,19 @@ sys.exit(code)
 
 class PublishReleaseTests(unittest.TestCase):
     def run_release(self, tag="nightly", *, existing=True, fail_upload=False,
-                    corrupt=False, tag_commit=COMMIT, signing_status="ad-hoc", appcast=False, wrong_feed=False):
+                    corrupt=False, tag_commit=COMMIT, signing_status="ad-hoc", appcast=False,
+                    wrong_feed=False, notes=True, notes_tag=None, notes_content=None):
         with tempfile.TemporaryDirectory() as temp:
             work = Path(temp)
+            # Use an isolated source checkout so fixtures cannot satisfy a missing document.
+            source = work / "source"
+            shutil.copytree(ROOT / "scripts", source / "scripts", ignore=shutil.ignore_patterns("__pycache__"))
+            notes_directory = source / "docs/release-notes"
+            notes_directory.mkdir(parents=True)
+            if notes:
+                document_tag = notes_tag or tag
+                (notes_directory / (quote(document_tag, safe="") + ".md")).write_text(
+                    version_notes(document_tag) if notes_content is None else notes_content)
             gh = work / "gh"
             gh.write_text(FAKE_GH)
             gh.chmod(0o755)
@@ -100,8 +139,8 @@ class PublishReleaseTests(unittest.TestCase):
                     length="{dmg.stat().st_size}" sparkle:edSignature="{signature}" />
                 </item></channel></rss>''')
                 env["APPCAST_PATH"] = str(feed)
-            result = subprocess.run([str(ROOT / "scripts/publish-release.sh"), str(dmg)],
-                                    env=env, text=True, capture_output=True)
+            result = subprocess.run([str(source / "scripts/publish-release.sh"), str(dmg)],
+                                    env=env, text=True, capture_output=True, cwd=work)
             return result, json.loads(state.read_text())
 
     def test_first_nightly_is_created_as_draft_prerelease(self):
@@ -142,6 +181,36 @@ class PublishReleaseTests(unittest.TestCase):
                 self.assertEqual(state["deleted"], [])
                 self.assertFalse(any("/git/" in " ".join(c) for c in state["calls"]))
 
+    def test_version_release_publishes_document_for_new_and_existing_releases(self):
+        for existing in [False, True]:
+            with self.subTest(existing=existing):
+                result, state = self.run_release(tag="v1.8.0", existing=existing)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn(version_notes("v1.8.0"), state["notes"])
+                self.assertIn("Source:", state["notes"])
+                self.assertIn("Build:", state["notes"])
+
+    def test_version_release_requires_its_own_notes_before_any_github_call(self):
+        for options in [{"notes": False}, {"notes_tag": "v1.7.0"}, {"notes_content": " \n"},
+                        {"notes_content": version_notes("v1.7.0")},
+                        {"notes_content": version_notes("v1.8.0").replace("## Changes", "## Other")},
+                        {"notes_content": version_notes("v1.8.0").replace(
+                            "- Fix startup waiting when the application is launched in the background.",
+                            "<!-- Describe changes here. -->")},
+                        {"notes_content": version_notes("v1.8.0").replace(
+                            "- Fix startup waiting when the application is launched in the background.", "TBD")}]:
+            with self.subTest(options=options):
+                result, state = self.run_release(tag="v1.8.0", **options)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("release notes", result.stderr.lower())
+                self.assertEqual(state["calls"], [])
+
+    def test_nightly_does_not_require_version_notes(self):
+        result, state = self.run_release(notes=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Source:", state["notes"])
+        self.assertNotIn("## Highlights", state["notes"])
+
     def test_stable_release_is_explicitly_marked_latest(self):
         result, state = self.run_release(tag="v1.0", signing_status="developer-id-notarized", appcast=True)
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -153,6 +222,7 @@ class PublishReleaseTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         create = next(c for c in state["calls"] if c[:2] == ["release", "create"])
         self.assertEqual(create[create.index("--title") + 1], "Cliptate preview/中文+1")
+        self.assertIn(version_notes("preview/中文+1"), state["notes"])
         self.assertTrue(any("repos/cliptate/cliptate/commits/preview%2F%E4%B8%AD%E6%96%87%2B1" in c
                             for c in state["calls"]))
         self.assertFalse(state["tag_moved"])

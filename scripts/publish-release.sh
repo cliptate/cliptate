@@ -39,7 +39,11 @@ fi
 
 NOTES="$(mktemp)"
 trap 'rm -f "$NOTES"' EXIT
-cat > "$NOTES" <<EOF
+if [[ "$MOVE_TAG" != true ]]; then
+  python3 "$(dirname "${BASH_SOURCE[0]}")/release-notes.py" "$TAG" > "$NOTES"
+  printf '\n---\n\n' >> "$NOTES"
+fi
+cat >> "$NOTES" <<EOF
 Apple Silicon, macOS 15+. $SIGNING_DESCRIPTION
 
 Download the DMG and drag Cliptate into Applications. Verify the download with the accompanying SHA-256 file.
@@ -86,7 +90,8 @@ if [[ "$MOVE_TAG" == true ]]; then
     esac
   done <<< "$ASSETS"
 else
-  gh release edit "$TAG" --draft=false "${FLAGS[@]}"
+  gh release edit "$TAG" --draft=false "${FLAGS[@]}" \
+    --title "$TITLE" --notes-file "$NOTES"
 fi
 
 URL="$(gh release view "$TAG" --json url --jq .url)"
