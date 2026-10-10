@@ -764,7 +764,7 @@
 			repositoryURL = "https://github.com/ml-explore/mlx-swift-lm.git";
 			requirement = {
 				kind = exactVersion;
-				version = 3.31.3;
+				version = 3.32.3;
 			};
 		};
 		C11F00000000000000000007 /* XCRemoteSwiftPackageReference "mlx-swift" */ = {
@@ -772,7 +772,7 @@
 			repositoryURL = "https://github.com/ml-explore/mlx-swift.git";
 			requirement = {
 				kind = exactVersion;
-				version = 0.31.3;
+				version = 0.32.3;
 			};
 		};
 		C11F00000000000000000004 /* XCRemoteSwiftPackageReference "swift-huggingface" */ = {
@@ -804,7 +804,7 @@
 			repositoryURL = "https://github.com/Blaizzy/mlx-audio-swift.git";
 			requirement = {
 				kind = revision;
-				revision = 7734cd1fbbe86460083c1d24199737a24cadfcc8;
+				revision = a0bd39c923e1359d5deb3d049c89fa5585cf479a;
 			};
 		};
 		29850B422EEC311F00CFD24B /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {

@@ -15,8 +15,8 @@ import os.log
 public struct SortformerVADSegmenter: Sendable {
 
   /// Closure type matching SortformerModel.generate() semantics.
-  /// Takes (audio MLXArray, sampleRate) → DiarizationOutput.
-  public typealias Generator = @Sendable (MLXArray, Int) async throws -> DiarizationOutput
+  /// Takes ownership of the audio tensor along with its sample rate.
+  public typealias Generator = @Sendable (sending MLXArray, Int) async throws -> DiarizationOutput
 
   public let generator: Generator
   public let sampleRate: Int

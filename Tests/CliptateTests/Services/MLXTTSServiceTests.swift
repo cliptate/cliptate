@@ -156,10 +156,11 @@ struct MLXTTSServiceTests {
         let resolved = try await MLXTTSService.resolveOutputSamples(
             using: plan,
             sampleRate: sampleRate,
-            generateWhole: {
-                [0.1, 0.2]
+            generateWhole: { _ in
+                Issue.record("voice-clone path should not use whole-output generation")
+                return [0.1, 0.2]
             },
-            generateStreamed: {
+            generateStreamed: { _ in
                 [0.1, 0.2, 0.3]
             }
         )
@@ -181,10 +182,10 @@ struct MLXTTSServiceTests {
         let resolved = try await MLXTTSService.resolveOutputSamples(
             using: plan,
             sampleRate: 24_000,
-            generateWhole: {
+            generateWhole: { _ in
                 [0.4, 0.5]
             },
-            generateStreamed: {
+            generateStreamed: { _ in
                 Issue.record("non-clone path should not use streamed samples")
                 return [0.9]
             }

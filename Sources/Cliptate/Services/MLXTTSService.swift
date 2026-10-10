@@ -166,23 +166,24 @@ actor MLXTTSService {
             let samples = try await Self.resolveOutputSamples(
                 using: plan,
                 sampleRate: sampleRate,
-                generateWhole: {
+                refAudio: refAudio,
+                generateWhole: { audio in
                     let audioArray = try await modelBox.value.generate(
                         text: plan.text,
                         voice: voiceDescription,
-                        refAudio: refAudio,
+                        refAudio: audio,
                         refText: refText,
                         language: language,
                         generationParameters: plan.generationParameters
                     )
                     return audioArray.asArray(Float.self)
                 },
-                generateStreamed: {
+                generateStreamed: { audio in
                     try await Self.collectStreamedSamples(
                         from: modelBox.value,
                         text: plan.text,
                         voiceDescription: voiceDescription,
-                        refAudio: refAudio,
+                        refAudio: audio,
                         refText: refText,
                         language: language,
                         generationParameters: plan.generationParameters
@@ -266,19 +267,20 @@ actor MLXTTSService {
         let samples = try await Self.resolveOutputSamples(
             using: plan,
             sampleRate: sampleRate,
-            generateWhole: {
+            refAudio: refAudio,
+            generateWhole: { audio in
                 let audioArray = try await modelBox.value.generate(
                     text: plan.text, voice: voiceDescription,
-                    refAudio: refAudio, refText: refText,
+                    refAudio: audio, refText: refText,
                     language: language, generationParameters: plan.generationParameters
                 )
                 return audioArray.asArray(Float.self)
             },
-            generateStreamed: {
+            generateStreamed: { audio in
                 try await Self.collectStreamedSamples(
                     from: modelBox.value, text: plan.text,
                     voiceDescription: voiceDescription,
-                    refAudio: refAudio, refText: refText,
+                    refAudio: audio, refText: refText,
                     language: language, generationParameters: plan.generationParameters
                 )
             }
@@ -380,16 +382,18 @@ actor MLXTTSService {
         )
     }
 
+    /// Transfer the reference tensor only to the selected generation path.
     static func resolveOutputSamples(
         using plan: SynthesisPlan,
         sampleRate: Int,
-        generateWhole: () async throws -> [Float],
-        generateStreamed: () async throws -> [Float]
+        refAudio: sending MLXArray? = nil,
+        generateWhole: (sending MLXArray?) async throws -> [Float],
+        generateStreamed: (sending MLXArray?) async throws -> [Float]
     ) async throws -> [Float] {
         let samples = if plan.useStreamingOutput {
-            try await generateStreamed()
+            try await generateStreamed(refAudio)
         } else {
-            try await generateWhole()
+            try await generateWhole(refAudio)
         }
         return finalizeOutputSamples(
             samples,
@@ -402,7 +406,7 @@ actor MLXTTSService {
         from model: any SpeechGenerationModel,
         text: String,
         voiceDescription: String?,
-        refAudio: MLXArray?,
+        refAudio: sending MLXArray?,
         refText: String?,
         language: String?,
         generationParameters: GenerateParameters
