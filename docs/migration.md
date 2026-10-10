@@ -21,8 +21,10 @@ All tracked application sources, tests, resources, design assets, specifications
 and engineering records are retained. Existing multilingual Cliptate READMEs remain
 the public entry points. Root run scripts remain compatibility entry points.
 
-Machine/editor settings, transient brainstorming state, and installed agent/plugin
-skill copies are not application code and were omitted. The imported repository
+Machine/editor settings and transient brainstorming state were omitted.
+The source repository's `.agents` directory is included unchanged, with all 14
+skills and their supporting files, following the migration follow-up request.
+The imported repository
 history was not merged: this keeps the existing Cliptate history and avoids publishing
 old configuration that predates the current cleanup. Attribution in source files is
 preserved. Original project instructions are retained as reference in

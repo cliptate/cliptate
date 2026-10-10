@@ -98,6 +98,7 @@ assets/                  design source images
 docs/                    development, architecture, ADRs, plans, and release notes
 openspec/                existing change proposals and specifications
 .github/                 CI and contributor templates
+.agents/skills/          repository-local agent skills and supporting references
 ```
 
 The app remains a single module: this migration preserves its existing Models,
