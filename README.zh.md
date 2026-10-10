@@ -4,7 +4,7 @@
   <p><strong>面向 Mac 音视频创作者的端侧 AI 工作台</strong></p>
 
   <p>
-    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12"><img alt="在 App Store 下载" src="https://img.shields.io/badge/App%20Store-下载-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
+    <a href="https://github.com/cliptate/cliptate/releases"><img alt="从 GitHub Releases 下载" src="https://img.shields.io/badge/GitHub%20Releases-下载-0066cc?logo=github&logoColor=white&style=flat-square" /></a>
     <img alt="macOS 15+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
     <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-MLX-ff6900?style=flat-square" />
     <img alt="Swift" src="https://img.shields.io/badge/Swift-6.2-f05138?logo=swift&logoColor=white&style=flat-square" />
@@ -15,7 +15,7 @@
     <a href="https://cliptate.github.io">官网</a> ·
     <a href="https://cliptate.github.io#features">功能介绍</a> ·
     <a href="https://cliptate.github.io#voice">语音与 TTS</a> ·
-    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12">立即下载</a>
+    <a href="https://github.com/cliptate/cliptate/releases">立即下载</a>
   </p>
 
   <p>
@@ -37,10 +37,9 @@ Cliptate 是一款原生 macOS 应用，将转写、听写、剪辑和语音合�
 
 ## 从源码构建
 
-也可从[版本发布](https://github.com/cliptate/cliptate/releases)和每天凌晨更新的
-[Nightly 构建](https://github.com/cliptate/cliptate/releases/tag/nightly)
-下载 DMG 和 SHA-256 校验文件，无需登录 GitHub。
-这是 ad-hoc 签名、尚未 Apple 公证的构建，安装说明见[开发指南](docs/development.md#dmg-packages-and-ci-downloads)。
+也可从 [GitHub Releases](https://github.com/cliptate/cliptate/releases)
+下载正式版本或每日 Nightly 构建的 DMG 和 SHA-256 校验文件，无需登录 GitHub。
+发布构建使用 Developer ID 签名并经 Apple 公证，安装说明见[开发指南](docs/development.md#dmg-packages-and-ci-downloads)。
 
 完整应用以 [MIT 许可证](LICENSE)开源。需要 Apple Silicon、macOS 15+、
 Xcode 26+（Swift 6.2+）。
@@ -159,7 +158,7 @@ Cliptate 直接输出你常用工具所需的格式：
 ## 链接
 
 - **官网：** [cliptate.github.io](https://cliptate.github.io)
-- **App Store：** [下载 Cliptate](https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12)
+- **下载：** [下载 Cliptate](https://github.com/cliptate/cliptate/releases)
 - **问题与反馈：** [GitHub Issues](https://github.com/cliptate/cliptate/issues)
 
 ---

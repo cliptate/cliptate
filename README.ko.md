@@ -4,7 +4,7 @@
   <p><strong>Mac 오디오·비디오 크리에이터를 위한 온디바이스 AI 워크스페이스</strong></p>
 
   <p>
-    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12"><img alt="App Store에서 다운로드" src="https://img.shields.io/badge/App%20Store-다운로드-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
+    <a href="https://github.com/cliptate/cliptate/releases"><img alt="GitHub Releases에서 다운로드" src="https://img.shields.io/badge/GitHub%20Releases-다운로드-0066cc?logo=github&logoColor=white&style=flat-square" /></a>
     <img alt="macOS 15+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
     <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-MLX-ff6900?style=flat-square" />
     <img alt="Swift" src="https://img.shields.io/badge/Swift-6.2-f05138?logo=swift&logoColor=white&style=flat-square" />
@@ -15,7 +15,7 @@
     <a href="https://cliptate.github.io">웹사이트</a> ·
     <a href="https://cliptate.github.io#features">기능</a> ·
     <a href="https://cliptate.github.io#voice">음성 및 TTS</a> ·
-    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12">다운로드</a>
+    <a href="https://github.com/cliptate/cliptate/releases">다운로드</a>
   </p>
 
   <p>
@@ -152,7 +152,7 @@ SwiftUI / AppKit, AVFoundation, MLX Audio, Hugging Face, RevenueCat / StoreKit�
 ## 링크
 
 - **웹사이트:** [cliptate.github.io](https://cliptate.github.io)
-- **App Store:** [Cliptate 다운로드](https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12)
+- **다운로드:** [Cliptate 다운로드](https://github.com/cliptate/cliptate/releases)
 - **문의 및 피드백:** [GitHub Issues](https://github.com/cliptate/cliptate/issues)
 
 ---

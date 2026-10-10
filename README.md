@@ -5,7 +5,7 @@
   <p>面向 Mac 音视频创作者的端侧 AI 工作台</p>
 
   <p>
-    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12"><img alt="Download on the App Store" src="https://img.shields.io/badge/App%20Store-Download-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
+    <a href="https://github.com/cliptate/cliptate/releases"><img alt="Download from GitHub Releases" src="https://img.shields.io/badge/GitHub%20Releases-Download-0066cc?logo=github&logoColor=white&style=flat-square" /></a>
     <img alt="macOS 15+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
     <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-MLX-ff6900?style=flat-square" />
     <img alt="Swift" src="https://img.shields.io/badge/Swift-6.2-f05138?logo=swift&logoColor=white&style=flat-square" />
@@ -16,7 +16,7 @@
     <a href="https://cliptate.github.io">Website</a> ·
     <a href="https://cliptate.github.io#features">Features</a> ·
     <a href="https://cliptate.github.io#voice">Voice & TTS</a> ·
-    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12">Download</a>
+    <a href="https://github.com/cliptate/cliptate/releases">Download</a>
   </p>
 
   <p>
@@ -39,8 +39,7 @@ Cliptate is a native macOS application that brings transcription, dictation, edi
 ## Build from source
 
 DMGs and SHA-256 checksums are available from
-[version releases](https://github.com/cliptate/cliptate/releases) and the daily
-[Nightly build](https://github.com/cliptate/cliptate/releases/tag/nightly).
+[GitHub Releases](https://github.com/cliptate/cliptate/releases), including the daily Nightly build.
 CI packages require Developer ID signing and Apple notarization; see the
 [installation guide](docs/development.md#dmg-packages-and-ci-downloads).
 
@@ -165,7 +164,7 @@ Cliptate uses SwiftUI and AppKit for its native macOS UI, AVFoundation for media
 ## Links
 
 - **Website:** [cliptate.github.io](https://cliptate.github.io)
-- **App Store:** [Download Cliptate](https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12)
+- **Download:** [Download Cliptate](https://github.com/cliptate/cliptate/releases)
 - **Issues & Feedback:** [GitHub Issues](https://github.com/cliptate/cliptate/issues)
 
 ---

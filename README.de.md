@@ -4,7 +4,7 @@
   <p><strong>Der KI-Arbeitsbereich auf dem Gerät für Mac-Audio- und Videoersteller</strong></p>
 
   <p>
-    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12"><img alt="Im App Store laden" src="https://img.shields.io/badge/App%20Store-Laden-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
+    <a href="https://github.com/cliptate/cliptate/releases"><img alt="Von GitHub Releases herunterladen" src="https://img.shields.io/badge/GitHub%20Releases-Laden-0066cc?logo=github&logoColor=white&style=flat-square" /></a>
     <img alt="macOS 15+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
     <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-MLX-ff6900?style=flat-square" />
     <img alt="Swift" src="https://img.shields.io/badge/Swift-6.2-f05138?logo=swift&logoColor=white&style=flat-square" />
@@ -15,7 +15,7 @@
     <a href="https://cliptate.github.io">Website</a> ·
     <a href="https://cliptate.github.io#features">Funktionen</a> ·
     <a href="https://cliptate.github.io#voice">Sprache & TTS</a> ·
-    <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12">Download</a>
+    <a href="https://github.com/cliptate/cliptate/releases">Download</a>
   </p>
 
   <p>
@@ -152,7 +152,7 @@ Cliptate verwendet SwiftUI / AppKit, AVFoundation, MLX Audio, Hugging Face sowie
 ## Links
 
 - **Website:** [cliptate.github.io](https://cliptate.github.io)
-- **App Store:** [Cliptate laden](https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12)
+- **Download:** [Cliptate laden](https://github.com/cliptate/cliptate/releases)
 - **Probleme & Feedback:** [GitHub Issues](https://github.com/cliptate/cliptate/issues)
 
 ---
