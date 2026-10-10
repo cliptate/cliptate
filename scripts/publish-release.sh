@@ -17,8 +17,13 @@ test -s "$CHECKSUM_PATH"
 
 NOTES="$(mktemp)"
 trap 'rm -f "$NOTES"' EXIT
+case "${SIGNING_STATUS:-ad-hoc}" in
+  developer-id-notarized) SIGNING_DESCRIPTION='Developer ID signed and Apple-notarized.' ;;
+  ad-hoc) SIGNING_DESCRIPTION='Release build with ad-hoc signing; not Apple-notarized.' ;;
+  *) echo 'Unrecognized signing status.' >&2; exit 1 ;;
+esac
 cat > "$NOTES" <<EOF
-Apple Silicon, macOS 15+. Release build with ad-hoc signing; not Apple-notarized.
+Apple Silicon, macOS 15+. $SIGNING_DESCRIPTION
 
 Download the DMG and drag Cliptate into Applications. Verify the download with the accompanying SHA-256 file.
 

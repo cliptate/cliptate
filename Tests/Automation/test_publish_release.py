@@ -44,11 +44,15 @@ elif a[:2] == ["release", "view"]:
         output = '{"id": 1}'
 elif a[:2] == ["release", "create"]:
     s["release_exists"] = True
+    s["notes"] = Path(a[a.index("--notes-file") + 1]).read_text()
 elif a[:2] == ["release", "upload"]:
     code = 1 if s["fail_upload"] else 0
 elif a[:2] == ["release", "delete-asset"]:
     s["deleted"].append(a[3])
-elif a[:2] != ["release", "edit"]:
+elif a[:2] == ["release", "edit"]:
+    if "--notes-file" in a:
+        s["notes"] = Path(a[a.index("--notes-file") + 1]).read_text()
+else:
     code = 99
 p.write_text(json.dumps(s))
 if output:
@@ -59,7 +63,7 @@ sys.exit(code)
 
 class PublishReleaseTests(unittest.TestCase):
     def run_release(self, tag="nightly", *, existing=True, fail_upload=False,
-                    corrupt=False, tag_commit=COMMIT):
+                    corrupt=False, tag_commit=COMMIT, signing_status="ad-hoc"):
         with tempfile.TemporaryDirectory() as temp:
             work = Path(temp)
             gh = work / "gh"
@@ -84,7 +88,7 @@ class PublishReleaseTests(unittest.TestCase):
                    "FAKE_GH_STATE": str(state), "RELEASE_TAG": tag,
                    "BUILT_COMMIT": COMMIT, "GITHUB_REPOSITORY": "cliptate/cliptate",
                    "GITHUB_RUN_ID": "123", "GH_TOKEN": "test-token",
-                   "GITHUB_STEP_SUMMARY": str(work / "summary.md")}
+                   "GITHUB_STEP_SUMMARY": str(work / "summary.md"), "SIGNING_STATUS": signing_status}
             result = subprocess.run([str(ROOT / "scripts/publish-release.sh"), str(dmg)],
                                     env=env, text=True, capture_output=True)
             return result, json.loads(state.read_text())
@@ -131,6 +135,17 @@ class PublishReleaseTests(unittest.TestCase):
         result, state = self.run_release(tag="v1.8.0", tag_commit="b" * 40)
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse(any(c[:2] == ["release", "upload"] for c in state["calls"]))
+
+    def test_verified_signed_release_notes_describe_notarization(self):
+        result, state = self.run_release(signing_status="developer-id-notarized")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Developer ID signed and Apple-notarized.", state["notes"])
+        self.assertNotIn("ad-hoc", state["notes"])
+
+    def test_unknown_signing_status_is_rejected(self):
+        result, state = self.run_release(signing_status="unknown")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(state["calls"], [])
 
 
 if __name__ == "__main__":

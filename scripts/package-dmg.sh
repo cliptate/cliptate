@@ -30,6 +30,15 @@ if [[ ! "$VERSION" =~ ^[[:alnum:]._-]+$ || ! "$BUILD_NUMBER" =~ ^[[:alnum:]._-]+
   exit 1
 fi
 /usr/bin/codesign --verify --deep --strict "$APP_BUNDLE"
+if [[ -n "${CODE_SIGN_IDENTITY:-}" && "$CODE_SIGN_IDENTITY" != - ]]; then
+  SIGNATURE="$(/usr/bin/codesign -dv --verbose=4 "$APP_BUNDLE" 2>&1)"
+  if [[ "$SIGNATURE" != *'Authority=Developer ID Application:'* ||
+        "$SIGNATURE" != *"TeamIdentifier=${DEVELOPMENT_TEAM:?}"* ||
+        "$SIGNATURE" != *'(runtime)'* || "$SIGNATURE" != *'Timestamp='* ]]; then
+    echo 'App must have a timestamped Developer ID signature with Hardened Runtime from the configured team.' >&2
+    exit 1
+  fi
+fi
 
 mkdir -p "$OUTPUT_DIR"
 OUTPUT_DIR="$(cd "$OUTPUT_DIR" && pwd)"
@@ -48,6 +57,10 @@ mkdir -p "$STAGING_DIR/Licenses/docs"
 
 /usr/bin/hdiutil create -volname "Cliptate $VERSION" -srcfolder "$STAGING_DIR" \
   -fs HFS+ -format UDZO -ov "$DMG_PATH"
+if [[ -n "${CODE_SIGN_IDENTITY:-}" && "$CODE_SIGN_IDENTITY" != - ]]; then
+  /usr/bin/codesign --sign "$CODE_SIGN_IDENTITY" --timestamp "$DMG_PATH"
+  /usr/bin/codesign --verify --strict "$DMG_PATH"
+fi
 /usr/bin/hdiutil verify "$DMG_PATH"
 (
   cd "$OUTPUT_DIR"

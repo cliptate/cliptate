@@ -84,9 +84,63 @@ Open the DMG and drag the app into Applications to install it.
 Run `python3 -m unittest discover -s Tests/Automation -v` to verify release
 automation safeguards without contacting GitHub or publishing anything.
 
-CI packages use ad-hoc signing and are not Apple-notarized. macOS may require
-approval in **System Settings → Privacy & Security** when opening a downloaded
-build. Developer ID signing and notarization require a separate distribution setup.
+Local source builds default to ad-hoc signing. CI packages require the Developer ID
+distribution setup below and fail before building if credentials are missing.
+An existing release produced before this setup may still be ad-hoc signed; check
+its release notes. Only successfully notarized packages are marked as such.
+
+## Apple signing and notarization
+
+For this application's existing identity, use the Qi Li team `FB4W45V73V` and keep
+the production bundle identifier `com.voicepink.voicepinkpro`. Create a
+**Developer ID Application** certificate with the G2 intermediary in the
+[Apple Developer certificate portal](https://developer.apple.com/account/resources/certificates/list).
+Apple Development and Mac App Distribution certificates cannot replace this
+certificate for public DMG distribution. Follow
+[Apple's certificate instructions](https://developer.apple.com/help/account/certificates/create-developer-id-certificates/),
+then export the certificate and its matching private key as a password-protected
+`.p12` file. Keep the private key, `.p12`, passwords, and downloaded certificates
+outside this checkout.
+
+In the repository's **Settings → Secrets and variables → Actions**, configure:
+
+| Kind | Name | Value |
+| --- | --- | --- |
+| Secret | `APPLE_CERTIFICATE_P12_BASE64` | Base64 encoding of the encrypted `.p12` |
+| Secret | `APPLE_CERTIFICATE_PASSWORD` | Password protecting that `.p12` |
+| Secret | `APPLE_ID` | Apple Account email authorized for this developer team |
+| Secret | `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password for Apple notarization |
+| Variable | `APPLE_TEAM_ID` | `FB4W45V73V` |
+
+Create the app-specific password yourself at
+[Apple Account](https://account.apple.com/) under **Sign-In and Security →
+App-Specific Passwords**. Enter it directly into the repository secret or a trusted
+local setup terminal; do not put it in chat, logs, shell history, or source files.
+Test runs do not consume signing credentials.
+
+The package workflow imports exactly one matching Developer ID identity into a
+temporary keychain, builds with Hardened Runtime and a secure timestamp, signs
+the app and DMG, and submits the DMG with `notarytool`. Publication requires Apple's
+`Accepted` status, a successfully stapled and validated ticket, and a Gatekeeper
+assessment. The SHA-256 checksum is regenerated after stapling changes the image.
+The temporary keychain and credential files are removed even if packaging fails.
+Nightly and version-tag releases use the same verification gates.
+
+To opt into signing a local Release build after importing a Developer ID identity
+into your keychain:
+
+```bash
+export CODE_SIGN_IDENTITY='<Developer ID Application certificate SHA-1 fingerprint>'
+export DEVELOPMENT_TEAM=FB4W45V73V
+CONFIGURATION=Release ./scripts/build-and-run.sh build
+./scripts/package-dmg.sh
+```
+
+For local notarization, `scripts/notarize-dmg.sh /path/to/package.dmg` requires
+`APPLE_TEAM_ID`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `SIGNING_KEYCHAIN`, and
+`RUNNER_TEMP`. Use a dedicated temporary keychain and private temporary directory;
+the script stores notarization credentials in that keychain. Never export secrets
+in a command that will be recorded in shell history.
 
 ## Focused validation
 

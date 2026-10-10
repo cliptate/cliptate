@@ -5,6 +5,16 @@ MODE="${1:-run}"
 CONFIGURATION="${CONFIGURATION:-Debug}"
 DERIVED_DATA_PATH="${DERIVED_DATA_PATH:-$ROOT_DIR/.build/xcode}"
 APP_BUNDLE="$DERIVED_DATA_PATH/Build/Products/$CONFIGURATION/Cliptate.app"
+SIGNING_IDENTITY="${CODE_SIGN_IDENTITY:--}"
+SIGNING_TEAM="${DEVELOPMENT_TEAM:-}"
+SIGNING_FLAGS=(CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$SIGNING_TEAM")
+if [[ "$SIGNING_IDENTITY" != - ]]; then
+  if [[ -z "$SIGNING_TEAM" ]]; then
+    echo "DEVELOPMENT_TEAM is required when CODE_SIGN_IDENTITY is set." >&2
+    exit 1
+  fi
+  SIGNING_FLAGS+=(OTHER_CODE_SIGN_FLAGS=--timestamp)
+fi
 case "$MODE" in
   run|build|--debug|--logs|--verify) ;;
   *) echo "usage: $0 [run|build|--debug|--logs|--verify]" >&2; exit 2 ;;
@@ -13,12 +23,12 @@ if ! xcrun --find actool >/dev/null 2>&1; then
   echo "Select full Xcode with DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer." >&2
   exit 1
 fi
-# Ad-hoc signing supports sandboxed local builds without a developer team.
+# Source builds default to ad-hoc signing; CI supplies an imported Developer ID.
 xcodebuild -quiet -project "$ROOT_DIR/Cliptate.xcodeproj" -scheme Cliptate \
   -configuration "$CONFIGURATION" -destination 'platform=macOS' \
   -derivedDataPath "$DERIVED_DATA_PATH" \
   -onlyUsePackageVersionsFromResolvedFile \
-  CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= build
+  "${SIGNING_FLAGS[@]}" build
 case "$MODE" in
   build) echo "$APP_BUNDLE" ;;
   run) open "$APP_BUNDLE" ;;

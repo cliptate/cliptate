@@ -21,7 +21,7 @@ concurrency:
 jobs:
   build:
     runs-on: macos-26
-    timeout-minutes: 45
+    timeout-minutes: 75
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
       CONFIGURATION: Release
@@ -30,6 +30,7 @@ jobs:
       release-tag: ${{ steps.source.outputs.release-tag }}
       dmg-name: ${{ steps.package.outputs.dmg-name }}
       artifact-ids: ${{ steps.upload-dmg.outputs.artifact-id }},${{ steps.upload-checksum.outputs.artifact-id }}
+      signing-status: ${{ steps.notarize.outputs.signing-status }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -51,17 +52,42 @@ jobs:
           test "$(uname -m)" = arm64
           xcodebuild -version
           swift --version
+      - name: Install Developer ID certificate
+        id: signing
+        env:
+          APPLE_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: ./scripts/install-signing-keychain.sh
       - name: Resolve locked Swift packages
         run: swift package resolve --force-resolved-versions
       - name: Verify dependency notices
         run: python3 scripts/update-dependency-notices.py --check
       - name: Build macOS application
+        env:
+          CODE_SIGN_IDENTITY: ${{ steps.signing.outputs.signing-identity }}
+          DEVELOPMENT_TEAM: ${{ vars.APPLE_TEAM_ID }}
         run: ./scripts/build-and-run.sh build
       - name: Check dependency locks remain unchanged
         run: git diff --exit-code -- Package.resolved Cliptate.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
       - name: Package and verify DMG
         id: package
+        env:
+          CODE_SIGN_IDENTITY: ${{ steps.signing.outputs.signing-identity }}
+          DEVELOPMENT_TEAM: ${{ vars.APPLE_TEAM_ID }}
         run: ./scripts/package-dmg.sh
+      - name: Notarize and staple DMG
+        id: notarize
+        timeout-minutes: 35
+        env:
+          DMG_PATH: ${{ steps.package.outputs.dmg-path }}
+          SIGNING_KEYCHAIN: ${{ steps.signing.outputs.signing-keychain }}
+          APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: ./scripts/notarize-dmg.sh "$DMG_PATH"
       - name: Upload DMG
         id: upload-dmg
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -71,6 +97,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           overwrite: true
+
       - name: Upload SHA-256 checksum
         id: upload-checksum
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -80,6 +107,9 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           overwrite: true
+      - name: Remove signing keychain
+        if: ${{ always() }}
+        run: ./scripts/cleanup-signing-keychain.sh
 
   release:
     needs: build
@@ -103,4 +133,5 @@ jobs:
           RELEASE_TAG: ${{ needs.build.outputs.release-tag }}
           BUILT_COMMIT: ${{ needs.build.outputs.commit }}
           DMG_NAME: ${{ needs.build.outputs.dmg-name }}
+          SIGNING_STATUS: ${{ needs.build.outputs.signing-status }}
         run: ./scripts/publish-release.sh "dist/$DMG_NAME"
