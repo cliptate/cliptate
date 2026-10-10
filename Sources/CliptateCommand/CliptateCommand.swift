@@ -278,22 +278,18 @@ struct CliptateCommand {
       cliptate dictionary list | export
       cliptate dictionary add <word...>
       cliptate dictionary remove <word...>
-      cliptate dictionary import <UTF-8 text or JSON file>
+      cliptate dictionary import <file.txt|file.json>
 
-      -f, --format text|json|srt|vtt|markdown   (default: text)
-      -o, --output <file>                     Single-file output
-          --output-dir <directory>           One output per input
-          --overwrite                        Replace existing output files
-          --model <model ID>                  Temporary ASR model override
-          --language <language code>         Temporary language override
-          --no-dictionary                    Ignore the app's dictionary
-          --download                         Download missing required models
-          --                                 Treat remaining arguments as paths
+      -f, --format text|json|srt|vtt|markdown  (default: text)
+      -o, --output <file>                      Save output (one input)
+          --output-dir <directory>             One file per input
+          --overwrite                          Overwrite output files
+          --model <model ID>                   Model for this run
+          --language <code>                    Language for this run
+          --no-dictionary                      Skip dictionary
+          --download                           Download missing models
+          --                                   Remaining arguments are paths
           --version | --help
-
-      The direct-download Cliptate app starts in the background when needed.
-      Results go to stdout; progress and errors go to stderr.
-      Exit codes: 0 success, 1 failure, 2 usage error, 130 interrupted.
 
       """, bundle: CLILocalization.bundle)
 }
