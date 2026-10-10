@@ -11,7 +11,7 @@ Regenerate with `python3 scripts/update-dependency-notices.py` after resolving u
 | `eventsource` | `1.5.1` | [LICENSE.md](eventsource/LICENSE.md) |
 | `keyboardshortcuts` | `2.4.0` | [license](keyboardshortcuts/license) |
 | `launchatlogin-modern` | `1.1.0` | [license](launchatlogin-modern/license) |
-| `mlx-audio-swift` | `a0bd39c923e1` | [LICENSE](mlx-audio-swift/LICENSE) |
+| `mlx-audio-swift` | `0.1.5` | [LICENSE](mlx-audio-swift/LICENSE) |
 | `mlx-swift` | `0.32.3` | [LICENSE](mlx-swift/LICENSE) |
 | `mlx-swift-lm` | `3.32.3` | [LICENSE](mlx-swift-lm/LICENSE) |
 | `purchases-ios-spm` | `5.94.0` | [LICENSE](purchases-ios-spm/LICENSE) |

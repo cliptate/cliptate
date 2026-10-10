@@ -216,8 +216,8 @@ some document removed RevenueCat hooks or obsolete model expectations. See the
 `Package.resolved` files are checked in for reproducible dependency selection.
 When updating a dependency, update both the SwiftPM manifest and Xcode reference,
 resolve both graphs, run `python3 scripts/update-dependency-notices.py`, and run the builds and tests.
-MLX Swift 0.32.3 and MLX Swift LM 3.32.3 are intentionally pinned for compatibility
-with the selected MLX Audio revision; update that inference graph as a unit.
+MLX Audio Swift 0.1.5, MLX Swift 0.32.3, and MLX Swift LM 3.32.3 are pinned to
+exact versions for compatibility; update that inference graph as a unit.
 Combine Schedulers 1.2.0 and XCTest Dynamic Overlay 1.11.0 are pinned in both build
 graphs because later releases select different IssueReporting package identities
 with Swift 6.3 and Swift 6.4.

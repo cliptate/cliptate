@@ -29,10 +29,10 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", exact: "1.11.0"),
         .package(url: "https://github.com/AudioKit/AudioKit", from: "5.6.5"),
         .package(url: "https://github.com/RevenueCat/purchases-ios-spm.git", from: "5.44.1"),
-        // Keep the inference graph compatible with the pinned MLX Audio revision.
+        // Keep the inference graph compatible with the pinned MLX Audio version.
         .package(url: "https://github.com/ml-explore/mlx-swift.git", exact: "0.32.3"),
         .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", exact: "3.32.3"),
-        .package(url: "https://github.com/Blaizzy/mlx-audio-swift.git", revision: "a0bd39c923e1359d5deb3d049c89fa5585cf479a"),
+        .package(url: "https://github.com/Blaizzy/mlx-audio-swift.git", exact: "0.1.5"),
         .package(url: "https://github.com/huggingface/swift-huggingface.git", from: "0.8.0"),
     ],
     targets: [
