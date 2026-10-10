@@ -24,6 +24,11 @@ if tool == "codesign" and "-dv" in args:
 elif tool == "xcrun" and args[:2] == ["notarytool", "submit"]:
     print(json.dumps({"status": s["status"], "id": "test-submission"}))
     code = s["submit_exit"]
+elif tool == "xcrun" and args[:2] == ["notarytool", "log"]:
+    Path(args[-1]).write_text(json.dumps({"issues": [{
+        "path": "Cliptate.app/Contents/Helpers/cliptate",
+        "message": "The signature does not include a secure timestamp.",
+    }]}))
 elif tool == "xcrun" and args[:2] == ["stapler", "staple"]:
     with open(args[2], "ab") as image:
         image.write(b"stapled-ticket")
@@ -88,6 +93,15 @@ class NotarizeDMGTests(unittest.TestCase):
     def test_apple_rejection_blocks_publication_even_if_command_exits_zero(self):
         state = self.assert_rejected(status="Invalid")
         self.assertFalse(any(c[:2] == ["xcrun", "stapler"] for c in state["calls"]))
+
+    def test_apple_rejection_reports_the_submission_issues(self):
+        result, state, _, _, outputs = self.run_notarization(status="Invalid")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(outputs, "")
+        self.assertTrue(any(c[:3] == ["xcrun", "notarytool", "log"]
+                            and c[3] == "test-submission" for c in state["calls"]))
+        self.assertIn("Cliptate.app/Contents/Helpers/cliptate", result.stderr)
+        self.assertIn("The signature does not include a secure timestamp.", result.stderr)
 
     def test_pending_submission_is_not_published_after_timeout(self):
         self.assert_rejected(status="In Progress", submit_exit=1)

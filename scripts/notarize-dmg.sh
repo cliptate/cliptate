@@ -37,6 +37,33 @@ PY
 )"
 if [[ "$SUBMITTED" != 1 || "$STATUS" != Accepted ]]; then
   echo "Apple notarization did not succeed (status: $STATUS). No package will be published." >&2
+  SUBMISSION_ID="$(python3 - "$RESULT" <<'PY'
+import json, sys
+from pathlib import Path
+try:
+    value = json.loads(Path(sys.argv[1]).read_text()).get('id', '')
+    print(value if isinstance(value, str) else '')
+except (ValueError, OSError):
+    print('')
+PY
+)"
+  if [[ -n "$SUBMISSION_ID" ]]; then
+    REPORT="$RUNNER_TEMP/cliptate-notary-log.json"
+    if xcrun notarytool log "$SUBMISSION_ID" "${AUTH[@]}" "$REPORT"; then
+      python3 - "$REPORT" <<'PY' >&2
+import json, sys
+from pathlib import Path
+try:
+    report = json.loads(Path(sys.argv[1]).read_text())
+    for issue in report.get('issues') or []:
+        print(f"{issue.get('path', 'Package')}: {issue.get('message', 'Unknown issue')}")
+except (ValueError, OSError):
+    print('Could not read the Apple notarization report.')
+PY
+    else
+      echo 'Could not retrieve the Apple notarization report.' >&2
+    fi
+  fi
   exit 1
 fi
 xcrun stapler staple "$DMG_PATH"
