@@ -153,6 +153,15 @@ struct ModelDownloadManagerPermissionTests {
 @Suite("ModelDownloadManager path resolution")
 struct ModelDownloadManagerPathTests {
 
+    @Test("direct builds resolve account home while App Store builds retain container home")
+    func testModelHomeDirectoryRespectsDistribution() {
+        let container = URL(fileURLWithPath: "/mock/home/Library/Containers/com.voicepink.voicepinkpro/Data")
+        let account = URL(fileURLWithPath: "/mock/home")
+        let home = ModelStorageLayoutResolver.modelHomeDirectory(processHome: container, accountHome: account)
+        #expect(home == (SubscriptionPolicy.isBillingEnabled ? container : account))
+        #expect(ModelStorageLayoutResolver.modelHomeDirectory(processHome: container, accountHome: nil) == container)
+    }
+
     @Test("hubCacheRoot uses HF_HUB_CACHE when set")
     func testHubCacheRootHFHubCache() {
         let env = ["HF_HUB_CACHE": "/custom/hub"]
@@ -518,6 +527,28 @@ struct ModelDownloadManagerMLXAudioTests {
         let resolved = manager.getModelDirectorySync(for: .parakeetV3)
 
         #expect(resolved?.path == snapshotDir.path)
+    }
+
+    @Test("download reuses a Python Hub snapshot with blob symlinks without copying or fetching weights")
+    func testDownloadReusesSharedSnapshotSymlinks() async throws {
+        let (manager, hubRoot, tempRoot) = try makeManagerWithTempHub()
+        defer { try? FileManager.default.removeItem(at: tempRoot) }
+        let model = ModelVariant.qwen3ASR
+        let snapshot = try createHubSnapshotArtifacts(at: hubRoot, repoId: model.huggingFaceRepoId)
+        let weights = snapshot.appendingPathComponent("model.safetensors")
+        let blobs = snapshot.deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("blobs")
+        try FileManager.default.createDirectory(at: blobs, withIntermediateDirectories: true)
+        try FileManager.default.moveItem(at: weights, to: blobs.appendingPathComponent("weights"))
+        try FileManager.default.createSymbolicLink(atPath: weights.path, withDestinationPath: "../../blobs/weights")
+
+        try await manager.download(model: model) { progress in
+            #expect(progress.progress == 1.0)
+        }
+
+        #expect(await manager.getModelDirectory(for: model) == snapshot)
+        #expect(try FileManager.default.destinationOfSymbolicLink(atPath: weights.path) == "../../blobs/weights")
+        #expect(!FileManager.default.fileExists(atPath: hubRoot.appendingPathComponent("mlx-audio").path))
     }
 
     // MARK: - BPE tokenizer completeness (vocab.json required when merges.txt present)

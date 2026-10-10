@@ -1,4 +1,7 @@
 import Foundation
+#if os(macOS)
+import Darwin
+#endif
 
 enum ModelDownloadBackend: Equatable, Sendable {
   case qwen3ASR
@@ -24,10 +27,36 @@ struct ModelStoragePaths: Equatable, Sendable {
 }
 
 enum ModelStorageLayoutResolver {
+  static var defaultHomeDirectory: URL {
+    #if os(macOS)
+    // Foundation's home-directory APIs all resolve inside the app container.
+    let accountHome = getpwuid(getuid()).flatMap { entry in
+      entry.pointee.pw_dir.map { path in
+        URL(fileURLWithPath: String(cString: path), isDirectory: true)
+      }
+    }
+    #else
+    let accountHome: URL? = nil
+    #endif
+    return modelHomeDirectory(
+      processHome: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true),
+      accountHome: accountHome
+    )
+  }
+
+  static func modelHomeDirectory(processHome: URL, accountHome: URL?) -> URL {
+    #if APP_STORE
+      return processHome
+    #else
+      // NSHomeDirectory points into the container even for sandboxed direct builds.
+      return accountHome ?? processHome
+    #endif
+  }
+
   static func hubCacheRoot(environment env: [String: String]) -> URL {
     hubCacheRoot(
       environment: env,
-      homeDirectory: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true),
+      homeDirectory: defaultHomeDirectory,
       cachesDirectory: URL.cachesDirectory
     )
   }
@@ -57,7 +86,7 @@ enum ModelStorageLayoutResolver {
   static func mlxAudioBase(environment env: [String: String]) -> URL {
     mlxAudioBase(
       environment: env,
-      homeDirectory: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true),
+      homeDirectory: defaultHomeDirectory,
       cachesDirectory: URL.cachesDirectory
     )
   }
@@ -172,7 +201,7 @@ extension ModelVariant {
 
   func storagePaths(
     environment env: [String: String] = ProcessInfo.processInfo.environment,
-    homeDirectory: URL = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true),
+    homeDirectory: URL = ModelStorageLayoutResolver.defaultHomeDirectory,
     cachesDirectory: URL = URL.cachesDirectory
   ) -> ModelStoragePaths {
     let hubRoot = ModelStorageLayoutResolver.hubCacheRoot(

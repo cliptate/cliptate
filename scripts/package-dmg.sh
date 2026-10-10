@@ -44,7 +44,7 @@ fi
 
 mkdir -p "$OUTPUT_DIR"
 OUTPUT_DIR="$(cd "$OUTPUT_DIR" && pwd)"
-DMG_NAME="Cliptate-$VERSION-$BUILD_NUMBER-macOS-$ARCHITECTURES.dmg"
+DMG_NAME="Cliptate.dmg"
 DMG_PATH="$OUTPUT_DIR/$DMG_NAME"
 STAGING_DIR="$(mktemp -d "$OUTPUT_DIR/.dmg-staging.XXXXXX")"
 trap 'rm -rf "$STAGING_DIR"' EXIT

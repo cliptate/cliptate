@@ -598,7 +598,7 @@ extension ModelDownloadManager {
   @discardableResult
   static func configureSharedHubCacheEnvironment(
     environment env: [String: String] = ProcessInfo.processInfo.environment,
-    homeDirectory: URL = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true),
+    homeDirectory: URL = ModelStorageLayoutResolver.defaultHomeDirectory,
     cachesDirectory: URL = URL.cachesDirectory
   ) -> URL {
     let hubRoot = hubCacheRoot(
@@ -635,7 +635,7 @@ extension ModelDownloadManager {
   static func mlxAudioDirectory(
     forRepo repoId: String,
     environment env: [String: String],
-    homeDirectory: URL = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true),
+    homeDirectory: URL = ModelStorageLayoutResolver.defaultHomeDirectory,
     cachesDirectory: URL = URL.cachesDirectory
   ) -> URL {
     mlxAudioDirectories(
@@ -650,7 +650,7 @@ extension ModelDownloadManager {
   static func mlxAudioDirectories(
     forRepo repoId: String,
     environment env: [String: String],
-    homeDirectory: URL = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true),
+    homeDirectory: URL = ModelStorageLayoutResolver.defaultHomeDirectory,
     cachesDirectory: URL = URL.cachesDirectory
   ) -> [URL] {
     let hubRoot = ModelStorageLayoutResolver.hubCacheRoot(

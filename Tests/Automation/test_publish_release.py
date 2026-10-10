@@ -12,7 +12,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 COMMIT = "a" * 40
-DMG = "Cliptate-1.8-22-macOS-arm64.dmg"
+DMG = "Cliptate.dmg"
 FAKE_GH = r'''#!/usr/bin/env python3
 import json, os, sys
 from pathlib import Path

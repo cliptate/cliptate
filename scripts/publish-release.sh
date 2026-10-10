@@ -9,7 +9,7 @@ TAG="${RELEASE_TAG:?RELEASE_TAG is required}"
 COMMIT="${BUILT_COMMIT:?BUILT_COMMIT is required}"
 export GH_REPO="${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}"
 
-[[ "$DMG_NAME" == Cliptate-*.dmg ]]
+[[ "$DMG_NAME" == Cliptate.dmg ]]
 [[ "$COMMIT" =~ ^[0-9a-f]{40}$ ]]
 test -s "$DMG_PATH"
 test -s "$CHECKSUM_PATH"

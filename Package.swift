@@ -56,6 +56,7 @@ let package = Package(
             exclude: [
                 "Info.plist",
                 "Cliptate.entitlements",
+                "Cliptate-Direct.entitlements",
                 "Cliptate.swift",
             ],
             resources: [

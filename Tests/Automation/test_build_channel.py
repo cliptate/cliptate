@@ -1,4 +1,5 @@
 import os
+import plistlib
 from pathlib import Path
 import subprocess
 import tempfile
@@ -48,6 +49,20 @@ class BuildChannelTests(unittest.TestCase):
     def test_direct_release_removes_app_store(self):
         self.assertIn("CLIPTATE_CHANNEL_CONDITIONS=",
                       self.build_arguments("NO", "Release"))
+
+    def test_only_direct_builds_can_access_the_shared_model_cache(self):
+        direct_path = ROOT / "Sources/Cliptate/Cliptate-Direct.entitlements"
+        self.assertIn("CLIPTATE_CODE_SIGN_ENTITLEMENTS=" + str(direct_path),
+                      self.build_arguments("NO", "Release"))
+        self.assertFalse(any(arg.startswith("CLIPTATE_CODE_SIGN_ENTITLEMENTS=")
+                             for arg in self.build_arguments()))
+        self.assertFalse(any(arg.startswith("CODE_SIGN_ENTITLEMENTS=")
+                             for arg in self.build_arguments("NO", "Release")))
+        direct = plistlib.loads(direct_path.read_bytes())
+        store = plistlib.loads((ROOT / "Sources/Cliptate/Cliptate.entitlements").read_bytes())
+        key = "com.apple.security.temporary-exception.files.home-relative-path.read-write"
+        self.assertEqual(direct.pop(key), ["/.cache/huggingface/hub/"])
+        self.assertEqual(direct, store)
 
     def test_local_release_can_load_ad_hoc_signed_frameworks(self):
         self.assertIn("ENABLE_HARDENED_RUNTIME=NO",

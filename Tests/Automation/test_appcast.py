@@ -34,7 +34,7 @@ class AppcastTests(unittest.TestCase):
         enclosure = item.find("enclosure")
         self.assertIsNotNone(enclosure)
         self.assertRegex(enclosure.get("url"),
-                         r"^https://github\.com/cliptate/cliptate/releases/download/v[^/]+/Cliptate-[^/]+\.dmg$")
+                         r"^https://github\.com/cliptate/cliptate/releases/download/v[^/]+/Cliptate(?:-[^/]+)?\.dmg$")
         self.assertGreater(int(enclosure.get("length")), 0)
         self.assertEqual(len(base64.b64decode(enclosure.get(appcast.SPARKLE + "edSignature"), validate=True)), 64)
 
@@ -76,7 +76,7 @@ class AppcastTests(unittest.TestCase):
 
     def check(self, *, tag="v1.8.0", url=None, length=9, signature=None, version="23", minimum="15.0"):
         with tempfile.TemporaryDirectory() as temp:
-            dmg = Path(temp) / "Cliptate-1.8-23-macOS-arm64.dmg"
+            dmg = Path(temp) / "Cliptate.dmg"
             dmg.write_bytes(b"installer")
             feed = Path(temp) / "appcast.xml"
             url = url or f"https://github.com/cliptate/cliptate/releases/download/{tag}/{dmg.name}"

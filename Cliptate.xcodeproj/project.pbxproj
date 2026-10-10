@@ -51,7 +51,7 @@
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		C11F00000000000000000033 /* Build membership exceptions for Cliptate */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (Info.plist, Cliptate.entitlements, );
+			membershipExceptions = (Info.plist, Cliptate.entitlements, "Cliptate-Direct.entitlements", );
 			target = 29F2C4BD2E46DE8700B5995C /* Cliptate */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -477,7 +477,7 @@
 				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Sources/Cliptate/Cliptate.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "$(CLIPTATE_CODE_SIGN_ENTITLEMENTS)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 23;
 				DEAD_CODE_STRIPPING = YES;
@@ -529,7 +529,7 @@
 				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Sources/Cliptate/Cliptate.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "$(CLIPTATE_CODE_SIGN_ENTITLEMENTS)";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 23;

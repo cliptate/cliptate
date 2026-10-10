@@ -75,13 +75,14 @@ To reproduce packaging locally:
 CONFIGURATION=Release ./scripts/build-and-run.sh build
 ./scripts/package-dmg.sh
 cd dist
-shasum -a 256 -c Cliptate-*.dmg.sha256
+shasum -a 256 -c Cliptate.dmg.sha256
 ```
 
 `scripts/package-dmg.sh` also accepts an existing app bundle and output directory:
 `./scripts/package-dmg.sh /path/to/Cliptate.app /path/to/output`.
-The default output is `dist/Cliptate-<version>-<build>-macOS-arm64.dmg`, using the
-built app's metadata. The image includes `Cliptate.app`, an `Applications`
+The output is always `dist/Cliptate.dmg` with `Cliptate.dmg.sha256`; version,
+build number, and architecture remain in the app metadata and signed appcast.
+The image includes `Cliptate.app`, an `Applications`
 shortcut, and the project's and dependencies' license notices in `Licenses`.
 Open the DMG and drag the app into Applications to install it.
 
@@ -102,6 +103,21 @@ variable `SPARKLE_PUBLIC_KEY` and secret `SPARKLE_PRIVATE_KEY` before the next
 package run. See [in-app updates](updates.md) for key generation, the shared stable
 feed, version ordering, local testing, and App Store distribution requirements.
 The `APP_STORE` accessibility capability flag remains unchanged.
+
+## Shared model cache
+
+Direct-download builds use the account's real home directory for
+`~/.cache/huggingface/hub`, even though the app remains sandboxed. Only this cache
+directory receives a home-relative read/write entitlement; App Store builds retain
+their existing container and entitlements. `HF_HUB_CACHE` and `HF_HOME` overrides
+continue to work when their target is accessible to the application.
+
+Models use the Python-compatible `models--<owner>--<repository>/snapshots/<revision>`
+layout. Existing snapshots and their blob symlinks are reused without downloading
+or copying the weights. Legacy MLX Audio cache directories remain readable.
+Repository identity must match the selected model: `mlx-community/Qwen3-0.6B-4bit`
+is a text model, while transcription uses repositories such as
+`mlx-community/Qwen3-ASR-0.6B-8bit`.
 
 ## Apple signing and notarization
 
