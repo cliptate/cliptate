@@ -25,10 +25,10 @@ Each stable release has one item containing the build number, display version,
 publication date, minimum macOS version, embedded release notes, installer URL,
 byte length, and Ed25519 signature. Packaging generates it from the final
 notarized and stapled DMG with Sparkle's `generate_appcast`, then validates it.
-The checked-in [appcast.xml](../appcast.xml) supplies channel metadata and can
-hold a snapshot of a published stable feed; apps fetch the Latest release asset.
-Generation removes existing items so a previous snapshot never advertises a stale
-installer. GitHub Pages and commits to `main` are unnecessary for serving updates.
+The publication workflow creates channel metadata in a temporary directory and
+generates a fresh `appcast.xml` for each stable release. The feed is a generated
+Release asset, not a tracked source file; apps fetch the Latest release asset.
+GitHub Pages and commits to `main` are unnecessary for serving updates.
 
 The initial stable release is `v1.0`, with display version `1.0`. Its internal build
 number continues above existing installations even though the display version

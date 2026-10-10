@@ -18,19 +18,21 @@ printf '%s  %s\n' c2bf58aa8387266ac179357b1415d6f2635f044da8be41042af32425dae6da
   "$WORK/Sparkle.tar.xz" | shasum -a 256 -c -
 tar -xf "$WORK/Sparkle.tar.xz" -C "$WORK/tools"
 cp "$DMG_PATH" "$WORK/updates/"
-# Keep the channel metadata, but generate this release independently of the main feed.
-python3 - "$ROOT_DIR/appcast.xml" "$WORK/appcast.xml" <<'PY'
+# Create the channel for this release; no checked-in or previous feed is needed.
+python3 - "$REPOSITORY" "$WORK/appcast.xml" <<'PY'
 import sys
 import xml.etree.ElementTree as ET
-tree = ET.parse(sys.argv[1])
-channel = tree.getroot().find("channel")
-if channel is None:
-    raise SystemExit("Missing appcast channel")
-for item in channel.findall("item"):
-    channel.remove(item)
-# ElementTree drops unused namespaces, but Sparkle needs its prefix for new items.
-tree.getroot().set("xmlns:sparkle", "http://www.andymatuschak.org/xml-namespaces/sparkle")
-tree.write(sys.argv[2], encoding="utf-8", xml_declaration=True)
+root = ET.Element("rss", {"version": "2.0",
+    "xmlns:sparkle": "http://www.andymatuschak.org/xml-namespaces/sparkle"})
+channel = ET.SubElement(root, "channel")
+for key, value in {
+    "title": "Cliptate",
+    "link": f"https://github.com/{sys.argv[1]}/releases",
+    "description": "Cliptate macOS application updates.",
+    "language": "en",
+}.items():
+    ET.SubElement(channel, key).text = value
+ET.ElementTree(root).write(sys.argv[2], encoding="utf-8", xml_declaration=True)
 PY
 NOTES_PATH="$WORK/updates/$(basename "${DMG_PATH%.dmg}").txt"
 printf 'Cliptate direct-download release.\nRelease: https://github.com/%s/releases/tag/%s\nSource: https://github.com/%s/commit/%s\n' \

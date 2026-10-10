@@ -53,9 +53,10 @@ branch pushes and pull requests do not build installers.
 - To publish a version, update the app version/build settings, commit, then push
   a tag such as `git tag v1.0 && git push origin v1.0`. The workflow publishes
   the tagged source to that version's release and never moves version tags.
-  The DMG filename and application version come from the app's build settings.
+  The installer is always named `Cliptate.dmg`; its version comes from the app's build settings.
 
-Stable releases include the DMG, SHA-256 checksum, and signed `appcast.xml` feed,
+Stable releases include the DMG, SHA-256 checksum, and signed `appcast.xml` feed
+generated during packaging (the XML is not tracked in Git),
 and are publicly downloadable without signing in. Stable publication explicitly
 sets Latest. All builds, including Nightly, check that latest stable feed.
 Nightly updates replace the previous installer pair and move the `nightly` tag to

@@ -14,58 +14,34 @@ spec.loader.exec_module(appcast)
 
 
 class AppcastTests(unittest.TestCase):
-    def test_checked_in_feed_is_metadata_or_a_signed_stable_snapshot(self):
-        root = ET.parse(ROOT / "appcast.xml").getroot()
-        self.assertEqual(root.tag, "rss")
-        self.assertEqual(root.get("version"), "2.0")
-        self.assertEqual(root.findtext("./channel/title"), "Cliptate")
-        self.assertEqual(root.findtext("./channel/link"),
-                         "https://github.com/cliptate/cliptate/releases")
-        self.assertTrue(root.findtext("./channel/description"))
-        items = root.findall("./channel/item")
-        if not items:
-            return
-        self.assertEqual(len(items), 1)
-        item = items[0]
-        self.assertRegex(item.findtext(appcast.SPARKLE + "version"), r"^\d+(?:\.\d+)*$")
-        for key in ["title", "pubDate", "description", appcast.SPARKLE + "shortVersionString",
-                    appcast.SPARKLE + "minimumSystemVersion"]:
-            self.assertTrue(item.findtext(key), key)
-        enclosure = item.find("enclosure")
-        self.assertIsNotNone(enclosure)
-        self.assertRegex(enclosure.get("url"),
-                         r"^https://github\.com/cliptate/cliptate/releases/download/v[^/]+/Cliptate(?:-[^/]+)?\.dmg$")
-        self.assertGreater(int(enclosure.get("length")), 0)
-        self.assertEqual(len(base64.b64decode(enclosure.get(appcast.SPARKLE + "edSignature"), validate=True)), 64)
-
     def test_manual_download_entry_cannot_be_published_as_a_signed_release(self):
         with tempfile.TemporaryDirectory() as directory:
             dmg = Path(directory) / "Cliptate.dmg"
             dmg.write_bytes(b"installer")
-            tree = ET.parse(ROOT / "appcast.xml")
-            channel = tree.getroot().find("channel")
-            item = channel.find("item")
-            if item is None:
-                item = ET.SubElement(channel, "item")
-                ET.SubElement(item, appcast.SPARKLE + "version").text = "23"
-                ET.SubElement(item, "link").text = "https://github.com/cliptate/cliptate/releases"
-            enclosure = item.find("enclosure")
-            if enclosure is not None:
-                item.remove(enclosure)
             manual_feed = Path(directory) / "appcast.xml"
-            tree.write(manual_feed)
+            manual_feed.write_text('''<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+              <channel><item><sparkle:version>23</sparkle:version>
+              <link>https://github.com/cliptate/cliptate/releases</link></item></channel>
+            </rss>''')
             with self.assertRaisesRegex(ValueError, "enclosure"):
                 appcast.validate(manual_feed, dmg, "cliptate/cliptate", "nightly")
 
-    def test_generation_removes_previous_items_and_keeps_sparkle_namespace(self):
+    def test_generation_starts_without_a_source_feed(self):
         script = (ROOT / "scripts/generate-appcast.sh").read_text()
         preparation = script.split("<<'PY'\n", 1)[1].split("\nPY", 1)[0]
         with tempfile.TemporaryDirectory() as directory:
             feed = Path(directory) / "appcast.xml"
-            subprocess.run(["python3", "-", str(ROOT / "appcast.xml"), str(feed)],
-                           input=preparation, text=True, check=True, capture_output=True)
+            subprocess.run(["python3", "-", "example/cliptate", str(feed)],
+                           input=preparation, text=True, check=True, capture_output=True,
+                           cwd=directory)
             root = ET.parse(feed).getroot()
+            self.assertEqual(root.tag, "rss")
+            self.assertEqual(root.get("version"), "2.0")
             self.assertEqual(root.findtext("./channel/title"), "Cliptate")
+            self.assertEqual(root.findtext("./channel/link"),
+                             "https://github.com/example/cliptate/releases")
+            self.assertTrue(root.findtext("./channel/description"))
+            self.assertEqual(root.findtext("./channel/language"), "en")
             self.assertEqual(root.findall("./channel/item"), [])
             namespaces = [value for _, value in ET.iterparse(feed, events=["start-ns"])]
             self.assertIn(("sparkle", "http://www.andymatuschak.org/xml-namespaces/sparkle"), namespaces)

@@ -4,6 +4,7 @@
 DerivedData/
 build/
 dist/
+/appcast.xml
 Packages/
 Package.pins
 xcuserdata/
