@@ -36,9 +36,9 @@ Cliptate is a native macOS application that brings transcription, dictation, edi
 
 ## Build from source
 
-Release DMGs and SHA-256 checksums are also available from successful
-[GitHub Actions builds](https://github.com/cliptate/cliptate/actions).
-Sign in to GitHub to download artifacts, which are retained for 14 days.
+DMGs and SHA-256 checksums are available from
+[version releases](https://github.com/cliptate/cliptate/releases) and the daily
+[Nightly build](https://github.com/cliptate/cliptate/releases/tag/nightly).
 These builds are ad-hoc signed and not Apple-notarized; see the
 [installation guide](docs/development.md#dmg-packages-and-ci-downloads).
 

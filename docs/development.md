@@ -33,16 +33,37 @@ no paid developer account or original maintainer's signing team is required.
 
 ## DMG packages and CI downloads
 
-CI builds and tests the SwiftPM library, then builds the macOS application in
-Release configuration. After all checks pass, it creates a compressed DMG and
-uploads the DMG and its SHA-256 checksum as separate GitHub Actions artifacts.
-This runs for pushes to `main`, pull requests, and manual workflow runs.
+The **Test** workflow (`.github/workflows/ci.yml`) resolves the locked dependencies,
+builds the SwiftPM library, verifies license notices, and runs unit tests on every
+push (all branches and tags) and pull request. It also supports manual runs.
+New pushes do not cancel tests for earlier commits.
 
-Open the successful **Build, test and package** run on the repository's
-[Actions page](https://github.com/cliptate/cliptate/actions), then use the download
-links in the build summary or the **Artifacts** section. Downloads require signing
-in to GitHub and are retained for 14 days. The artifact is the DMG itself, without
-an additional ZIP archive.
+The independent **Package and release** workflow (`.github/workflows/package.yml`)
+builds the macOS application in Release configuration and verifies a compressed
+DMG. It runs manually, daily at **03:17 Beijing time** (19:17 UTC on the previous
+day), or when a tag other than the reserved `nightly` tag is pushed. Ordinary
+branch pushes and pull requests do not build installers.
+
+- Scheduled builds use the latest `main` commit and update the rolling
+  [Nightly prerelease](https://github.com/cliptate/cliptate/releases/tag/nightly).
+- To package manually, open **Package and release** on the
+  [Actions page](https://github.com/cliptate/cliptate/actions/workflows/package.yml)
+  and choose **Run workflow**. A branch build updates `nightly`; a tag build
+  publishes to that tag's release.
+- To publish a version, update the app version/build settings, commit, then push
+  a tag such as `git tag v1.8.0 && git push origin v1.8.0`. The workflow publishes
+  the tagged source to that version's release and never moves version tags.
+  The DMG filename and application version come from the app's build settings.
+
+Releases include the DMG and SHA-256 checksum and are publicly downloadable
+without signing in. Nightly updates replace the previous installer pair and move
+the `nightly` tag to the packaged commit; they do not become the latest stable
+release. Release publication runs separately from the build with `contents: write`
+permission and the built-in `GITHUB_TOKEN`; no personal access token is required.
+
+Each successful packaging run also retains the DMG and checksum as separate
+Actions artifacts for 14 days. These artifact downloads require signing in to
+GitHub and contain the files themselves, without an additional ZIP archive.
 
 To reproduce packaging locally:
 
@@ -59,6 +80,9 @@ The default output is `dist/Cliptate-<version>-<build>-macOS-arm64.dmg`, using t
 built app's metadata. The image includes `Cliptate.app`, an `Applications`
 shortcut, and the project's and dependencies' license notices in `Licenses`.
 Open the DMG and drag the app into Applications to install it.
+
+Run `python3 -m unittest discover -s Tests/Automation -v` to verify release
+automation safeguards without contacting GitHub or publishing anything.
 
 CI packages use ad-hoc signing and are not Apple-notarized. macOS may require
 approval in **System Settings → Privacy & Security** when opening a downloaded
@@ -125,6 +149,7 @@ Package.swift            SwiftPM library and automatically discovered unit tests
 Sources/Cliptate/         app entry point, models, services, views, utilities, resources
 Tests/CliptateTests/      unit and integration tests, bundled fixtures
 Tests/CliptateUITests/    opt-in Xcode UI tests
+Tests/Automation/        release automation regression checks
 Tests/Legacy/            previously unselected test suites and helpers
 Tests/Fixtures/manual/   legacy manual audio sample, outside automated test resources
 config/                  shared build settings and local configuration template

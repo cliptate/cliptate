@@ -32,3 +32,5 @@ config/Local.xcconfig
 *.swp
 *.tmp
 *.log
+__pycache__/
+*.pyc

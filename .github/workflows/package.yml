@@ -1,0 +1,106 @@
+name: Package and release
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 03:17 Asia/Shanghai (UTC+8); avoid the busy start of the hour.
+    - cron: '17 19 * * *'
+  push:
+    tags:
+      - '**'
+      - '!nightly'
+
+permissions:
+  contents: read
+
+# Serialize updates to the rolling release, and reruns of the same version tag.
+concurrency:
+  group: package-${{ github.ref_type == 'tag' && github.ref_name != 'nightly' && github.ref_name || 'nightly' }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      CONFIGURATION: Release
+    outputs:
+      commit: ${{ steps.source.outputs.commit }}
+      release-tag: ${{ steps.source.outputs.release-tag }}
+      dmg-name: ${{ steps.package.outputs.dmg-name }}
+      artifact-ids: ${{ steps.upload-dmg.outputs.artifact-id }},${{ steps.upload-checksum.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Identify release source
+        id: source
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          tag=nightly
+          if [[ "$REF_TYPE" == tag && "$REF_NAME" != nightly ]]; then
+            tag="$REF_NAME"
+          fi
+          echo "release-tag=$tag" >> "$GITHUB_OUTPUT"
+      - name: Inspect toolchain
+        run: |
+          test "$(uname -m)" = arm64
+          xcodebuild -version
+          swift --version
+      - name: Resolve locked Swift packages
+        run: swift package resolve --force-resolved-versions
+      - name: Verify dependency notices
+        run: python3 scripts/update-dependency-notices.py --check
+      - name: Build macOS application
+        run: ./scripts/build-and-run.sh build
+      - name: Check dependency locks remain unchanged
+        run: git diff --exit-code -- Package.resolved Cliptate.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+      - name: Package and verify DMG
+        id: package
+        run: ./scripts/package-dmg.sh
+      - name: Upload DMG
+        id: upload-dmg
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          path: ${{ steps.package.outputs.dmg-path }}
+          archive: false
+          if-no-files-found: error
+          retention-days: 14
+          overwrite: true
+      - name: Upload SHA-256 checksum
+        id: upload-checksum
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          path: ${{ steps.package.outputs.checksum-path }}
+          archive: false
+          if-no-files-found: error
+          retention-days: 14
+          overwrite: true
+
+  release:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Download verified packages
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact-ids }}
+          path: dist
+          merge-multiple: true
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.build.outputs.release-tag }}
+          BUILT_COMMIT: ${{ needs.build.outputs.commit }}
+          DMG_NAME: ${{ needs.build.outputs.dmg-name }}
+        run: ./scripts/publish-release.sh "dist/$DMG_NAME"

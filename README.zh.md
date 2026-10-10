@@ -35,8 +35,9 @@ Cliptate 是一款原生 macOS 应用，将转写、听写、剪辑和语音合�
 
 ## 从源码构建
 
-也可从成功的 [GitHub Actions 构建](https://github.com/cliptate/cliptate/actions)
-下载 Release DMG 和 SHA-256 校验文件；需要登录 GitHub，产物保留 14 天。
+也可从[版本发布](https://github.com/cliptate/cliptate/releases)和每天凌晨更新的
+[Nightly 构建](https://github.com/cliptate/cliptate/releases/tag/nightly)
+下载 DMG 和 SHA-256 校验文件，无需登录 GitHub。
 这是 ad-hoc 签名、尚未 Apple 公证的构建，安装说明见[开发指南](docs/development.md#dmg-packages-and-ci-downloads)。
 
 完整应用以 [MIT 许可证](LICENSE)开源。需要 Apple Silicon、macOS 15+、

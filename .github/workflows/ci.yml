@@ -1,22 +1,17 @@
-name: Build, test and package
+name: Test
 
 on:
   push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   macos:
     runs-on: macos-26
-    timeout-minutes: 45
+    timeout-minutes: 30
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     steps:
@@ -28,6 +23,8 @@ jobs:
           test "$(uname -m)" = arm64
           xcodebuild -version
           swift --version
+      - name: Verify release automation
+        run: python3 -m unittest discover -s Tests/Automation -v
       - name: Resolve locked Swift packages
         run: swift package resolve --force-resolved-versions
       - name: Build library
@@ -36,45 +33,5 @@ jobs:
         run: python3 scripts/update-dependency-notices.py --check
       - name: Run unit tests
         run: swift test
-      - name: Build macOS application
-        env:
-          CONFIGURATION: Release
-        run: ./scripts/build-and-run.sh build
       - name: Check dependency locks remain unchanged
         run: git diff --exit-code -- Package.resolved Cliptate.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
-      - name: Package and verify DMG
-        id: package
-        run: ./scripts/package-dmg.sh
-      - name: Upload DMG
-        id: upload-dmg
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        with:
-          path: ${{ steps.package.outputs.dmg-path }}
-          archive: false
-          if-no-files-found: error
-          retention-days: 14
-          overwrite: true
-      - name: Upload SHA-256 checksum
-        id: upload-checksum
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        with:
-          path: ${{ steps.package.outputs.checksum-path }}
-          archive: false
-          if-no-files-found: error
-          retention-days: 14
-          overwrite: true
-      - name: Add download links to build summary
-        env:
-          DMG_NAME: ${{ steps.package.outputs.dmg-name }}
-          DMG_URL: ${{ steps.upload-dmg.outputs.artifact-url }}
-          CHECKSUM_URL: ${{ steps.upload-checksum.outputs.artifact-url }}
-        run: |
-          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
-          ### macOS download
-
-          - [Download $DMG_NAME]($DMG_URL)
-          - [Download SHA-256 checksum]($CHECKSUM_URL)
-
-          Apple Silicon, macOS 15+. Release build with ad-hoc signing; not notarized.
-          Artifacts are retained for 14 days. Sign in to GitHub to download them.
-          EOF
