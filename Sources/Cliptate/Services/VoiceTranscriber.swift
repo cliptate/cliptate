@@ -1,5 +1,6 @@
 import AVFoundation
 import AppKit
+import CoreAudio
 import CoreGraphics
 import Foundation
 import os.log
@@ -54,6 +55,9 @@ public final class VoiceTranscriber: ObservableObject {
   /// Status message shown during re-transcription (e.g. "Transcribing…").
   @Published public private(set) var retranscriptionStatus: String?
   public var deliverTranscriptsDirectly: Bool = true
+  @Published private(set) var inputIssue: VoiceInputIssue?
+  @Published private(set) var inputDeviceName: String?
+  private var inputMonitor = MicrophoneInputMonitor()
 
   private let audioEngine = AVAudioEngine()
   private var activeStreamingProvider: (any StreamingTranscriptionProvider)?
@@ -144,6 +148,9 @@ public final class VoiceTranscriber: ObservableObject {
       return
     }
 
+    inputIssue = nil
+    inputDeviceName = Self.defaultInputDeviceName()
+    micIndicator.updateInputWarning(nil)
     state = .requestingPermission
     statusMessage = "Checking microphone permissions..."
 
@@ -174,9 +181,9 @@ public final class VoiceTranscriber: ObservableObject {
 
       try await configureEngine(type: type, model: model, language: language)
       try throwIfStartupNoLongerPreparing()
-      startSilenceMonitor()
 
       sessionStartDate = Date()
+      inputMonitor.start(at: sessionStartDate ?? Date())
       let startDate = sessionStartDate ?? Date()
       session = TranscriptSession(
         startTime: startDate,
@@ -198,6 +205,8 @@ public final class VoiceTranscriber: ObservableObject {
       #endif
 
       try await startTranscriptionPipeline(type: type, model: model, language: language)
+      inputMonitor.start(at: Date())
+      startSilenceMonitor()
 
       logger.notice("🎙️ Live transcription pipeline active")
 
@@ -222,7 +231,7 @@ public final class VoiceTranscriber: ObservableObject {
       } while isStopInProgress
       if resetState {
         state = .idle
-        statusMessage = "Ready"
+        statusMessage = inputIssue?.message ?? String(localized: "Ready")
       }
       return
     }
@@ -234,7 +243,7 @@ public final class VoiceTranscriber: ObservableObject {
       }
       if resetState {
         state = .idle
-        statusMessage = "Ready"
+        statusMessage = inputIssue?.message ?? String(localized: "Ready")
       }
       return
     }
@@ -242,6 +251,8 @@ public final class VoiceTranscriber: ObservableObject {
     isStopInProgress = true
     defer { isStopInProgress = false }
 
+    inputIssue = nil
+    micIndicator.updateInputWarning(nil)
     state = .stopping
     statusMessage = "Stopping transcription..."
     stopSilenceMonitor()
@@ -272,6 +283,7 @@ public final class VoiceTranscriber: ObservableObject {
 
     if var currentSession = session {
       currentSession.recordingURL = currentRecordingURL
+      currentSession.finish()
       session = currentSession
     }
 
@@ -301,13 +313,15 @@ public final class VoiceTranscriber: ObservableObject {
         await retranscribeCapturedAudio(finalizedCapture, sessionID: sessionID)
       } else if let audioURL = recordingURLForRetranscription {
         await retranscribeRecordedAudio(at: audioURL)
+      } else if !finalizeStreamingFallback() {
+        inputIssue = .noInput
       }
     }
 
     if resetState {
       await MainActor.run {
         state = .idle
-        statusMessage = "Ready"
+        statusMessage = inputIssue?.message ?? String(localized: "Ready")
       }
     }
   }
@@ -366,18 +380,22 @@ public final class VoiceTranscriber: ObservableObject {
 
       if let finalizedSessionID = applyDictationBatchOutput(output, recordingURL: nil) {
         persistDeferredRecording(capture, for: finalizedSessionID)
+      } else if finalizeStreamingFallback() {
+        if let sessionID = session?.id { persistDeferredRecording(capture, for: sessionID) }
+      } else {
+        inputIssue = inputMonitor.lastAudibleAt == nil ? .quietInput : .noSpeechRecognized
       }
     } catch {
       logger.error("🎙️ Re-transcription failed: \(error.localizedDescription)")
-      if deliverTranscriptsDirectly {
-        deliverFinalSessionOutput()
+      if finalizeStreamingFallback(), let sessionID = session?.id {
+        persistDeferredRecording(capture, for: sessionID)
       }
+      inputIssue = .transcriptionFailed
     }
 
     isRetranscribing = false
     retranscriptionStatus = nil
     statusMessage = "Ready"
-    micIndicator.forceFinishAndDismiss()
   }
 
   /// Re-transcribes the recorded audio file using the batch API for higher accuracy.
@@ -385,6 +403,8 @@ public final class VoiceTranscriber: ObservableObject {
   private func retranscribeRecordedAudio(at audioURL: URL) async {
     guard FileManager.default.fileExists(atPath: audioURL.path) else {
       logger.warning("🎙️ Recording file not found for re-transcription: \(audioURL.path)")
+      _ = finalizeStreamingFallback()
+      inputIssue = .transcriptionFailed
       return
     }
 
@@ -417,19 +437,20 @@ public final class VoiceTranscriber: ObservableObject {
         }
       )
 
-      _ = applyDictationBatchOutput(output, recordingURL: audioURL)
+      if applyDictationBatchOutput(output, recordingURL: audioURL) == nil,
+        !finalizeStreamingFallback(recordingURL: audioURL)
+      {
+        inputIssue = inputMonitor.lastAudibleAt == nil ? .quietInput : .noSpeechRecognized
+      }
     } catch {
       logger.error("🎙️ Re-transcription failed: \(error.localizedDescription)")
-      // Fall back to delivering the streaming result on failure
-      if deliverTranscriptsDirectly {
-        deliverFinalSessionOutput()
-      }
+      _ = finalizeStreamingFallback(recordingURL: audioURL)
+      inputIssue = .transcriptionFailed
     }
 
     isRetranscribing = false
     retranscriptionStatus = nil
     statusMessage = "Ready"
-    micIndicator.forceFinishAndDismiss()
   }
 
   @discardableResult
@@ -465,9 +486,28 @@ public final class VoiceTranscriber: ObservableObject {
     return updatedSession.id
   }
 
+  @discardableResult
+  private func finalizeStreamingFallback(recordingURL: URL? = nil) -> Bool {
+    guard var currentSession = session else { return false }
+    let text = collapseWhitespace(currentSession.combinedText.isEmpty ? liveText : currentSession.combinedText)
+    guard !text.isEmpty else { return false }
+    if currentSession.lines.isEmpty {
+      currentSession.replaceLines(with: [TranscriptLine(timestamp: 0, text: text)])
+    }
+    if let recordingURL { currentSession.recordingURL = recordingURL }
+    if currentSession.endTime == nil { currentSession.finish() }
+    currentSession.source = .voiceDictation
+    session = currentSession
+    historyRuntime.add(currentSession)
+    deliverFinalSessionOutput()
+    return true
+  }
+
   /// Clears the current session content but keeps the voice transcriber idle.
   public func clearSession() {
     guard state != .running else { return }
+    inputIssue = nil
+    micIndicator.updateInputWarning(nil)
     session = TranscriptSession()
     liveText = ""
     statusMessage = "Ready"
@@ -584,8 +624,42 @@ public final class VoiceTranscriber: ObservableObject {
     }
   }
 
+  private static func defaultInputDeviceName() -> String? {
+    var device = AudioDeviceID(0)
+    var size = UInt32(MemoryLayout<AudioDeviceID>.size)
+    var address = AudioObjectPropertyAddress(
+      mSelector: kAudioHardwarePropertyDefaultInputDevice,
+      mScope: kAudioObjectPropertyScopeGlobal,
+      mElement: kAudioObjectPropertyElementMain
+    )
+    guard AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &device) == noErr,
+      device != kAudioObjectUnknown else { return nil }
+    var name: Unmanaged<CFString>?
+    size = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
+    address.mSelector = kAudioObjectPropertyName
+    guard AudioObjectGetPropertyData(device, &address, 0, nil, &size, &name) == noErr else { return nil }
+    return name?.takeRetainedValue() as String?
+  }
+
+  private func checkMicrophoneInput(at date: Date) {
+    guard state == .running else { return }
+    let previousIssue = inputIssue
+    inputIssue = inputMonitor.issue(at: date)
+    micIndicator.updateInputWarning(inputIssue?.title)
+    if previousIssue != inputIssue, inputIssue != nil {
+      inputDeviceName = Self.defaultInputDeviceName()
+    }
+    if let inputIssue {
+      statusMessage = inputIssue.message
+    } else if previousIssue != nil {
+      statusMessage = String(localized: "Listening...")
+    }
+  }
+
   private func handleMicLevelUpdate(_ level: CGFloat) {
     guard state == .running else { return }
+    inputMonitor.receive(level: level, at: Date())
+    checkMicrophoneInput(at: Date())
     micIndicator.updateLevel(level)
   }
 
@@ -603,7 +677,11 @@ public final class VoiceTranscriber: ObservableObject {
       micIndicator.startTracking()
       micIndicator.updateStatus(.transcribing)
     case .idle, .error:
-      micIndicator.forceFinishAndDismiss()
+      if let inputIssue {
+        micIndicator.showInputWarning(inputIssue.title)
+      } else {
+        micIndicator.forceFinishAndDismiss()
+      }
     }
   }
 
@@ -624,6 +702,7 @@ public final class VoiceTranscriber: ObservableObject {
   /// Dismiss the overlay after a brief delay.
   /// Uses force-dismiss so it works even when AI enhance has entered processing state.
   func dismissOverlay() {
+    guard inputIssue == nil else { return }
     micIndicator.forceFinishAndDismiss()
   }
 
@@ -687,10 +766,12 @@ public final class VoiceTranscriber: ObservableObject {
       [weak self] _ in
       Task { @MainActor [weak self] in
         guard let self else { return }
+        self.checkMicrophoneInput(at: Date())
+        guard self.inputIssue == nil else { return }
         guard let last = self.lastSpeechDetection else { return }
         let silenceDuration = Date().timeIntervalSince(last)
         if silenceDuration > 5 {
-          self.statusMessage = "No speech detected"
+          self.statusMessage = String(localized: "No speech detected")
         }
       }
     }
@@ -1007,6 +1088,11 @@ extension VoiceTranscriber {
   extension VoiceTranscriber {
     func testPrepareForQwen3StreamAssertions() {
       voiceTranscriberTestDisablesMicIndicator = true
+      inputIssue = nil
+      inputMonitor.start(at: Date())
+      activeStreamingProvider = nil
+      streamingModule.reset()
+      _ = streamingModule.takeFinalizedDictationCapture()
       state = .running
       session = nil
       liveText = ""
@@ -1018,6 +1104,14 @@ extension VoiceTranscriber {
 
     func testHandleQwen3StreamUpdate(_ text: String) {
       handleStreamUpdate(text)
+    }
+
+    func testHandleMicLevelUpdate(_ level: CGFloat) {
+      handleMicLevelUpdate(level)
+    }
+
+    func testCheckMicrophoneInput(at date: Date) {
+      checkMicrophoneInput(at: date)
     }
 
     func testSetSession(_ newSession: TranscriptSession) {
@@ -1100,6 +1194,7 @@ extension VoiceTranscriber {
 
     func testResetAfterQwen3StreamAssertions() {
       stopSilenceMonitor()
+      inputIssue = nil
       session = nil
       liveText = ""
       statusMessage = ""
@@ -1149,4 +1244,57 @@ private func micEnergyLevel(from energy: [Float]) -> CGFloat {
   // 使用更激进的缩放，增强视觉效果
   let scaled = log1p(Double(blended) * 60.0) / log1p(60.0)
   return CGFloat(min(max(scaled, 0), 1))
+}
+
+
+enum VoiceInputIssue: Equatable {
+  case noInput
+  case quietInput
+  case noSpeechRecognized
+  case transcriptionFailed
+
+  var title: String {
+    switch self {
+    case .noInput: String(localized: "No microphone input")
+    case .quietInput: String(localized: "No sound detected")
+    case .noSpeechRecognized: String(localized: "No text recognized")
+    case .transcriptionFailed: String(localized: "Transcription failed")
+    }
+  }
+
+  var message: String {
+    switch self {
+    case .noInput:
+      String(localized: "No audio is reaching Cliptate. Check your input device in Sound settings, reconnect it if needed, then try again.")
+    case .quietInput:
+      String(localized: "Your microphone is connected, but no sound was detected. Check that it isn't muted and speak closer to it.")
+    case .noSpeechRecognized:
+      String(localized: "Audio was received, but no text was recognized. Check the dictation language and try again.")
+    case .transcriptionFailed:
+      String(localized: "Final transcription failed. Any available live transcript was saved in history. Please try again.")
+    }
+  }
+}
+
+struct MicrophoneInputMonitor {
+  private(set) var startedAt: Date = Date()
+  private(set) var lastBufferAt: Date?
+  private(set) var lastAudibleAt: Date?
+
+  mutating func start(at date: Date) {
+    startedAt = date
+    lastBufferAt = nil
+    lastAudibleAt = nil
+  }
+
+  mutating func receive(level: CGFloat, at date: Date) {
+    lastBufferAt = date
+    if level > 0.05 { lastAudibleAt = date }
+  }
+
+  func issue(at date: Date) -> VoiceInputIssue? {
+    guard date.timeIntervalSince(startedAt) >= 3 else { return nil }
+    guard let lastBufferAt, date.timeIntervalSince(lastBufferAt) < 3 else { return .noInput }
+    return lastAudibleAt == nil ? .quietInput : nil
+  }
 }

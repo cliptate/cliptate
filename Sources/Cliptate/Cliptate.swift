@@ -11,6 +11,10 @@ import os.log
 
 @main
 struct CliptateApp: App {
+  #if !APP_STORE
+  @NSApplicationDelegateAdaptor(CLIApplicationDelegate.self) private var cliDelegate
+  @StateObject private var cliLifecycle = CLIApplicationLifecycle.shared
+  #endif
   @StateObject private var config: AppConfiguration
   @StateObject private var presetStore: ConfigPresetStore
   @StateObject private var downloadStateStore: ModelDownloadStateStore
@@ -26,6 +30,11 @@ struct CliptateApp: App {
   }
 
   init() {
+    do { try DirectAppDataMigration.run() }
+    catch {
+      Logger(subsystem: "com.Cliptate", category: "App").error(
+        "Sandbox data migration failed; original data retained: \(error.localizedDescription)")
+    }
     ModelDownloadManager.configureSharedHubCacheEnvironment()
 
     let sharedConfig = AppConfiguration.shared
@@ -41,7 +50,7 @@ struct CliptateApp: App {
 
     // Set accessory policy at launch if lightweight mode is active.
     // Deferred because NSApp may not yet be initialized during App.init().
-    if LightweightModeManager.shared.isActive {
+    if LightweightModeManager.shared.isActive || isCLIBackgroundLaunch {
       DispatchQueue.main.async {
         NSApp?.setActivationPolicy(.accessory)
       }
@@ -92,7 +101,7 @@ struct CliptateApp: App {
   var body: some Scene {
     WindowGroup {
       Group {
-        if lightweightManager.isActive {
+        if lightweightManager.isActive || isCLIBackgroundLaunch {
           // Empty placeholder — no view hierarchy allocated in lightweight mode
           Color.clear
             .frame(width: 0, height: 0)
@@ -136,5 +145,13 @@ struct CliptateApp: App {
       }
     }
     .menuBarExtraStyle(.menu)
+  }
+
+  private var isCLIBackgroundLaunch: Bool {
+    #if APP_STORE
+    false
+    #else
+    cliLifecycle.backgroundLaunch
+    #endif
   }
 }

@@ -4,10 +4,6 @@ import SwiftUI
   import AppKit
 #endif
 
-#if canImport(LaunchAtLogin)
-  import LaunchAtLogin
-#endif
-
 // MARK: - Shared settings card component
 
 private struct SettingsCard<Content: View>: View {
@@ -73,6 +69,15 @@ struct AISettingsView: View {
           AppUpdateSettingsView()
         }
         providerSection
+        #if !APP_STORE
+        SettingsCard(
+          title: "Command Line",
+          subtitle: "Transcribe files and manage your dictionary from Terminal.",
+          systemImage: "terminal"
+        ) {
+          CLISettingsView()
+        }
+        #endif
       }
       .padding(.horizontal, 28)
       .padding(.vertical, 32)
@@ -201,10 +206,7 @@ struct AISettingsView: View {
       subtitle: "Control how Cliptate behaves at login.",
       systemImage: "power"
     ) {
-      LaunchAtLogin.Toggle {
-        Text("Launch at Login")
-          .font(.subheadline)
-      }
+      LoginItemSettingsView()
     }
   }
 

@@ -118,8 +118,7 @@ struct PermissionsViewSourceTests {
     #expect(content.contains(".library("))
     #expect(content.contains(".target("))
     #expect(content.contains(#""Cliptate.swift","#))
-    #expect(content.contains(".executable(") == false)
-    #expect(content.contains(".executableTarget(") == false)
+    // A lightweight CLI is allowed; the SwiftUI app entry still belongs to Xcode.
   }
 
   private func permissionsViewSource() throws -> String {

@@ -15,7 +15,8 @@ let package = Package(
         .library(
             name: "Cliptate",
             targets: ["Cliptate"]
-        )
+        ),
+        .executable(name: "cliptate", targets: ["CliptateCommand"])
     ],
     dependencies: [
         .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0"),
@@ -35,9 +36,12 @@ let package = Package(
         .package(url: "https://github.com/huggingface/swift-huggingface.git", from: "0.8.0"),
     ],
     targets: [
+        .target(name: "CliptateCLIKit", path: "Sources/Cliptate/CLIShared"),
+        .executableTarget(name: "CliptateCommand", dependencies: ["CliptateCLIKit"]),
         .target(
             name: "Cliptate",
             dependencies: [
+                "CliptateCLIKit",
                 "KeyboardShortcuts",
                 .product(name: "Sparkle", package: "Sparkle"),
                 .product(name: "LaunchAtLogin", package: "LaunchAtLogin-Modern"),
@@ -58,6 +62,7 @@ let package = Package(
                 "Cliptate.entitlements",
                 "Cliptate-Direct.entitlements",
                 "Cliptate.swift",
+                "CLIShared",
             ],
             resources: [
                 .process("Assets.xcassets"),
@@ -67,7 +72,7 @@ let package = Package(
         ),
         .testTarget(
             name: "CliptateTests",
-            dependencies: ["Cliptate"],
+            dependencies: ["Cliptate", "CliptateCLIKit"],
             path: "Tests/CliptateTests",
             resources: [
                 .copy("Resources")

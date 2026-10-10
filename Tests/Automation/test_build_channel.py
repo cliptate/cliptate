@@ -50,7 +50,7 @@ class BuildChannelTests(unittest.TestCase):
         self.assertIn("CLIPTATE_CHANNEL_CONDITIONS=",
                       self.build_arguments("NO", "Release"))
 
-    def test_only_direct_builds_can_access_the_shared_model_cache(self):
+    def test_direct_builds_disable_sandbox_and_enable_cli(self):
         direct_path = ROOT / "Sources/Cliptate/Cliptate-Direct.entitlements"
         self.assertIn("CLIPTATE_CODE_SIGN_ENTITLEMENTS=" + str(direct_path),
                       self.build_arguments("NO", "Release"))
@@ -60,9 +60,13 @@ class BuildChannelTests(unittest.TestCase):
                              for arg in self.build_arguments("NO", "Release")))
         direct = plistlib.loads(direct_path.read_bytes())
         store = plistlib.loads((ROOT / "Sources/Cliptate/Cliptate.entitlements").read_bytes())
-        key = "com.apple.security.temporary-exception.files.home-relative-path.read-write"
-        self.assertEqual(direct.pop(key), ["/.cache/huggingface/hub/"])
-        self.assertEqual(direct, store)
+        self.assertFalse(direct.get("com.apple.security.app-sandbox", False))
+        self.assertTrue(store["com.apple.security.app-sandbox"])
+        self.assertTrue(direct["com.apple.security.device.audio-input"])
+        self.assertIn("CLIPTATE_ENABLE_APP_SANDBOX=NO", self.build_arguments("NO"))
+        self.assertIn("CLIPTATE_CLI_URL_SCHEME=cliptate-cli", self.build_arguments("NO"))
+        self.assertFalse(any(arg.startswith("CLIPTATE_ENABLE_APP_SANDBOX=")
+                             for arg in self.build_arguments()))
 
     def test_local_release_can_load_ad_hoc_signed_frameworks(self):
         self.assertIn("ENABLE_HARDENED_RUNTIME=NO",

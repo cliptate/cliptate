@@ -47,6 +47,15 @@ final class LightweightModeManager: ObservableObject {
     UserDefaults.standard.set(false, forKey: "launchInLightweightMode")
     isActive = false
 
+    showMainWindow()
+
+    // Re-warm the configured ASR model
+    TranscriberWarmupCoordinator.shared.triggerWarmup()
+  }
+
+  /// Open the UI without changing the user's lightweight startup preference.
+  func showMainWindow() {
+
     NSApp.setActivationPolicy(.regular)
     NSApp.activate(ignoringOtherApps: true)
 
@@ -64,8 +73,6 @@ final class LightweightModeManager: ObservableObject {
       NSApp.activate(ignoringOtherApps: true)
     }
 
-    // Re-warm the configured ASR model
-    TranscriberWarmupCoordinator.shared.triggerWarmup()
   }
 
   /// Panels used by MenuBarExtra should not be closed when entering lightweight mode.

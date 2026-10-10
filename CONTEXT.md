@@ -2,6 +2,9 @@
 
 Cliptate is a macOS transcription and editing app centered on AI Cut, Voice To Text, model management, and export workflows. This context records the project-specific terms that should stay stable as the architecture deepens.
 
+[GLOSSARY.md](GLOSSARY.md) records the release-channel vocabulary that complements
+the application terms below.
+
 ## Language
 
 **AppConfiguration**:

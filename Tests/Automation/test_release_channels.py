@@ -1,63 +1,46 @@
-"""Exercise the workflow's feed configuration without credentials or network access."""
-import base64
-import os
+"""Check workflow wiring; release decisions are tested through release_policy."""
 from pathlib import Path
-import subprocess
-import tempfile
-import textwrap
+import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "scripts"))
+from release_policy import build_plan
+
 WORKFLOW = ROOT / ".github/workflows/package.yml"
 
 
 class ReleaseChannelTests(unittest.TestCase):
-    def test_nightly_checks_out_main_and_version_releases_check_out_the_tag(self):
-        checkout = WORKFLOW.read_text().split("- name: Identify release source", 1)[0]
-        self.assertIn("ref: ${{ github.ref_type == 'tag' && github.ref_name != 'nightly' && github.ref || 'main' }}",
-                      checkout)
+    def test_bootstrap_expressions_agree_with_policy(self):
+        workflow = WORKFLOW.read_text()
+        expression = "github.ref_type == 'tag' && github.ref_name != 'nightly'"
+        self.assertIn("ref: ${{ " + expression + " && github.ref || 'main' }}", workflow)
+        self.assertIn("group: package-${{ " + expression + " && github.ref_name || 'nightly' }}", workflow)
+        for ref_type, name in [("branch", "main"), ("branch", "feature"),
+                               ("tag", "nightly"), ("tag", "v1.0")]:
+            plan = build_plan(ref_type, name, "cliptate/cliptate", "42", "1")
+            tagged = ref_type == "tag" and name != "nightly"
+            self.assertEqual(plan["source_ref"], f"refs/tags/{name}" if tagged else "main")
+            self.assertEqual(plan["release_tag"], name if tagged else "nightly")
 
-    def configured_feed(self, tag):
-        step = WORKFLOW.read_text().split("- name: Configure signed updates", 1)[1]
-        script = textwrap.dedent(step.split("python3 - <<'PY'\n", 1)[1].split("\n          PY", 1)[0])
-        with tempfile.TemporaryDirectory() as directory:
-            environment_file = Path(directory) / "environment"
-            environment = os.environ.copy()
-            environment.update({
-                "SPARKLE_PUBLIC_KEY": base64.b64encode(b"p" * 32).decode(),
-                "SPARKLE_PRIVATE_KEY": "test-only-placeholder",
-                "RELEASE_TAG": tag,
-                "GITHUB_REPOSITORY": "cliptate/cliptate",
-                "GITHUB_ENV": str(environment_file),
-                "GITHUB_RUN_NUMBER": "42",
-                "GITHUB_RUN_ATTEMPT": "1",
-            })
-            subprocess.run(["python3", "-c", script], env=environment, check=True,
-                           capture_output=True)
-            settings = dict(line.split("=", 1) for line in environment_file.read_text().splitlines())
-            return settings["CLIPTATE_UPDATE_FEED_URL"]
+    def test_workflow_consumes_policy_after_checkout_and_passes_appcast_decision(self):
+        workflow = WORKFLOW.read_text()
+        self.assertIn("python3 scripts/release-policy.py build --format github", workflow)
+        self.assertIn("python3 scripts/release-policy.py configure", workflow)
+        self.assertIn("appcast-path: ${{ steps.source.outputs.appcast-path }}", workflow)
+        self.assertIn("path: ${{ steps.source.outputs.appcast-path }}", workflow)
+        self.assertIn("APPCAST_PATH: ${{ needs.build.outputs.appcast-path }}", workflow)
+        for name in ["Generate signed appcast", "Upload appcast"]:
+            step = workflow.split(f"- name: {name}", 1)[1].split("- name:", 1)[0]
+            self.assertIn("if: ${{ steps.source.outputs.generate-appcast == 'true' }}", step)
 
-    def test_nightly_uses_the_latest_stable_feed(self):
-        self.assertEqual(self.configured_feed("nightly"),
-                         "https://github.com/cliptate/cliptate/releases/latest/download/appcast.xml")
-
-    def test_stable_uses_latest_feed_even_when_built_from_a_version_tag(self):
-        self.assertEqual(self.configured_feed("v1.0"),
-                         "https://github.com/cliptate/cliptate/releases/latest/download/appcast.xml")
-
-    def test_source_builds_use_the_latest_stable_feed(self):
+    def test_source_builds_keep_stable_feed(self):
         configuration = (ROOT / "config/Cliptate.xcconfig").read_text()
         self.assertIn("CLIPTATE_UPDATE_FEED_URL = https:/$()/github.com/cliptate/cliptate/releases/latest/download/appcast.xml",
                       configuration)
 
     def test_no_main_feed_publication_step_remains(self):
         self.assertNotIn("publish-main-appcast", WORKFLOW.read_text())
-
-    def test_only_stable_runs_generate_and_upload_appcast(self):
-        workflow = WORKFLOW.read_text()
-        for name in ["Generate signed appcast", "Upload appcast"]:
-            step = workflow.split(f"- name: {name}", 1)[1].split("- name:", 1)[0]
-            self.assertIn("if: ${{ steps.source.outputs.release-tag != 'nightly' }}", step)
 
 
 if __name__ == "__main__":

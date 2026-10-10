@@ -204,7 +204,7 @@ final class MicIndicatorOverlay {
         ensurePanel()
         guard let panel else { return }
         dismissGeneration &+= 1
-        guard !isActive else {
+        if isActive, viewModel.recordingStartDate != nil {
             panel.orderFrontRegardless()
             return
         }
@@ -225,6 +225,7 @@ final class MicIndicatorOverlay {
         viewModel.isOverlayActive = true
         viewModel.hasTranscript = false
         viewModel.hasEnteredProcessing = false
+        viewModel.inputWarning = nil
         viewModel.overlayStatus = .listening
         viewModel.recordingStartDate = Date()
         viewModel.levelHistory = []
@@ -322,6 +323,28 @@ final class MicIndicatorOverlay {
         recalculatePanelHeight(immediatePositioning: true)
     }
 
+    func updateInputWarning(_ message: String?) {
+        guard viewModel.inputWarning != message else { return }
+        viewModel.inputWarning = message
+        recalculatePanelHeight(immediatePositioning: true)
+    }
+
+    /// Keep a failed dictation visible long enough to read, including when invoked from another app.
+    func showInputWarning(_ message: String) {
+        startTracking()
+        updateInputWarning(message)
+        viewModel.overlayStatus = .idle
+        viewModel.recordingStartDate = nil
+        viewModel.level = 0
+        viewModel.hasEnteredProcessing = false
+        dismissGeneration &+= 1
+        let generation = dismissGeneration
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in
+            guard let self, self.dismissGeneration == generation else { return }
+            self.performDismiss()
+        }
+    }
+
     /// Briefly show a "copied to clipboard" hint, then dismiss. Used when text
     /// injection fell back to the clipboard so the user knows to paste manually.
     func flashCopiedToClipboard() {
@@ -385,7 +408,8 @@ final class MicIndicatorOverlay {
         let transcriptHeight = viewModel.hasTranscript
             ? Constants.transcriptSectionPadding + Constants.maxTranscriptViewportHeight
             : 0
-        let newHeight = Constants.baseHeight + transcriptHeight
+        let warningHeight: CGFloat = viewModel.inputWarning == nil ? 0 : 60
+        let newHeight = Constants.baseHeight + transcriptHeight + warningHeight
         currentHeight = newHeight
         viewModel.panelHeight = newHeight
         requestPositionUpdate(immediate: immediatePositioning)
@@ -569,6 +593,7 @@ final class MicIndicatorOverlay {
     var testIsActive: Bool { isActive }
     /// Test accessor for the overlay status.
     var testOverlayStatus: OverlayStatus { viewModel.overlayStatus }
+    var testInputWarning: String? { viewModel.inputWarning }
     /// Test accessor for level history.
     var testLevelHistory: [CGFloat] { viewModel.levelHistory }
     /// Test accessor: whether the visualizer uses center alignment.
@@ -704,6 +729,7 @@ private final class MicIndicatorViewModel: ObservableObject {
     @Published var recordingStartDate: Date?
     @Published var levelHistory: [CGFloat] = []
     @Published var hasEnteredProcessing: Bool = false
+    @Published var inputWarning: String?
     /// Smoothed per-bar levels for the 9-bar bouncing waveform.
     var smoothedBarLevels: [CGFloat] = Array(
         repeating: 0,
@@ -768,6 +794,17 @@ private struct MicIndicatorView: View {
                     waveformSection(visualizerState: visualizerState, timelineDate: timeline.date)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
+
+                    if let warning = viewModel.inputWarning {
+                        Label(warning, systemImage: "exclamationmark.triangle.fill")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.yellow)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            .padding(.horizontal, 14)
+                            .padding(.bottom, 8)
+                            .accessibilityElement(children: .combine)
+                    }
 
                     if transcriptVisible {
                         Divider()

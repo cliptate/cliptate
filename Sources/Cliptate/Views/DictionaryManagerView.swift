@@ -29,6 +29,12 @@ struct DictionaryManagerView: View {
         .background(Color(NSColor.windowBackgroundColor))
         .navigationTitle("Dictionary")
         .onAppear(perform: loadFromConfiguration)
+        .onChange(of: config.voiceToTextCustomDictionary) { _, entries in
+            // Keep an open editor in sync with CLI mutations without discarding its formatting.
+            if normalizedEditorEntries != entries {
+                editorText = entries.joined(separator: "\n")
+            }
+        }
     }
 
     // MARK: - Header

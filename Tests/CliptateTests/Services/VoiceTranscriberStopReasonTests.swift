@@ -3,7 +3,7 @@ import Testing
 
 @testable import Cliptate
 
-@Suite("VoiceTranscriber stop reason and retranscription state")
+@Suite("VoiceTranscriber stop reason and retranscription state", .serialized)
 @MainActor
 struct VoiceTranscriberStopReasonTests {
 
@@ -340,6 +340,63 @@ struct VoiceTranscriberStopReasonTests {
 
     TranscriptHistoryStore.shared.removeAll(source: .voiceDictation)
     transcriber.testResetAfterQwen3StreamAssertions()
+  }
+
+  @Test("Normal stop with no microphone buffers reports missing input instead of silent success")
+  func normalStopWithoutAudioReportsInputIssue() async {
+    let transcriber = VoiceTranscriber.shared
+    transcriber.testPrepareForQwen3StreamAssertions()
+    transcriber.testSetSession(TranscriptSession())
+    await transcriber.stop()
+    #expect(transcriber.state == .idle)
+    #expect(transcriber.inputIssue == .noInput)
+    #expect(transcriber.statusMessage != "Ready")
+    transcriber.testResetAfterQwen3StreamAssertions()
+  }
+
+  @Test("Cancelling a recording does not report missing microphone input")
+  func cancelledStopDoesNotReportInputIssue() async {
+    let transcriber = VoiceTranscriber.shared
+    transcriber.testPrepareForQwen3StreamAssertions()
+    transcriber.testSetSession(TranscriptSession())
+    await transcriber.stop(reason: .cancelled)
+    #expect(transcriber.inputIssue == nil)
+    transcriber.testResetAfterQwen3StreamAssertions()
+  }
+
+  @Test("Live input feedback clears when microphone audio arrives")
+  func inputFeedbackRecovers() {
+    let transcriber = VoiceTranscriber.shared
+    transcriber.testPrepareForQwen3StreamAssertions()
+    transcriber.testCheckMicrophoneInput(at: Date().addingTimeInterval(4))
+    #expect(transcriber.inputIssue == .noInput)
+    transcriber.testHandleMicLevelUpdate(0.4)
+    #expect(transcriber.inputIssue == nil)
+    transcriber.testResetAfterQwen3StreamAssertions()
+  }
+
+  @Test("Normal stop preserves streaming text in history when finalization audio is unavailable")
+  func normalStopKeepsStreamingFallback() async throws {
+    let transcriber = VoiceTranscriber.shared
+    transcriber.testPrepareForQwen3StreamAssertions()
+    let previousAutoType = transcriber.autoTypeEnabled
+    transcriber.autoTypeEnabled = false
+    transcriber.deliverTranscriptsDirectly = true
+    let session = TranscriptSession()
+    transcriber.testSetSession(session)
+    defer {
+      TranscriptHistoryStore.shared.remove(id: session.id)
+      transcriber.autoTypeEnabled = previousAutoType
+      transcriber.testResetAfterQwen3StreamAssertions()
+    }
+    transcriber.testHandleQwen3StreamUpdate("hello world")
+    await transcriber.stop()
+    #expect(transcriber.session?.combinedText == "hello world")
+    #expect(transcriber.session?.endTime != nil)
+    #expect(transcriber.inputIssue == nil)
+    #expect(TranscriptHistoryStore.shared.sessions.contains { $0.id == session.id && $0.combinedText == "hello world" })
+    let deliveredText = Mirror(reflecting: transcriber).children.first { $0.label == "deliveredText" }?.value as? String
+    #expect(deliveredText == "hello world")
   }
 
   private func voiceTranscriberSource() throws -> String {

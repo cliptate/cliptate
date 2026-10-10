@@ -39,6 +39,10 @@ final class AppConfigurationPersistence: ObservableObject {
         fileURL = directory.appendingPathComponent("app-configuration.json", isDirectory: false)
     }
 
+    init(fileURL: URL) {
+        self.fileURL = fileURL
+    }
+
     func bind(to config: AppConfiguration) {
         cancellable = config.objectWillChange.sink { [weak self, weak config] _ in
             guard let self, let config else { return }
@@ -72,11 +76,21 @@ final class AppConfigurationPersistence: ObservableObject {
     private func scheduleSave(for config: AppConfiguration) {
         saveTask?.cancel()
         saveTask = Task { [weak self, weak config] in
-            try? await Task.sleep(nanoseconds: 400_000_000)
+            do { try await Task.sleep(nanoseconds: 400_000_000) }
+            catch { return }
             guard let config else { return }
             let snapshot = await MainActor.run { config.makeSnapshot() }
             self?.persist(snapshot: snapshot)
         }
+    }
+
+    func flush(using config: AppConfiguration) throws {
+        saveTask?.cancel()
+        saveTask = nil
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        try encoder.encode(config.makeSnapshot()).write(to: fileURL, options: .atomic)
     }
 
     nonisolated private func persist(snapshot: AppConfiguration.Snapshot) {

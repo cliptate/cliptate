@@ -365,6 +365,10 @@ struct VoiceToTextView: View {
     VStack(alignment: .leading, spacing: 12) {
       warmupErrorLabel
 
+      if let issue = transcriber.inputIssue {
+        VoiceInputFeedbackView(issue: issue, inputDeviceName: transcriber.inputDeviceName)
+      }
+
       usageStatsCards
 
       // Shortcuts Section
@@ -2187,5 +2191,40 @@ extension View {
 extension NSFont {
   fileprivate var lineHeight: CGFloat {
     (ascender - descender) + leading
+  }
+}
+
+
+private struct VoiceInputFeedbackView: View {
+  let issue: VoiceInputIssue
+  let inputDeviceName: String?
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Label(issue.title, systemImage: "exclamationmark.triangle.fill")
+        .font(.headline)
+        .foregroundStyle(.orange)
+      Text(issue.message)
+        .font(.callout)
+        .foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
+      if issue == .noInput || issue == .quietInput {
+        if let inputDeviceName {
+          Text(String(format: String(localized: "Input device: %@"), inputDeviceName))
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        Button("Open Sound Settings", systemImage: "slider.horizontal.3") {
+          if let url = URL(string: "x-apple.systempreferences:com.apple.preference.sound") {
+            NSWorkspace.shared.open(url)
+          }
+        }
+        .buttonStyle(.bordered)
+      }
+    }
+    .padding(12)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+    .accessibilityElement(children: .contain)
   }
 }

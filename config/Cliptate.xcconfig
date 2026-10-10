@@ -2,7 +2,10 @@
 CLIPTATE_REVENUECAT_API_KEY =
 // App Store-safe by default; direct builds override this setting with an empty value.
 CLIPTATE_CHANNEL_CONDITIONS = APP_STORE
+CLIPTATE_ENABLE_APP_SANDBOX = YES
 CLIPTATE_CODE_SIGN_ENTITLEMENTS = $(SRCROOT)/Sources/Cliptate/Cliptate.entitlements
+// Inert by default; direct builds opt into the CLI launch URL.
+CLIPTATE_CLI_URL_SCHEME = cliptate-cli-disabled
 // Direct-download updates are independent of the APP_STORE capability flag.
 CLIPTATE_UPDATES_ENABLED = YES
 // All direct-download builds, including Nightly, follow the latest stable release.

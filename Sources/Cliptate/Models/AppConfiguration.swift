@@ -78,7 +78,7 @@ final class AppConfiguration: ObservableObject {
   nonisolated static let defaultSystemKeywordPrompt =
     "You are an expert content editor that extracts concise keywords from speech transcripts."
 
-  private init() {
+  init() {
     let defaults = Self.defaultSnapshot
     transcriberType = defaults.transcriberType
     modelVariant = defaults.modelVariant

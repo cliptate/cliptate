@@ -369,6 +369,57 @@ struct StreamingAudioCaptureModuleAsyncTests {
     )
   }
 
+  @Test("Bluetooth hardware format keeps microphone tap readable by the capture pipeline")
+  func bluetoothTapUsesFloatSamples() throws {
+    let preferred = try #require(AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 2))
+    let hardware = try #require(AVAudioFormat(commonFormat: .pcmFormatInt16, sampleRate: 16_000, channels: 1, interleaved: false))
+    let resolved = StreamingAudioCaptureModule.testResolvedTapFormat(
+      preferredOutputFormat: preferred,
+      hardwareInputFormat: hardware
+    )
+    #expect(resolved.sampleRate == 16_000)
+    #expect(resolved.channelCount == 1)
+    #expect(resolved.commonFormat == .pcmFormatFloat32)
+    let buffer = try #require(AVAudioPCMBuffer(pcmFormat: resolved, frameCapacity: 8000))
+    #expect(buffer.floatChannelData != nil)
+  }
+
+  @Test("Stop flushes speech retained by VAD even with no partial audio chunk")
+  func stopFlushesVADWithoutPartialChunk() async throws {
+    let engine = MockStreamingASREngine()
+    engine.transcribeResults = ["hello"]
+    let module = makeModule()
+    module.testConfigure(engine: engine, language: .auto, streamingVAD: AllSpeechVAD())
+    let format = try #require(AVAudioFormat(standardFormatWithSampleRate: 16_000, channels: 1))
+    let buffer = try #require(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 8000))
+    buffer.frameLength = 8000
+    buffer.floatChannelData![0].initialize(repeating: 0.5, count: 8000)
+    await module.testProcessBuffer(buffer)
+    #expect(engine.transcribeCalls.isEmpty)
+    #expect(try await module.stop() == "hello")
+    #expect(engine.transcribeCalls.count == 1)
+    #expect(module.takeFinalizedDictationCapture()?.samples.count == 8000)
+  }
+
+  @Test("Stopping a short dictation retains the audio needed for output and history")
+  func shortDictationRetainsFinalizationAudio() async throws {
+    let engine = MockStreamingASREngine()
+    engine.transcribeResults = ["hello"]
+    let module = makeModule()
+    module.testConfigure(engine: engine, language: .auto)
+    let format = try #require(AVAudioFormat(standardFormatWithSampleRate: 16_000, channels: 1))
+    let buffer = try #require(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 1600))
+    buffer.frameLength = 1600
+    buffer.floatChannelData![0].initialize(repeating: 0.5, count: 1600)
+    await module.testProcessBuffer(buffer)
+
+    let text = try await module.stop()
+    #expect(text == "hello")
+    let capture = try #require(module.takeFinalizedDictationCapture())
+    #expect(capture.samples.count == 1600)
+    #expect(capture.duration == 0.1)
+  }
+
   @Test("stop exposes finalized in-memory dictation capture payload")
   func stopExposesFinalizedInMemoryDictationCapture() async throws {
     let engine = MockStreamingASREngine()
@@ -467,5 +518,14 @@ struct MicIndicatorWaveformCenteringTests {
             "Waveform bars should be vertically centered")
 
     overlay.stopTracking()
+  }
+}
+
+
+private struct AllSpeechVAD: StreamingVADProvider {
+  func start(model: ModelVariant) async throws {}
+  func stop() async {}
+  func feed(samples: [Float]) async throws -> SortformerSpeechActivity {
+    SortformerSpeechActivity(speechSampleRanges: [0..<samples.count])
   }
 }

@@ -5,6 +5,7 @@ protocol ConfigurationSnapshotPersisting: AnyObject {
   func bind(to config: AppConfiguration)
   func loadSnapshot() -> AppConfiguration.Snapshot?
   func clearSnapshot()
+  func flush(using config: AppConfiguration) throws
 }
 
 extension AppConfigurationPersistence: ConfigurationSnapshotPersisting {}
@@ -81,6 +82,10 @@ final class ConfigurationRuntime: ObservableObject {
     config.resetToDefaults()
     migrate(config)
     modelRuntime.prepare(using: config)
+  }
+
+  func flush(using config: AppConfiguration) throws {
+    try persistence.flush(using: config)
   }
 
   private func resolvedDefaultPresetID(using config: AppConfiguration) -> UUID? {

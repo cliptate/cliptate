@@ -15,16 +15,23 @@ test -s "$DMG_PATH"
 test -s "$CHECKSUM_PATH"
 (cd "$(dirname "$DMG_PATH")" && shasum -a 256 -c "$DMG_NAME.sha256")
 
+POLICY_SCRIPT="$(dirname "${BASH_SOURCE[0]}")/release-policy.py"
+# Parse data from one validated plan; never evaluate generated shell code.
+POLICY_JSON="$(python3 "$POLICY_SCRIPT" publication)"
+policy_field() {
+  printf '%s\n' "$POLICY_JSON" | python3 "$POLICY_SCRIPT" field "$1"
+}
+MOVE_TAG="$(policy_field move_tag)"
+TITLE="$(policy_field title)"
+SIGNING_DESCRIPTION="$(policy_field signing_description)"
+POLICY_FLAGS="$(policy_field flags)"
+FLAGS=()
+while IFS= read -r flag; do
+  FLAGS+=("$flag")
+done <<< "$POLICY_FLAGS"
+
 ASSET_PATHS=("$DMG_PATH" "$CHECKSUM_PATH")
 if [[ -n "${APPCAST_PATH:-}" ]]; then
-  if [[ "$TAG" == nightly ]]; then
-    echo 'Nightly builds use the latest stable feed and cannot publish their own appcast.' >&2
-    exit 1
-  fi
-  if [[ "${SIGNING_STATUS:-}" != developer-id-notarized ]]; then
-    echo 'Only notarized Developer ID releases can publish update feeds.' >&2
-    exit 1
-  fi
   test "$(basename "$APPCAST_PATH")" = appcast.xml
   python3 "$(dirname "${BASH_SOURCE[0]}")/validate-appcast.py" \
     "$APPCAST_PATH" "$DMG_PATH" "$GH_REPO" "$TAG"
@@ -32,11 +39,6 @@ fi
 
 NOTES="$(mktemp)"
 trap 'rm -f "$NOTES"' EXIT
-case "${SIGNING_STATUS:-ad-hoc}" in
-  developer-id-notarized) SIGNING_DESCRIPTION='Developer ID signed and Apple-notarized.' ;;
-  ad-hoc) SIGNING_DESCRIPTION='Release build with ad-hoc signing; not Apple-notarized.' ;;
-  *) echo 'Unrecognized signing status.' >&2; exit 1 ;;
-esac
 cat > "$NOTES" <<EOF
 Apple Silicon, macOS 15+. $SIGNING_DESCRIPTION
 
@@ -46,20 +48,16 @@ Source: [$COMMIT](https://github.com/$GH_REPO/commit/$COMMIT)
 Build: [GitHub Actions](https://github.com/$GH_REPO/actions/runs/${GITHUB_RUN_ID:?})
 EOF
 
-if [[ "$TAG" == nightly ]]; then
-  TITLE="Nightly ($(date -u +%Y-%m-%d))"
+if [[ "$MOVE_TAG" == true ]]; then
   # Create the reserved tag if needed. Existing tags move only after upload succeeds.
   if ! gh api "repos/$GH_REPO/git/ref/tags/nightly" --silent; then
     gh api --method POST "repos/$GH_REPO/git/refs" \
       -f ref=refs/tags/nightly -f sha="$COMMIT" --silent
   fi
-  FLAGS=(--prerelease --latest=false)
 else
-  TITLE="Cliptate $TAG"
   # Never create or move a version tag: it must already identify the built commit.
-  ENCODED_TAG="$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$TAG")"
+  ENCODED_TAG="$(policy_field encoded_tag)"
   test "$(gh api "repos/$GH_REPO/commits/$ENCODED_TAG" --jq .sha)" = "$COMMIT"
-  FLAGS=(--prerelease=false --latest=true)
 fi
 
 if ! gh release view "$TAG" --json id >/dev/null 2>&1; then
@@ -73,10 +71,10 @@ if [[ -n "${APPCAST_PATH:-}" ]]; then
   gh release upload "$TAG" "$APPCAST_PATH" --clobber
 fi
 
-if [[ "$TAG" == nightly ]]; then
+if [[ "$MOVE_TAG" == true ]]; then
   gh api --method PATCH "repos/$GH_REPO/git/refs/tags/nightly" \
     -f sha="$COMMIT" -F force=true --silent
-  gh release edit "$TAG" --draft=false --prerelease --latest=false \
+  gh release edit "$TAG" --draft=false "${FLAGS[@]}" \
     --title "$TITLE" --notes-file "$NOTES" --target "$COMMIT"
   # Keep only the current installer pair when the app version/build changes.
   ASSETS="$(gh release view "$TAG" --json assets --jq '.assets[].name')"
@@ -88,7 +86,7 @@ if [[ "$TAG" == nightly ]]; then
     esac
   done <<< "$ASSETS"
 else
-  gh release edit "$TAG" --draft=false --prerelease=false --latest=true
+  gh release edit "$TAG" --draft=false "${FLAGS[@]}"
 fi
 
 URL="$(gh release view "$TAG" --json url --jq .url)"

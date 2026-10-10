@@ -90,6 +90,18 @@ Open the DMG and drag the app into Applications to install it.
 Run `python3 -m unittest discover -s Tests/Automation -v` to verify release
 automation safeguards without contacting GitHub or publishing anything.
 
+Release-channel decisions live in `scripts/release_policy.py`. Its command-line
+adapter, `scripts/release-policy.py`, supplies build outputs and update settings to
+the workflow, and a publication plan to `publish-release.sh`. Change channel rules
+there rather than adding tag comparisons to each caller. The workflow's initial
+checkout and concurrency expressions must remain aligned with the policy because
+they execute before repository scripts are available.
+
+The publication script retains its existing compatibility for ad-hoc installers
+and version releases without an appcast when invoked directly. The package
+workflow applies the stricter public-release requirements described above:
+notarized packages for both channels, plus a signed feed for stable releases.
+
 Local source builds default to ad-hoc signing. CI packages require the Developer ID
 distribution setup below and fail before building if credentials are missing.
 Ad-hoc builds disable Hardened Runtime so embedded frameworks can load without a
@@ -108,9 +120,8 @@ The `APP_STORE` accessibility capability flag remains unchanged.
 ## Shared model cache
 
 Direct-download builds use the account's real home directory for
-`~/.cache/huggingface/hub`, even though the app remains sandboxed. Only this cache
-directory receives a home-relative read/write entitlement; App Store builds retain
-their existing container and entitlements. `HF_HUB_CACHE` and `HF_HOME` overrides
+`~/.cache/huggingface/hub` and run without App Sandbox. App Store builds retain
+their existing sandbox container and entitlements. `HF_HUB_CACHE` and `HF_HOME` overrides
 continue to work when their target is accessible to the application.
 
 Models use the Python-compatible `models--<owner>--<repository>/snapshots/<revision>`
@@ -208,7 +219,7 @@ resolution enabled so a clean checkout verifies the complete dependency graph.
 
 ## Billing and distribution configuration
 
-Non-`APP_STORE` builds are fully free: all models and Pro features are available
+Non-`APP_STORE` builds are fully free and do not use App Sandbox: all models and Pro features are available
 without a subscription, purchase, or RevenueCat SDK key. These builds do not
 initialize billing, show upgrade promotions, or present paywalls. GitHub Release
 and Nightly packages explicitly select this channel.
@@ -225,11 +236,19 @@ CLIPTATE_APP_STORE=NO swift test
 CLIPTATE_APP_STORE=NO ./scripts/build-and-run.sh build
 ```
 
-The option removes `APP_STORE`; it also enables the existing Accessibility-backed
+The option removes `APP_STORE`, disables App Sandbox, and enables the existing Accessibility-backed
 capabilities described in [ADR 0001](adr/0001-accessibility-gate-for-app-store.md).
 For an App Store build, omit the option (or set it to `YES`). When building directly
 in Xcode, set `CLIPTATE_CHANNEL_CONDITIONS =` in `config/Local.xcconfig` to select
-the free channel.
+the free channel, along with `CLIPTATE_ENABLE_APP_SANDBOX = NO` and
+`CLIPTATE_CLI_URL_SCHEME = cliptate-cli`. Default App Store builds remain sandboxed.
+Direct builds copy missing configuration and history from the previous sandbox
+container once without removing originals or replacing current direct-build data.
+
+The direct app includes a signed native `cliptate` executable. See [CLI usage and
+installation](cli.md) for transcription and dictionary commands. The CLI shares
+the running application's configuration and model runtime; SwiftPM's standalone
+CLI product connects to the app rather than linking the inference libraries.
 
 To connect your own RevenueCat application:
 

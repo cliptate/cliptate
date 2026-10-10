@@ -6,6 +6,17 @@ struct LightweightMenuView: View {
   @EnvironmentObject private var lightweightManager: LightweightModeManager
 
   @State private var downloadedModels: Set<ModelVariant> = []
+  #if !APP_STORE
+  @StateObject private var cliLifecycle = CLIApplicationLifecycle.shared
+  #endif
+
+  private var needsFullAppWindow: Bool {
+    #if APP_STORE
+    lightweightManager.isActive
+    #else
+    lightweightManager.isActive || cliLifecycle.backgroundLaunch
+    #endif
+  }
 
   var body: some View {
     Group {
@@ -61,9 +72,9 @@ struct LightweightMenuView: View {
       Text(AppSection.pro.description)
     }
 
-    if lightweightManager.isActive {
+    if needsFullAppWindow {
       Button {
-        lightweightManager.exitLightweightMode()
+        openFullApplication()
       } label: {
         Text(String(localized: "Open Full App", comment: "Menu bar: open full application window"))
       }
@@ -114,9 +125,20 @@ struct LightweightMenuView: View {
 
   private func openProSection() {
     AppNavigationRequestStore.store(.pro)
-    if lightweightManager.isActive {
-      lightweightManager.exitLightweightMode()
+    if needsFullAppWindow {
+      openFullApplication()
     }
     NotificationCenter.default.post(name: .openProSection, object: nil)
+  }
+
+  private func openFullApplication() {
+    #if !APP_STORE
+    cliLifecycle.backgroundLaunch = false
+    #endif
+    if lightweightManager.isActive {
+      lightweightManager.exitLightweightMode()
+    } else {
+      lightweightManager.showMainWindow()
+    }
   }
 }

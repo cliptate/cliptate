@@ -130,8 +130,11 @@ final class StreamingAudioCaptureModule {
     isActive = false
     stopAudioCapture()
 
-    if !audioBuffer.isEmpty && engine != nil {
+    if engine != nil {
       await processRemainingBuffer()
+      if let trailingSpeech = speechAccumulator.flush() {
+        enqueueForTranscription(trailingSpeech)
+      }
     }
 
     // Drain in-flight ASR work before returning final text
@@ -232,7 +235,8 @@ final class StreamingAudioCaptureModule {
 
     removeInputTapIfNeeded()
     inputNode.installTap(onBus: 0, bufferSize: 4096, format: tapFormat) { [weak self] buffer, _ in
-      guard let self else { return }
+      // The audio thread reuses tap buffers; own the samples before handing them to an async task.
+      guard let buffer = Self.copyPCMBuffer(buffer) else { return }
       Task { @MainActor [weak self] in
         guard let self else { return }
         await self.processBuffer(buffer, format: buffer.format)
@@ -254,7 +258,7 @@ final class StreamingAudioCaptureModule {
     guard isActive else { return }
 
     if let recordingSink {
-      if let recordingBuffer = copyPCMBuffer(buffer) {
+      if let recordingBuffer = Self.copyPCMBuffer(buffer) {
         do {
           try await recordingSink.append(buffer: recordingBuffer)
         } catch {
@@ -350,6 +354,7 @@ final class StreamingAudioCaptureModule {
 
     let samples = preparedSamples(from: remainingSamples)
     guard !samples.isEmpty else { return }
+    sessionCaptureSamples.append(contentsOf: samples)
 
     if let vad = streamingVAD {
       do {
@@ -467,7 +472,7 @@ final class StreamingAudioCaptureModule {
     }
   }
 
-  private func copyPCMBuffer(_ buffer: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
+  private nonisolated static func copyPCMBuffer(_ buffer: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
     guard
       let copy = AVAudioPCMBuffer(pcmFormat: buffer.format, frameCapacity: buffer.frameLength)
     else {
@@ -575,15 +580,17 @@ final class StreamingAudioCaptureModule {
     guard
       preferredOutputFormat.sampleRate != hardwareInputFormat.sampleRate
         || preferredOutputFormat.channelCount != hardwareInputFormat.channelCount
+        || preferredOutputFormat.commonFormat != .pcmFormatFloat32
+        || preferredOutputFormat.isInterleaved
     else {
       return preferredOutputFormat
     }
 
     return AVAudioFormat(
-      commonFormat: hardwareInputFormat.commonFormat,
+      commonFormat: .pcmFormatFloat32,
       sampleRate: hardwareInputFormat.sampleRate,
       channels: hardwareInputFormat.channelCount,
-      interleaved: hardwareInputFormat.isInterleaved
+      interleaved: false
     ) ?? hardwareInputFormat
   }
 
@@ -602,12 +609,24 @@ final class StreamingAudioCaptureModule {
   }
 
   /// Configure the module for testing without starting the audio pipeline.
-  func testConfigure(engine: any StreamingASREngine, language: Language, dictionaryContext: String? = nil) {
+  func testConfigure(
+    engine: any StreamingASREngine,
+    language: Language,
+    dictionaryContext: String? = nil,
+    streamingVAD: (any StreamingVADProvider)? = nil
+  ) {
     sessionToken &+= 1
     isActive = true
     currentLanguage = language
     self.engine = engine
     self.dictionaryContext = dictionaryContext
+    self.streamingVAD = streamingVAD
+  }
+
+  func testProcessBuffer(_ buffer: AVAudioPCMBuffer) async {
+    currentFormat = buffer.format
+    samplesPerChunk = max(1, Int(configuration.chunkDuration * buffer.format.sampleRate))
+    await processBuffer(buffer, format: buffer.format)
   }
 
   /// Wait for all in-flight and pending ASR work to complete.

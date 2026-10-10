@@ -20,7 +20,7 @@ struct AISettingsViewSourceTests {
     }
 
     let startupSection = content[sectionRange.lowerBound...]
-    #expect(startupSection.contains("Launch at Login"))
+    #expect(startupSection.contains("LoginItemSettingsView()"))
     #expect(startupSection.contains("Lightweight Mode") == false)
     #expect(startupSection.contains("enterLightweightMode") == false)
     #expect(startupSection.contains("exitLightweightMode") == false)

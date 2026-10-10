@@ -25576,12 +25576,12 @@
       }
     },
     "Speaker %lld" : {
-      "comment" : "History: speaker label\nSpeaker badge tooltip showing speaker number",
+      "extractionState" : "manual",
       "localizations" : {
-        "de" : {
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Speaker %lld"
+            "value" : "说话人 %lld"
           }
         },
         "ja" : {
@@ -25596,10 +25596,10 @@
             "value" : "화자 %lld"
           }
         },
-        "zh-Hans" : {
+        "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "说话人 %lld"
+            "value" : "Sprecher %lld"
           }
         }
       }
@@ -32054,6 +32054,1085 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "日本語"
+          }
+        }
+      }
+    },
+    "No microphone input" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有麦克风输入"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マイク入力がありません"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마이크 입력 없음"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Mikrofoneingang"
+          }
+        }
+      }
+    },
+    "No sound detected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未检测到声音"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声が検出されませんでした"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "소리가 감지되지 않음"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Ton erkannt"
+          }
+        }
+      }
+    },
+    "No text recognized" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未识别出文字"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "テキストを認識できませんでした"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "텍스트가 인식되지 않음"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Text erkannt"
+          }
+        }
+      }
+    },
+    "No audio is reaching Cliptate. Check your input device in Sound settings, reconnect it if needed, then try again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cliptate 没有收到音频。请在声音设置中检查输入设备，必要时重新连接，然后重试。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cliptate に音声が届いていません。サウンド設定で入力デバイスを確認し、必要に応じて再接続してからお試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cliptate에 오디오가 전달되지 않습니다. 사운드 설정에서 입력 기기를 확인하고 필요하면 다시 연결한 후 재시도하세요."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cliptate empfängt kein Audio. Prüfe das Eingabegerät in den Toneinstellungen, verbinde es bei Bedarf erneut und versuche es noch einmal."
+          }
+        }
+      }
+    },
+    "Your microphone is connected, but no sound was detected. Check that it isn't muted and speak closer to it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麦克风已连接，但未检测到声音。请检查是否静音，并靠近麦克风说话。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マイクは接続されていますが、音声が検出されませんでした。ミュートされていないか確認し、マイクに近づいて話してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마이크가 연결되어 있지만 소리가 감지되지 않았습니다. 음소거 여부를 확인하고 마이크에 더 가까이 대고 말하세요."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Mikrofon ist verbunden, aber es wurde kein Ton erkannt. Prüfe, ob es stummgeschaltet ist, und sprich näher am Mikrofon."
+          }
+        }
+      }
+    },
+    "Audio was received, but no text was recognized. Check the dictation language and try again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已收到音频，但未识别出文字。请检查听写语言，然后重试。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声は受信されましたが、テキストを認識できませんでした。音声入力の言語を確認して、もう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "오디오는 수신되었지만 텍스트를 인식하지 못했습니다. 받아쓰기 언어를 확인하고 다시 시도하세요."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio wurde empfangen, aber kein Text erkannt. Prüfe die Diktiersprache und versuche es erneut."
+          }
+        }
+      }
+    },
+    "Final transcription failed. Any available live transcript was saved in history. Please try again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最终转写失败。已将可用的实时识别文字保存到历史记录，请重试。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最終的な文字起こしに失敗しました。利用可能なリアルタイムの認識結果は履歴に保存されました。もう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최종 음성 인식에 실패했습니다. 사용 가능한 실시간 인식 결과는 기록에 저장되었습니다. 다시 시도하세요."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die abschließende Transkription ist fehlgeschlagen. Ein vorhandenes Live-Transkript wurde im Verlauf gespeichert. Bitte versuche es erneut."
+          }
+        }
+      }
+    },
+    "Open Sound Settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开声音设置"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サウンド設定を開く"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사운드 설정 열기"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toneinstellungen öffnen"
+          }
+        }
+      }
+    },
+    "No speech detected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未检测到语音"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声が検出されませんでした"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "음성이 감지되지 않음"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Sprache erkannt"
+          }
+        }
+      }
+    },
+    "Listening..." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在聆听…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聞き取り中…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "듣는 중…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hört zu…"
+          }
+        }
+      }
+    },
+    "Ready" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "就绪"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "準備完了"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "준비됨"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bereit"
+          }
+        }
+      }
+    },
+    "Input device: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入设备：%@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "入力デバイス：%@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "입력 기기: %@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eingabegerät: %@"
+          }
+        }
+      }
+    },
+    "Command Line" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "命令行"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コマンドライン"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "명령줄"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Befehlszeile"
+          }
+        }
+      }
+    },
+    "Transcribe files and manage your dictionary from Terminal." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通过终端转录文件和管理词典。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ターミナルでファイルの文字起こしと辞書管理を行います。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "터미널에서 파일을 전사하고 사전을 관리합니다."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dateien transkribieren und das Wörterbuch im Terminal verwalten."
+          }
+        }
+      }
+    },
+    "CLI installed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLI 已安装"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLI はインストール済み"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLI 설치됨"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLI installiert"
+          }
+        }
+      }
+    },
+    "CLI not installed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLI 未安装"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLI は未インストール"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLI 설치되지 않음"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLI nicht installiert"
+          }
+        }
+      }
+    },
+    "Run the copied command in Terminal. Add ~/.local/bin to your shell PATH to use cliptate." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在终端运行复制的命令。将 ~/.local/bin 添加到 shell 的 PATH 即可使用 cliptate。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コピーしたコマンドをターミナルで実行してください。cliptate を使うには ~/.local/bin を PATH に追加します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "복사한 명령을 터미널에서 실행하세요. cliptate를 사용하려면 ~/.local/bin을 셸 PATH에 추가하세요."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den kopierten Befehl im Terminal ausführen. ~/.local/bin zum Shell-PATH hinzufügen, um cliptate zu verwenden."
+          }
+        }
+      }
+    },
+    "Copy Install Command" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制安装命令"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インストールコマンドをコピー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설치 명령 복사"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installationsbefehl kopieren"
+          }
+        }
+      }
+    },
+    "Copy Uninstall Command" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制卸载命令"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アンインストールコマンドをコピー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "제거 명령 복사"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deinstallationsbefehl kopieren"
+          }
+        }
+      }
+    },
+    "Copy PATH Command" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制 PATH 命令"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PATH コマンドをコピー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PATH 명령 복사"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PATH-Befehl kopieren"
+          }
+        }
+      }
+    },
+    "Refresh Status" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新状态"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状態を更新"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "상태 새로 고침"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Status aktualisieren"
+          }
+        }
+      }
+    },
+    "The CLI helper is unavailable in this build." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此版本未包含 CLI 程序。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このビルドには CLI ヘルパーが含まれていません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 빌드에서는 CLI 도구를 사용할 수 없습니다."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das CLI-Programm ist in diesem Build nicht verfügbar."
+          }
+        }
+      }
+    },
+    "Multiple subtitle files require --output-dir." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多个字幕文件需要指定 --output-dir。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複数の字幕ファイルには --output-dir が必要です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "여러 자막 파일에는 --output-dir이 필요합니다."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mehrere Untertiteldateien erfordern --output-dir."
+          }
+        }
+      }
+    },
+    "Dictionary files must be UTF-8 text or a JSON string array." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "词典文件必须是 UTF-8 文本或 JSON 字符串数组。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "辞書ファイルは UTF-8 テキストまたは JSON 文字列配列である必要があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사전 파일은 UTF-8 텍스트 또는 JSON 문자열 배열이어야 합니다."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wörterbuchdateien müssen UTF-8-Text oder ein JSON-Array aus Zeichenketten sein."
+          }
+        }
+      }
+    },
+    "Invalid command or argument: %@. Run cliptate --help." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无效的命令或参数：%@。请运行 cliptate --help。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無効なコマンドまたは引数：%@。cliptate --help を実行してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "잘못된 명령 또는 인수: %@. cliptate --help를 실행하세요."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ungültiger Befehl oder Parameter: %@. cliptate --help ausführen."
+          }
+        }
+      }
+    },
+    "The CLI connection closed or returned invalid data." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLI 连接已关闭或返回了无效数据。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLI 接続が閉じられたか、無効なデータが返されました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLI 연결이 닫혔거나 잘못된 데이터를 반환했습니다."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die CLI-Verbindung wurde geschlossen oder lieferte ungültige Daten."
+          }
+        }
+      }
+    },
+    "Model %@ is not downloaded. Download it in Cliptate or use --download." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型 %@ 尚未下载。请在 Cliptate 中下载或使用 --download。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデル %@ は未ダウンロードです。Cliptate でダウンロードするか --download を指定してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모델 %@이 다운로드되지 않았습니다. Cliptate에서 다운로드하거나 --download를 사용하세요."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modell %@ ist nicht heruntergeladen. In Cliptate herunterladen oder --download verwenden."
+          }
+        }
+      }
+    },
+    "Unsupported ASR model: %@." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不支持的转录模型：%@。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未対応の音声認識モデル：%@。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지원하지 않는 음성 인식 모델: %@."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht unterstütztes ASR-Modell: %@."
+          }
+        }
+      }
+    },
+    "Unsupported language code: %@." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不支持的语言代码：%@。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未対応の言語コード：%@。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지원하지 않는 언어 코드: %@."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht unterstützter Sprachcode: %@."
+          }
+        }
+      }
+    },
+    "Model %@ does not support language %@." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型 %@ 不支持语言 %@。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデル %@ は言語 %@ に対応していません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모델 %@은 언어 %@을 지원하지 않습니다."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modell %@ unterstützt die Sprache %@ nicht."
+          }
+        }
+      }
+    },
+    "Another CLI transcription is running. Try again when it finishes." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另一个 CLI 转录任务正在运行，请在其结束后重试。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "別の CLI 文字起こしが実行中です。完了後に再試行してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다른 CLI 전사가 실행 중입니다. 완료된 후 다시 시도하세요."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine andere CLI-Transkription läuft. Nach deren Abschluss erneut versuchen."
+          }
+        }
+      }
+    },
+    "Cliptate was not found. Install the direct-download app or set CLIPTATE_APP to its path." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到 Cliptate。请安装直发版应用，或通过 CLIPTATE_APP 指定其路径。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cliptate が見つかりません。直接配布版をインストールするか CLIPTATE_APP にパスを設定してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cliptate를 찾을 수 없습니다. 직접 배포 앱을 설치하거나 CLIPTATE_APP에 경로를 설정하세요."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cliptate wurde nicht gefunden. Direktvertriebsversion installieren oder CLIPTATE_APP auf deren Pfad setzen."
+          }
+        }
+      }
+    },
+    "Could not connect to Cliptate within 30 seconds. Check that it is a direct-download build and the CLI port is available." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 秒内未能连接到 Cliptate。请确认应用为直发版，且 CLI 端口可用。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 秒以内に Cliptate に接続できませんでした。直接配布版であることと CLI ポートを確認してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30초 안에 Cliptate에 연결하지 못했습니다. 직접 배포 빌드인지, CLI 포트를 사용할 수 있는지 확인하세요."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Innerhalb von 30 Sekunden konnte keine Verbindung zu Cliptate hergestellt werden. Direktvertriebsbuild und freien CLI-Port prüfen."
+          }
+        }
+      }
+    },
+    "Input filenames produce duplicate output paths. Transcribe them separately." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入文件名会产生重复的输出路径，请分别转录。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "入力ファイル名によって出力先が重複します。個別に文字起こししてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "입력 파일 이름으로 인해 출력 경로가 중복됩니다. 각각 전사하세요."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Eingabedateinamen ergeben identische Ausgabepfade. Dateien einzeln transkribieren."
+          }
+        }
+      }
+    },
+    "An output path cannot replace an input file." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输出路径不能覆盖输入文件。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "出力先で入力ファイルを上書きすることはできません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "출력 경로로 입력 파일을 덮어쓸 수 없습니다."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Ausgabepfad darf keine Eingabedatei ersetzen."
+          }
+        }
+      }
+    },
+    "Output already exists: %@. Use --overwrite to replace it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输出文件已存在：%@。使用 --overwrite 可覆盖。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "出力ファイルは既に存在します：%@。上書きするには --overwrite を指定してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "출력 파일이 이미 존재합니다: %@. 덮어쓰려면 --overwrite를 사용하세요."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausgabe existiert bereits: %@. Zum Ersetzen --overwrite verwenden."
+          }
+        }
+      }
+    },
+    "cli.help" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cliptate transcribe <file...> [options]\ncliptate dictionary list | export\ncliptate dictionary add <word...>\ncliptate dictionary remove <word...>\ncliptate dictionary import <UTF-8 text or JSON file>\n\n-f, --format text|json|srt|vtt|markdown   (default: text)\n-o, --output <file>                     Single-file output\n    --output-dir <directory>           One output per input\n    --overwrite                        Replace existing output files\n    --model <model ID>                  Temporary ASR model override\n    --language <language code>         Temporary language override\n    --no-dictionary                    Ignore the app's dictionary\n    --download                         Download missing required models\n    --                                 Treat remaining arguments as paths\n    --version | --help\n\nThe direct-download Cliptate app starts in the background when needed.\nResults go to stdout; progress and errors go to stderr.\nExit codes: 0 success, 1 failure, 2 usage error, 130 interrupted.\n\n"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cliptate transcribe <file...> [options]\ncliptate dictionary list | export\ncliptate dictionary add <word...>\ncliptate dictionary remove <word...>\ncliptate dictionary import <UTF-8 文本或 JSON 文件>\n\n-f, --format text|json|srt|vtt|markdown   （默认：text）\n-o, --output <file>                     单文件输出\n    --output-dir <directory>           每个输入分别输出\n    --overwrite                        覆盖现有输出文件\n    --model <model ID>                  临时指定转录模型\n    --language <language code>         临时指定语言\n    --no-dictionary                    忽略应用词典\n    --download                         下载所需的缺失模型\n    --                                 将剩余参数作为路径\n    --version | --help\n\n需要时在后台启动 Cliptate 直发版。\n结果写入 stdout；进度和错误写入 stderr。\n退出码：0 成功，1 失败，2 参数错误，130 中断。\n\n"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cliptate transcribe <file...> [options]\ncliptate dictionary list | export\ncliptate dictionary add <word...>\ncliptate dictionary remove <word...>\ncliptate dictionary import <UTF-8 テキストまたは JSON ファイル>\n\n-f, --format text|json|srt|vtt|markdown   （既定：text）\n-o, --output <file>                     単一ファイル出力\n    --output-dir <directory>           入力ごとに出力\n    --overwrite                        既存の出力を上書き\n    --model <model ID>                  音声認識モデルを一時指定\n    --language <language code>         言語を一時指定\n    --no-dictionary                    アプリの辞書を無視\n    --download                         必要な未取得モデルをダウンロード\n    --                                 残りの引数をパスとして扱う\n    --version | --help\n\n必要に応じて Cliptate 直接配布版をバックグラウンドで起動します。\n結果は stdout、進捗とエラーは stderr に出力します。\n終了コード：0 成功、1 失敗、2 引数エラー、130 中断。\n\n"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cliptate transcribe <file...> [options]\ncliptate dictionary list | export\ncliptate dictionary add <word...>\ncliptate dictionary remove <word...>\ncliptate dictionary import <UTF-8 텍스트 또는 JSON 파일>\n\n-f, --format text|json|srt|vtt|markdown   (기본값: text)\n-o, --output <file>                     단일 파일 출력\n    --output-dir <directory>           입력별 출력\n    --overwrite                        기존 출력 파일 덮어쓰기\n    --model <model ID>                  음성 인식 모델 임시 지정\n    --language <language code>         언어 임시 지정\n    --no-dictionary                    앱 사전 무시\n    --download                         필요한 누락 모델 다운로드\n    --                                 나머지 인수를 경로로 처리\n    --version | --help\n\n필요할 때 Cliptate 직접 배포 앱이 백그라운드에서 시작됩니다.\n결과는 stdout으로, 진행 상황과 오류는 stderr로 출력됩니다.\n종료 코드: 0 성공, 1 실패, 2 인수 오류, 130 중단.\n\n"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cliptate transcribe <file...> [options]\ncliptate dictionary list | export\ncliptate dictionary add <word...>\ncliptate dictionary remove <word...>\ncliptate dictionary import <UTF-8-Text oder JSON-Datei>\n\n-f, --format text|json|srt|vtt|markdown   (Standard: text)\n-o, --output <file>                     Ausgabe einer Datei\n    --output-dir <directory>           Eine Ausgabe je Eingabe\n    --overwrite                        Vorhandene Ausgabedateien ersetzen\n    --model <model ID>                  ASR-Modell vorübergehend ändern\n    --language <language code>         Sprache vorübergehend ändern\n    --no-dictionary                    Wörterbuch der App ignorieren\n    --download                         Fehlende benötigte Modelle herunterladen\n    --                                 Weitere Argumente als Pfade behandeln\n    --version | --help\n\nDie Direktvertriebsversion von Cliptate startet bei Bedarf im Hintergrund.\nErgebnisse gehen an stdout, Fortschritt und Fehler an stderr.\nExit-Codes: 0 Erfolg, 1 Fehler, 2 Aufruffehler, 130 unterbrochen.\n\n"
           }
         }
       }

@@ -9,6 +9,21 @@ import Testing
 struct MicIndicatorOverlayTests {
 
 
+  @Test("Failed dictation keeps a readable warning without appearing to still record")
+  func failedDictationShowsFinishedWarning() {
+    let overlay = MicIndicatorOverlay()
+    overlay.startTracking()
+    overlay.updateStatus(.transcribing)
+    overlay.showInputWarning("No microphone input")
+    #expect(overlay.testIsActive)
+    #expect(overlay.testInputWarning == "No microphone input")
+    #expect(overlay.testOverlayStatus == .idle)
+    #expect(overlay.testRecordingStartDate == nil)
+    overlay.startTracking()
+    #expect(overlay.testInputWarning == nil)
+    overlay.stopTracking()
+  }
+
   @Test("updateTranscript is ignored after status leaves listening when transcript was never shown")
   func transcriptFrozenAfterDictationEndsWithoutTranscript() {
     let overlay = MicIndicatorOverlay()

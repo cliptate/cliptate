@@ -145,7 +145,12 @@ actor ModelDownloadManager {
     activeDownloads[model] = task
     defer { activeDownloads[model] = nil }
 
-    try await task.value
+    // The creator owns cancellation; joining an existing download does not cancel it.
+    try await withTaskCancellationHandler {
+      try await task.value
+    } onCancel: {
+      task.cancel()
+    }
   }
 
   func cancelDownload(for model: ModelVariant) {

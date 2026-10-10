@@ -95,6 +95,7 @@ struct ConfigurationRuntimeTests {
 
 @MainActor
 private final class FakePersistence: ConfigurationSnapshotPersisting {
+  func flush(using config: AppConfiguration) throws {}
   var snapshot: AppConfiguration.Snapshot?
   private(set) var bindCallCount = 0
 

@@ -148,6 +148,15 @@ class PublishReleaseTests(unittest.TestCase):
         publish = next(c for c in state["calls"] if c[:2] == ["release", "edit"])
         self.assertIn("--latest=true", publish)
 
+    def test_non_semver_tag_is_preserved_in_title_and_encoded_for_source_lookup(self):
+        result, state = self.run_release(tag="preview/中文+1", existing=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        create = next(c for c in state["calls"] if c[:2] == ["release", "create"])
+        self.assertEqual(create[create.index("--title") + 1], "Cliptate preview/中文+1")
+        self.assertTrue(any("repos/cliptate/cliptate/commits/preview%2F%E4%B8%AD%E6%96%87%2B1" in c
+                            for c in state["calls"]))
+        self.assertFalse(state["tag_moved"])
+
     def test_moved_version_tag_is_rejected_before_upload(self):
         result, state = self.run_release(tag="v1.8.0", tag_commit="b" * 40)
         self.assertNotEqual(result.returncode, 0)
