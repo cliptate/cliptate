@@ -3,6 +3,7 @@
 .swiftpm/
 DerivedData/
 build/
+dist/
 Packages/
 Package.pins
 xcuserdata/

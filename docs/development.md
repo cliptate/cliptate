@@ -31,6 +31,41 @@ bundle, resource compilation, sandbox entitlements, and MLX Metal integration.
 The script uses ad-hoc signing and a deterministic `.build/xcode` output directory;
 no paid developer account or original maintainer's signing team is required.
 
+## DMG packages and CI downloads
+
+CI builds and tests the SwiftPM library, then builds the macOS application in
+Release configuration. After all checks pass, it creates a compressed DMG and
+uploads the DMG and its SHA-256 checksum as separate GitHub Actions artifacts.
+This runs for pushes to `main`, pull requests, and manual workflow runs.
+
+Open the successful **Build, test and package** run on the repository's
+[Actions page](https://github.com/cliptate/cliptate/actions), then use the download
+links in the build summary or the **Artifacts** section. Downloads require signing
+in to GitHub and are retained for 14 days. The artifact is the DMG itself, without
+an additional ZIP archive.
+
+To reproduce packaging locally:
+
+```bash
+CONFIGURATION=Release ./scripts/build-and-run.sh build
+./scripts/package-dmg.sh
+cd dist
+shasum -a 256 -c Cliptate-*.dmg.sha256
+```
+
+`scripts/package-dmg.sh` also accepts an existing app bundle and output directory:
+`./scripts/package-dmg.sh /path/to/Cliptate.app /path/to/output`.
+The default output is `dist/Cliptate-<version>-<build>-macOS-arm64.dmg`, using the
+built app's metadata. The image includes `Cliptate.app`, an `Applications`
+shortcut, and the project's and dependencies' license notices in `Licenses`.
+Open the DMG and drag the app into Applications to install it.
+
+CI packages use ad-hoc signing and are not Apple-notarized. macOS may require
+approval in **System Settings → Privacy & Security** when opening a downloaded
+build. Developer ID signing and notarization require a separate distribution setup.
+
+## Focused validation
+
 For focused checks:
 
 ```bash

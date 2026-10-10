@@ -36,6 +36,12 @@ Cliptate is a native macOS application that brings transcription, dictation, edi
 
 ## Build from source
 
+Release DMGs and SHA-256 checksums are also available from successful
+[GitHub Actions builds](https://github.com/cliptate/cliptate/actions).
+Sign in to GitHub to download artifacts, which are retained for 14 days.
+These builds are ad-hoc signed and not Apple-notarized; see the
+[installation guide](docs/development.md#dmg-packages-and-ci-downloads).
+
 The complete application is open source under the [MIT license](LICENSE).
 Builds require Apple Silicon, macOS 15+, and Xcode 26+ (Swift 6.2+).
 
