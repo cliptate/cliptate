@@ -38,6 +38,8 @@ if [[ -n "${CODE_SIGN_IDENTITY:-}" && "$CODE_SIGN_IDENTITY" != - ]]; then
     echo 'App must have a timestamped Developer ID signature with Hardened Runtime from the configured team.' >&2
     exit 1
   fi
+  /usr/bin/codesign -d --entitlements :- "$APP_BUNDLE" 2>/dev/null |
+    python3 "$ROOT_DIR/scripts/verify-distribution-entitlements.py"
 fi
 
 mkdir -p "$OUTPUT_DIR"
