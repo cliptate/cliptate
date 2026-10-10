@@ -18,7 +18,9 @@ struct LoginItemSettingsTests {
         $0.queriedOnMainThread = Thread.isMainThread
       }
       started.continuation.yield()
-      _ = release.wait(timeout: .now() + 5)
+      // Only the test releases this query; CI scheduling must not finish it early.
+      #expect(!Thread.isMainThread)
+      if !Thread.isMainThread { release.wait() }
       return true
     }, writeEnabled: { _ in })
     let settings = LoginItemSettings(service: service)
@@ -88,7 +90,8 @@ struct LoginItemSettingsTests {
     let settings = LoginItemSettings(service: LoginItemService(
       readEnabled: {
         started.continuation.yield()
-        _ = release.wait(timeout: .now() + 5)
+        #expect(!Thread.isMainThread)
+        if !Thread.isMainThread { release.wait() }
         return true
       }, writeEnabled: { _ in }
     ))
