@@ -6,10 +6,10 @@
 
   <p>
     <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12"><img alt="Download on the App Store" src="https://img.shields.io/badge/App%20Store-Download-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
-    <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
+    <img alt="macOS 15+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
     <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-MLX-ff6900?style=flat-square" />
-    <img alt="Swift" src="https://img.shields.io/badge/Swift-5.10-f05138?logo=swift&logoColor=white&style=flat-square" />
-    <img alt="100% On-Device" src="https://img.shields.io/badge/Processing-100%25%20Local-22c55e?style=flat-square" />
+    <img alt="Swift" src="https://img.shields.io/badge/Swift-6.2-f05138?logo=swift&logoColor=white&style=flat-square" />
+    <img alt="On-Device Speech" src="https://img.shields.io/badge/Processing-Local%20Speech-22c55e?style=flat-square" />
   </p>
 
   <p>
@@ -30,9 +30,29 @@
 
 ---
 
-Cliptate is a native macOS application that compresses the most time-consuming steps in audio and video production into one continuous, fully local workflow. No cloud upload, no API keys, no waiting on network round trips — every model runs on your Mac.
+Cliptate is a native macOS application that brings transcription, dictation, editing, and speech synthesis into one workflow. Speech models run on your Mac; optional online AI correction and translation providers can be configured separately.
 
 ---
+
+## Build from source
+
+The complete application is open source under the [MIT license](LICENSE).
+Builds require Apple Silicon, macOS 15+, and Xcode 26+ (Swift 6.2+).
+
+```bash
+git clone https://github.com/cliptate/cliptate.git
+cd cliptate
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+swift test
+./run.sh
+```
+
+Source code is in `Sources/Cliptate`, tests in `Tests`, the Xcode project at the
+repository root, and tooling in `scripts`. See [development](docs/development.md),
+[architecture](docs/architecture/README.md), [contributing](CONTRIBUTING.md),
+[third-party notices](THIRD_PARTY_NOTICES.md), and the [migration record](docs/migration.md).
+Source builds use optional local billing configuration; model weights are downloaded separately.
+
 
 ## Features
 
@@ -95,10 +115,10 @@ Compatible with **Final Cut Pro**, **DaVinci Resolve**, and **Adobe Premiere Pro
 
 ## Privacy & Security
 
-- **Zero cloud upload** — audio, video, and transcripts never leave your Mac
-- **No API keys required** — all models ship with the app or download on first use
-- **No network dependency** — works fully offline once models are cached
-- Suitable for sensitive, confidential, and compliance-regulated content
+- **Local speech inference** — ASR, VAD, diarization, and TTS run on your Mac
+- **Optional providers** — online AI correction/translation uses the endpoint and API key you configure
+- **Offline local models** — cache weights before use; model downloads, billing, and optional online providers need network access
+- Choose local providers when processing sensitive content
 
 ---
 
@@ -106,15 +126,15 @@ Compatible with **Final Cut Pro**, **DaVinci Resolve**, and **Adobe Premiere Pro
 
 | | |
 |---|---|
-| **Platform** | macOS 14 Sonoma or later |
-| **Architecture** | Apple Silicon (M1 and later) recommended |
+| **Platform** | macOS 15 Sequoia or later |
+| **Architecture** | Apple Silicon (M1 and later) |
 | **Storage** | Varies by model selection (2–8 GB for full model set) |
 
 ---
 
 ## Tech Stack
 
-Cliptate is built entirely in Swift and runs on Apple-native frameworks:
+Cliptate uses SwiftUI and AppKit for its native macOS UI, AVFoundation for media, MLX Audio for local inference, Hugging Face for model downloads, and RevenueCat/StoreKit for optional subscriptions.
 
 ---
 
@@ -134,7 +154,7 @@ Cliptate is built entirely in Swift and runs on Apple-native frameworks:
 
 - **Website:** [cliptate.github.io](https://cliptate.github.io)
 - **App Store:** [Download Cliptate](https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12)
-- **Issues & Feedback:** [GitHub Issues](https://github.com/cliptate/cliptate.github.io/issues)
+- **Issues & Feedback:** [GitHub Issues](https://github.com/cliptate/cliptate/issues)
 
 ---
 

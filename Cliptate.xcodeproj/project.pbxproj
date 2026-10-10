@@ -1,0 +1,836 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		C11F00000000000000000008 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = C11F00000000000000000009 /* MLXLMCommon */; };
+		C11F00000000000000000005 /* MLX in Frameworks */ = {isa = PBXBuildFile; productRef = C11F00000000000000000006 /* MLX */; };
+		C11F00000000000000000002 /* HuggingFace in Frameworks */ = {isa = PBXBuildFile; productRef = C11F00000000000000000003 /* HuggingFace */; };
+		2927C82F2E4743230005D06E /* SwiftAssRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 2927C82E2E4743230005D06E /* SwiftAssRenderer */; };
+		2927C8402E6B9E000005D06E /* AudioKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2927C83F2E6B9E000005D06E /* AudioKit */; };
+		294BB5AE2EBB707600214C43 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 294BB5AD2EBB707600214C43 /* StoreKit.framework */; };
+		297A5C132F3C762D002BDD3D /* MLXAudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = 297A5C122F3C762D002BDD3D /* MLXAudioCore */; };
+		297A5C152F3C762D002BDD3D /* MLXAudioSTT in Frameworks */ = {isa = PBXBuildFile; productRef = 297A5C142F3C762D002BDD3D /* MLXAudioSTT */; };
+		297A5C172F3C762D002BDD3D /* MLXAudioTTS in Frameworks */ = {isa = PBXBuildFile; productRef = 297A5C162F3C762D002BDD3D /* MLXAudioTTS */; };
+		297A5C192F3C762D002BDD3D /* MLXAudioVAD in Frameworks */ = {isa = PBXBuildFile; productRef = 297A5C182F3C762D002BDD3D /* MLXAudioVAD */; };
+		29850B442EEC311F00CFD24B /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 29850B432EEC311F00CFD24B /* LaunchAtLogin */; };
+		29A0C0F12E8F7B1000BDAAAA /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 29A0C0F22E8F7B1000BDAAAA /* KeyboardShortcuts */; };
+		29E4E4A32EA9F67500CBC1BA /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 29E4E4A22EA9F67500CBC1BA /* RevenueCat */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		29F2C4CF2E46DE8900B5995C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29F2C4B62E46DE8700B5995C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 29F2C4BD2E46DE8700B5995C;
+			remoteInfo = Cliptate;
+		};
+		29F2C4D92E46DE8900B5995C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29F2C4B62E46DE8700B5995C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 29F2C4BD2E46DE8700B5995C;
+			remoteInfo = Cliptate;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		C11F00000000000000000001 /* Cliptate.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = config/Cliptate.xcconfig; sourceTree = SOURCE_ROOT; };
+		294BB5AD2EBB707600214C43 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		29F2C4BE2E46DE8700B5995C /* Cliptate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cliptate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		29F2C4CE2E46DE8900B5995C /* CliptateTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CliptateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		29F2C4D82E46DE8900B5995C /* CliptateUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CliptateUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		29F2C4C02E46DE8700B5995C /* Cliptate */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Sources/Cliptate;
+			sourceTree = "<group>";
+		};
+		29F2C4D12E46DE8900B5995C /* CliptateTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Tests/CliptateTests;
+			sourceTree = "<group>";
+		};
+		29F2C4DB2E46DE8900B5995C /* CliptateUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Tests/CliptateUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		29F2C4BB2E46DE8700B5995C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C11F00000000000000000005 /* MLX in Frameworks */,
+				C11F00000000000000000008 /* MLXLMCommon in Frameworks */,
+				C11F00000000000000000002 /* HuggingFace in Frameworks */,
+				297A5C172F3C762D002BDD3D /* MLXAudioTTS in Frameworks */,
+				29A0C0F12E8F7B1000BDAAAA /* KeyboardShortcuts in Frameworks */,
+				294BB5AE2EBB707600214C43 /* StoreKit.framework in Frameworks */,
+				2927C8402E6B9E000005D06E /* AudioKit in Frameworks */,
+				297A5C152F3C762D002BDD3D /* MLXAudioSTT in Frameworks */,
+				297A5C192F3C762D002BDD3D /* MLXAudioVAD in Frameworks */,
+				29E4E4A32EA9F67500CBC1BA /* RevenueCat in Frameworks */,
+				297A5C132F3C762D002BDD3D /* MLXAudioCore in Frameworks */,
+				2927C82F2E4743230005D06E /* SwiftAssRenderer in Frameworks */,
+				29850B442EEC311F00CFD24B /* LaunchAtLogin in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		29F2C4CB2E46DE8900B5995C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		29F2C4D52E46DE8900B5995C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		294BB5AC2EBB707600214C43 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				294BB5AD2EBB707600214C43 /* StoreKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		29F2C4B52E46DE8700B5995C = {
+			isa = PBXGroup;
+			children = (
+				C11F00000000000000000001 /* Cliptate.xcconfig */,
+				29F2C4C02E46DE8700B5995C /* Cliptate */,
+				29F2C4D12E46DE8900B5995C /* CliptateTests */,
+				29F2C4DB2E46DE8900B5995C /* CliptateUITests */,
+				294BB5AC2EBB707600214C43 /* Frameworks */,
+				29F2C4BF2E46DE8700B5995C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		29F2C4BF2E46DE8700B5995C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				29F2C4BE2E46DE8700B5995C /* Cliptate.app */,
+				29F2C4CE2E46DE8900B5995C /* CliptateTests.xctest */,
+				29F2C4D82E46DE8900B5995C /* CliptateUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		29F2C4BD2E46DE8700B5995C /* Cliptate */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 29F2C4E22E46DE8900B5995C /* Build configuration list for PBXNativeTarget "Cliptate" */;
+			buildPhases = (
+				29F2C4BA2E46DE8700B5995C /* Sources */,
+				29F2C4BB2E46DE8700B5995C /* Frameworks */,
+				29F2C4BC2E46DE8700B5995C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				29F2C4C02E46DE8700B5995C /* Cliptate */,
+			);
+			name = Cliptate;
+			packageProductDependencies = (
+				C11F00000000000000000009 /* MLXLMCommon */,
+				C11F00000000000000000006 /* MLX */,
+				C11F00000000000000000003 /* HuggingFace */,
+				2927C83F2E6B9E000005D06E /* AudioKit */,
+				2927C82E2E4743230005D06E /* SwiftAssRenderer */,
+				29A0C0F22E8F7B1000BDAAAA /* KeyboardShortcuts */,
+				29E4E4A22EA9F67500CBC1BA /* RevenueCat */,
+				29850B432EEC311F00CFD24B /* LaunchAtLogin */,
+				297A5C122F3C762D002BDD3D /* MLXAudioCore */,
+				297A5C142F3C762D002BDD3D /* MLXAudioSTT */,
+				297A5C162F3C762D002BDD3D /* MLXAudioTTS */,
+				297A5C182F3C762D002BDD3D /* MLXAudioVAD */,
+			);
+			productName = Cliptate;
+			productReference = 29F2C4BE2E46DE8700B5995C /* Cliptate.app */;
+			productType = "com.apple.product-type.application";
+		};
+		29F2C4CD2E46DE8900B5995C /* CliptateTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 29F2C4E52E46DE8900B5995C /* Build configuration list for PBXNativeTarget "CliptateTests" */;
+			buildPhases = (
+				29F2C4CA2E46DE8900B5995C /* Sources */,
+				29F2C4CB2E46DE8900B5995C /* Frameworks */,
+				29F2C4CC2E46DE8900B5995C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				29F2C4D02E46DE8900B5995C /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				29F2C4D12E46DE8900B5995C /* CliptateTests */,
+			);
+			name = CliptateTests;
+			packageProductDependencies = (
+			);
+			productName = CliptateTests;
+			productReference = 29F2C4CE2E46DE8900B5995C /* CliptateTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		29F2C4D72E46DE8900B5995C /* CliptateUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 29F2C4E82E46DE8900B5995C /* Build configuration list for PBXNativeTarget "CliptateUITests" */;
+			buildPhases = (
+				29F2C4D42E46DE8900B5995C /* Sources */,
+				29F2C4D52E46DE8900B5995C /* Frameworks */,
+				29F2C4D62E46DE8900B5995C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				29F2C4DA2E46DE8900B5995C /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				29F2C4DB2E46DE8900B5995C /* CliptateUITests */,
+			);
+			name = CliptateUITests;
+			packageProductDependencies = (
+			);
+			productName = CliptateUITests;
+			productReference = 29F2C4D82E46DE8900B5995C /* CliptateUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		29F2C4B62E46DE8700B5995C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					29F2C4BD2E46DE8700B5995C = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					29F2C4CD2E46DE8900B5995C = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 29F2C4BD2E46DE8700B5995C;
+					};
+					29F2C4D72E46DE8900B5995C = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 29F2C4BD2E46DE8700B5995C;
+					};
+				};
+			};
+			buildConfigurationList = 29F2C4B92E46DE8700B5995C /* Build configuration list for PBXProject "Cliptate" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 29F2C4B52E46DE8700B5995C;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C11F00000000000000000010 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */,
+				C11F00000000000000000007 /* XCRemoteSwiftPackageReference "mlx-swift" */,
+				C11F00000000000000000004 /* XCRemoteSwiftPackageReference "swift-huggingface" */,
+				2927C83E2E6B9E000005D06E /* XCRemoteSwiftPackageReference "AudioKit" */,
+				2927C82D2E4743230005D06E /* XCRemoteSwiftPackageReference "swift-ass-renderer" */,
+				29A0C0F32E8F7B1000BDAAAA /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+				29E4E4A12EA9F67500CBC1BA /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+				29850B422EEC311F00CFD24B /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
+				297A5C112F3C762D002BDD3D /* XCRemoteSwiftPackageReference "mlx-audio-swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 29F2C4BF2E46DE8700B5995C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				29F2C4BD2E46DE8700B5995C /* Cliptate */,
+				29F2C4CD2E46DE8900B5995C /* CliptateTests */,
+				29F2C4D72E46DE8900B5995C /* CliptateUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		29F2C4BC2E46DE8700B5995C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		29F2C4CC2E46DE8900B5995C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		29F2C4D62E46DE8900B5995C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		29F2C4BA2E46DE8700B5995C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		29F2C4CA2E46DE8900B5995C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		29F2C4D42E46DE8900B5995C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		29F2C4D02E46DE8900B5995C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 29F2C4BD2E46DE8700B5995C /* Cliptate */;
+			targetProxy = 29F2C4CF2E46DE8900B5995C /* PBXContainerItemProxy */;
+		};
+		29F2C4DA2E46DE8900B5995C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 29F2C4BD2E46DE8700B5995C /* Cliptate */;
+			targetProxy = 29F2C4D92E46DE8900B5995C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		29F2C4E02E46DE8900B5995C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited) APP_STORE";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		29F2C4E12E46DE8900B5995C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) APP_STORE";
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		29F2C4E32E46DE8900B5995C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C11F00000000000000000001 /* Cliptate.xcconfig */;
+			buildSettings = {
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Sources/Cliptate/Cliptate.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 22;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Cliptate;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Cliptate needs to automate actions in other apps for export workflows.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cliptate needs microphone access to capture live audio for transcription.";
+				INFOPLIST_KEY_NSScreenCaptureUsageDescription = "Cliptate needs screen recording access to analyze video content for subtitle placement.";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.8;
+				PRODUCT_BUNDLE_IDENTIFIER = com.voicepink.voicepinkpro;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Debug;
+		};
+		29F2C4E42E46DE8900B5995C /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C11F00000000000000000001 /* Cliptate.xcconfig */;
+			buildSettings = {
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Sources/Cliptate/Cliptate.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 22;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Cliptate;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Cliptate needs to automate actions in other apps for export workflows.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cliptate needs microphone access to capture live audio for transcription.";
+				INFOPLIST_KEY_NSScreenCaptureUsageDescription = "Cliptate needs screen recording access to analyze video content for subtitle placement.";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.8;
+				PRODUCT_BUNDLE_IDENTIFIER = com.voicepink.voicepinkpro;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Release;
+		};
+		29F2C4E62E46DE8900B5995C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.voicepink.CliptateTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cliptate.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Cliptate";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Debug;
+		};
+		29F2C4E72E46DE8900B5995C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.voicepink.CliptateTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cliptate.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Cliptate";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Release;
+		};
+		29F2C4E92E46DE8900B5995C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.voicepink.CliptateUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = Cliptate;
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Debug;
+		};
+		29F2C4EA2E46DE8900B5995C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.voicepink.CliptateUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = Cliptate;
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		29F2C4B92E46DE8700B5995C /* Build configuration list for PBXProject "Cliptate" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				29F2C4E02E46DE8900B5995C /* Debug */,
+				29F2C4E12E46DE8900B5995C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		29F2C4E22E46DE8900B5995C /* Build configuration list for PBXNativeTarget "Cliptate" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				29F2C4E32E46DE8900B5995C /* Debug */,
+				29F2C4E42E46DE8900B5995C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		29F2C4E52E46DE8900B5995C /* Build configuration list for PBXNativeTarget "CliptateTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				29F2C4E62E46DE8900B5995C /* Debug */,
+				29F2C4E72E46DE8900B5995C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		29F2C4E82E46DE8900B5995C /* Build configuration list for PBXNativeTarget "CliptateUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				29F2C4E92E46DE8900B5995C /* Debug */,
+				29F2C4EA2E46DE8900B5995C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C11F00000000000000000010 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ml-explore/mlx-swift-lm.git";
+			requirement = {
+				kind = exactVersion;
+				version = 3.31.3;
+			};
+		};
+		C11F00000000000000000007 /* XCRemoteSwiftPackageReference "mlx-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ml-explore/mlx-swift.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.31.3;
+			};
+		};
+		C11F00000000000000000004 /* XCRemoteSwiftPackageReference "swift-huggingface" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/huggingface/swift-huggingface.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.8.0;
+			};
+		};
+		2927C82D2E4743230005D06E /* XCRemoteSwiftPackageReference "swift-ass-renderer" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mihai8804858/swift-ass-renderer";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.1;
+			};
+		};
+		2927C83E2E6B9E000005D06E /* XCRemoteSwiftPackageReference "AudioKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AudioKit/AudioKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.6.5;
+			};
+		};
+		297A5C112F3C762D002BDD3D /* XCRemoteSwiftPackageReference "mlx-audio-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Blaizzy/mlx-audio-swift.git";
+			requirement = {
+				kind = revision;
+				revision = 7734cd1fbbe86460083c1d24199737a24cadfcc8;
+			};
+		};
+		29850B422EEC311F00CFD24B /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.0;
+			};
+		};
+		29A0C0F32E8F7B1000BDAAAA /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.0;
+			};
+		};
+		29E4E4A12EA9F67500CBC1BA /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.44.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C11F00000000000000000009 /* MLXLMCommon */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C11F00000000000000000010 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXLMCommon;
+		};
+		C11F00000000000000000006 /* MLX */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C11F00000000000000000007 /* XCRemoteSwiftPackageReference "mlx-swift" */;
+			productName = MLX;
+		};
+		C11F00000000000000000003 /* HuggingFace */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C11F00000000000000000004 /* XCRemoteSwiftPackageReference "swift-huggingface" */;
+			productName = HuggingFace;
+		};
+		2927C82E2E4743230005D06E /* SwiftAssRenderer */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2927C82D2E4743230005D06E /* XCRemoteSwiftPackageReference "swift-ass-renderer" */;
+			productName = SwiftAssRenderer;
+		};
+		2927C83F2E6B9E000005D06E /* AudioKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2927C83E2E6B9E000005D06E /* XCRemoteSwiftPackageReference "AudioKit" */;
+			productName = AudioKit;
+		};
+		297A5C122F3C762D002BDD3D /* MLXAudioCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 297A5C112F3C762D002BDD3D /* XCRemoteSwiftPackageReference "mlx-audio-swift" */;
+			productName = MLXAudioCore;
+		};
+		297A5C142F3C762D002BDD3D /* MLXAudioSTT */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 297A5C112F3C762D002BDD3D /* XCRemoteSwiftPackageReference "mlx-audio-swift" */;
+			productName = MLXAudioSTT;
+		};
+		297A5C162F3C762D002BDD3D /* MLXAudioTTS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 297A5C112F3C762D002BDD3D /* XCRemoteSwiftPackageReference "mlx-audio-swift" */;
+			productName = MLXAudioTTS;
+		};
+		297A5C182F3C762D002BDD3D /* MLXAudioVAD */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 297A5C112F3C762D002BDD3D /* XCRemoteSwiftPackageReference "mlx-audio-swift" */;
+			productName = MLXAudioVAD;
+		};
+		29850B432EEC311F00CFD24B /* LaunchAtLogin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 29850B422EEC311F00CFD24B /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
+			productName = LaunchAtLogin;
+		};
+		29A0C0F22E8F7B1000BDAAAA /* KeyboardShortcuts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 29A0C0F32E8F7B1000BDAAAA /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			productName = KeyboardShortcuts;
+		};
+		29E4E4A22EA9F67500CBC1BA /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 29E4E4A12EA9F67500CBC1BA /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 29F2C4B62E46DE8700B5995C /* Project object */;
+}

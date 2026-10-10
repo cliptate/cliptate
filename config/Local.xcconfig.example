@@ -1,0 +1,3 @@
+// Optional public RevenueCat SDK key for your own application.
+// Never use RevenueCat secret REST API keys here.
+CLIPTATE_REVENUECAT_API_KEY =

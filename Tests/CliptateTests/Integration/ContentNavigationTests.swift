@@ -1,0 +1,97 @@
+import Foundation
+import SwiftUI
+import Testing
+
+@testable import Cliptate
+
+@Suite("Content navigation")
+struct ContentNavigationTests {
+  @Test("getting started section label and description are exposed")
+  func gettingStartedSectionMetadata() {
+    #expect(AppSection.permissions.label == LocalizedStringKey("Getting Started"))
+    #expect(AppSection.permissions.description == "Permissions and setup guidance")
+  }
+
+  @Test("permissions section is hidden when onboarding guidance is not required")
+  func permissionsSectionIsHiddenWhenGuidanceNotRequired() {
+    #expect(visibleAppSections(requiresGettingStarted: false).contains(.permissions) == false)
+    #expect(visibleAppSections(requiresGettingStarted: true).contains(.permissions))
+  }
+
+  @Test("missing permissions force navigation to getting started")
+  func missingPermissionsForceGettingStartedNavigation() {
+    #expect(resolvedAppSection(currentSection: .aiCut, requiresGettingStarted: true) == .permissions)
+    #expect(
+      resolvedAppSection(currentSection: .permissions, requiresGettingStarted: false) == .aiCut
+    )
+    #expect(resolvedAppSection(currentSection: .models, requiresGettingStarted: false) == .models)
+  }
+
+  @Test("explicit user navigation can leave getting started while permissions are still missing")
+  func explicitUserNavigationCanLeaveGettingStartedWhilePermissionsAreStillMissing() {
+    #expect(
+      resolvedAppSection(
+        currentSection: .voiceToText,
+        requiresGettingStarted: true,
+        autoOpenGettingStarted: false
+      ) == .voiceToText
+    )
+  }
+
+  @Test("content view refreshes permissions without auto-redirect on app reactivation")
+  func contentViewRefreshesPermissionsWithoutAutoRedirectOnAppReactivation() throws {
+    let content = try contentViewSource()
+    let marker =
+      ".onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification))"
+
+    guard let range = content.range(of: marker) else {
+      Issue.record("Expected didBecomeActiveNotification observer in ContentView")
+      return
+    }
+
+    let suffix = String(content[range.lowerBound...])
+    let observedBlock = String(suffix.prefix(160))
+
+    #expect(observedBlock.contains("permissionStatusManager.refreshAll()"))
+    #expect(observedBlock.contains("syncGettingStartedSection()") == false)
+  }
+
+  @Test("pro section is exposed in app navigation")
+  func proSectionIsAvailableInNavigation() {
+    #expect(AppSection.allCases.contains(.pro))
+    #expect(AppSection.pro.icon == "crown")
+    #expect(AppSection.pro.description == "Subscription and benefits")
+  }
+
+  @Test("pro section notification is available")
+  func proSectionNotificationIsAvailable() {
+    #expect(Notification.Name.openProSection.rawValue == "Cliptate.openProSection")
+  }
+
+  @Test("content view defers shortcut result handling to VoiceToText when that section is active")
+  func contentViewDefersShortcutHandlingForVoiceToText() {
+    #expect(contentViewShouldHandleShortcutResult(currentSection: .voiceToText) == false)
+    #expect(contentViewShouldHandleShortcutResult(currentSection: .aiCut) == true)
+  }
+
+  @Test("permissions keyboard shortcut button uses direct content navigation")
+  func permissionsKeyboardShortcutButtonUsesDirectContentNavigation() throws {
+    let content = try contentViewSource()
+
+    #expect(
+      content.contains("PermissionsView(onOpenVoiceToText: { currentSection = .voiceToText })")
+    )
+  }
+
+  private func contentViewSource() throws -> String {
+    let fileURL = URL(fileURLWithPath: #filePath)
+    let projectRoot = fileURL
+      .deletingLastPathComponent()
+      .deletingLastPathComponent()
+      .deletingLastPathComponent()
+      .deletingLastPathComponent()
+
+    let sourceURL = projectRoot.appendingPathComponent("Sources/Cliptate/Views/ContentView.swift")
+    return try String(contentsOf: sourceURL, encoding: .utf8)
+  }
+}

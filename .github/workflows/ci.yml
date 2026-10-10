@@ -1,0 +1,40 @@
+name: Build and test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Inspect toolchain
+        run: |
+          test "$(uname -m)" = arm64
+          xcodebuild -version
+          swift --version
+      - name: Resolve locked Swift packages
+        run: swift package resolve --force-resolved-versions
+      - name: Build library
+        run: swift build
+      - name: Verify dependency notices
+        run: python3 scripts/update-dependency-notices.py --check
+      - name: Run unit tests
+        run: swift test
+      - name: Build macOS application
+        run: ./scripts/build-and-run.sh build
+      - name: Check dependency locks remain unchanged
+        run: git diff --exit-code -- Package.resolved Cliptate.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved

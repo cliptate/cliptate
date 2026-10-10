@@ -5,10 +5,10 @@
 
   <p>
     <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12"><img alt="App Store에서 다운로드" src="https://img.shields.io/badge/App%20Store-다운로드-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
-    <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
+    <img alt="macOS 15+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
     <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-MLX-ff6900?style=flat-square" />
-    <img alt="Swift" src="https://img.shields.io/badge/Swift-5.10-f05138?logo=swift&logoColor=white&style=flat-square" />
-    <img alt="100% 로컬 처리" src="https://img.shields.io/badge/처리방식-100%25%20로컬-22c55e?style=flat-square" />
+    <img alt="Swift" src="https://img.shields.io/badge/Swift-6.2-f05138?logo=swift&logoColor=white&style=flat-square" />
+    <img alt="로컬 음성 처리" src="https://img.shields.io/badge/처리방식-로컬%20음성-22c55e?style=flat-square" />
   </p>
 
   <p>
@@ -29,9 +29,27 @@
 
 ---
 
-Cliptate는 오디오·비디오 제작에서 가장 시간이 많이 걸리는 작업들을 완전히 로컬에서 동작하는 하나의 연속된 워크플로우로 통합한 네이티브 macOS 앱입니다. 클라우드 업로드, API 키, 네트워크 대기 없이 모든 모델이 Mac에서 실행됩니다.
+Cliptate는 전사, 받아쓰기, 편집, 음성 합성을 통합한 네이티브 macOS 앱입니다. 음성 모델은 Mac에서 실행되며 온라인 AI 교정 및 번역 서비스는 선택적으로 설정할 수 있습니다.
 
 ---
+
+## 소스에서 빌드
+
+전체 앱은 [MIT 라이선스](LICENSE)로 공개됩니다.
+Apple Silicon, macOS 15+, Xcode 26+ 및 Swift 6.2+가 필요합니다.
+
+```bash
+git clone https://github.com/cliptate/cliptate.git
+cd cliptate
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+swift test
+./run.sh
+```
+
+[개발 가이드](docs/development.md), [아키텍처](docs/architecture/README.md),
+[기여 가이드](CONTRIBUTING.md), [타사 라이선스](THIRD_PARTY_NOTICES.md)를 참조하세요.
+모델은 별도로 다운로드하며 구독 서비스는 로컬 설정으로 선택적으로 구성합니다.
+
 
 ## 기능
 
@@ -94,10 +112,10 @@ Cliptate는 이미 사용 중인 툴로 직접 내보냅니다:
 
 ## 개인정보 보호 및 보안
 
-- **클라우드 업로드 없음** — 오디오, 비디오, 전사문은 절대 Mac 밖으로 나가지 않습니다
-- **API 키 불필요** — 모든 모델은 앱에 포함되거나 첫 사용 시 다운로드됩니다
-- **네트워크 독립** — 모델 캐시 후 완전 오프라인 동작
-- 민감하거나 기밀적이며 규정 준수가 필요한 콘텐츠에 적합합니다
+- **로컬 음성 추론** — ASR, VAD, 화자 구분 및 TTS는 Mac에서 실행됩니다.
+- **선택적 온라인 서비스** — AI 교정 및 번역은 설정한 엔드포인트와 API 키를 사용합니다.
+- **오프라인 추론** — 모델 다운로드 후 사용할 수 있습니다. 다운로드, 구독 및 온라인 서비스에는 네트워크가 필요합니다.
+- 민감한 콘텐츠에는 로컬 서비스를 선택하세요.
 
 ---
 
@@ -105,15 +123,15 @@ Cliptate는 이미 사용 중인 툴로 직접 내보냅니다:
 
 | | |
 |---|---|
-| **플랫폼** | macOS 14 Sonoma 이상 |
-| **아키텍처** | Apple Silicon(M1 이상) 권장 |
+| **플랫폼** | macOS 15 Sequoia 이상 |
+| **아키텍처** | Apple Silicon(M1 이상) |
 | **저장 공간** | 모델 선택에 따라 다름 (전체 모델 세트: 2–8 GB) |
 
 ---
 
 ## 기술 스택
 
-Cliptate는 Swift로 완전히 구축되어 Apple 네이티브 프레임워크 위에서 실행됩니다:
+SwiftUI / AppKit, AVFoundation, MLX Audio, Hugging Face, RevenueCat / StoreKit을 사용합니다.
 
 ---
 
@@ -133,7 +151,7 @@ Cliptate는 Swift로 완전히 구축되어 Apple 네이티브 프레임워크 �
 
 - **웹사이트:** [cliptate.github.io](https://cliptate.github.io)
 - **App Store:** [Cliptate 다운로드](https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12)
-- **문의 및 피드백:** [GitHub Issues](https://github.com/cliptate/cliptate.github.io/issues)
+- **문의 및 피드백:** [GitHub Issues](https://github.com/cliptate/cliptate/issues)
 
 ---
 

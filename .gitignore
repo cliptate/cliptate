@@ -1,0 +1,33 @@
+# Build products and local package state; Package.resolved is committed.
+.build/
+.swiftpm/
+DerivedData/
+build/
+Packages/
+Package.pins
+xcuserdata/
+*.xcuserstate
+
+# Local configuration, credentials, and model downloads.
+config/Local.xcconfig
+.env
+.env.*
+!.env.example
+*.p12
+*.mobileprovision
+*.provisionprofile
+*.pem
+*.key
+*.safetensors
+*.gguf
+
+# Local tooling and editor state.
+.vscode/
+.idea/
+.worktrees/
+.superpowers/
+.antigravitycli/
+.DS_Store
+*.swp
+*.tmp
+*.log

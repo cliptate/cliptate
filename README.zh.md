@@ -5,10 +5,10 @@
 
   <p>
     <a href="https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12"><img alt="在 App Store 下载" src="https://img.shields.io/badge/App%20Store-下载-0066cc?logo=apple&logoColor=white&style=flat-square" /></a>
-    <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
+    <img alt="macOS 15+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
     <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-MLX-ff6900?style=flat-square" />
-    <img alt="Swift" src="https://img.shields.io/badge/Swift-5.10-f05138?logo=swift&logoColor=white&style=flat-square" />
-    <img alt="100% 本地处理" src="https://img.shields.io/badge/处理方式-100%25%20本地-22c55e?style=flat-square" />
+    <img alt="Swift" src="https://img.shields.io/badge/Swift-6.2-f05138?logo=swift&logoColor=white&style=flat-square" />
+    <img alt="本地语音推理" src="https://img.shields.io/badge/处理方式-本地语音-22c55e?style=flat-square" />
   </p>
 
   <p>
@@ -29,9 +29,29 @@
 
 ---
 
-Cliptate 是一款原生 macOS 应用，将音视频制作中最耗时的环节整合为一条连续、完全本地化的工作流。无需云端上传，无需 API 密钥，无需等待网络响应——所有模型均在你的 Mac 上运行。
+Cliptate 是一款原生 macOS 应用，将转写、听写、剪辑和语音合成整合到同一工作流。语音模型在 Mac 本地运行，也可以单独配置在线 AI 纠错和翻译服务。
 
 ---
+
+## 从源码构建
+
+完整应用以 [MIT 许可证](LICENSE)开源。需要 Apple Silicon、macOS 15+、
+Xcode 26+（Swift 6.2+）。
+
+```bash
+git clone https://github.com/cliptate/cliptate.git
+cd cliptate
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+swift test
+./run.sh
+```
+
+应用源码位于 `Sources/Cliptate`，测试位于 `Tests`，Xcode 工程位于仓库根目录，
+工具脚本位于 `scripts`。参见[开发指南](docs/development.md)、
+[架构说明](docs/architecture/README.md)、[贡献指南](CONTRIBUTING.md)、
+[第三方许可](THIRD_PARTY_NOTICES.md)和[迁移记录](docs/migration.md)。
+源码构建可选择配置自己的订阅服务；模型权重单独下载，遵循各自许可证。
+
 
 ## 功能
 
@@ -94,10 +114,10 @@ Cliptate 直接输出你常用工具所需的格式：
 
 ## 隐私与安全
 
-- **零云端上传** — 音频、视频和字幕始终留在你的 Mac 上
-- **无需 API 密钥** — 所有模型随应用附带或首次使用时下载
-- **无网络依赖** — 模型缓存后完全离线可用
-- 适合敏感、机密及合规要求严格的内容场景
+- **本地语音推理** — ASR、VAD、说话人识别和 TTS 在 Mac 上运行
+- **可选在线服务** — 在线 AI 纠错和翻译使用你配置的端点和 API 密钥
+- **本地模型可离线使用** — 模型下载、订阅和可选在线服务需要网络
+- 处理敏感内容时请选择本地服务
 
 ---
 
@@ -105,15 +125,15 @@ Cliptate 直接输出你常用工具所需的格式：
 
 | | |
 |---|---|
-| **平台** | macOS 14 Sonoma 或更高版本 |
-| **架构** | 推荐 Apple Silicon（M1 及以上） |
+| **平台** | macOS 15 Sequoia 或更高版本 |
+| **架构** | Apple Silicon（M1 及以上） |
 | **存储空间** | 因模型选择而异（完整模型组约 2–8 GB） |
 
 ---
 
 ## 技术栈
 
-Cliptate 完全使用 Swift 开发，基于 Apple 原生框架构建：
+采用 SwiftUI / AppKit 原生界面、AVFoundation 媒体处理、MLX Audio 本地推理、Hugging Face 模型下载，以及 RevenueCat / StoreKit 可选订阅服务。
 
 ---
 
@@ -133,7 +153,7 @@ Cliptate 完全使用 Swift 开发，基于 Apple 原生框架构建：
 
 - **官网：** [cliptate.github.io](https://cliptate.github.io)
 - **App Store：** [下载 Cliptate](https://apps.apple.com/cn/app/%E5%89%AA%E8%A8%80-cliptate/id6754441004?mt=12)
-- **问题与反馈：** [GitHub Issues](https://github.com/cliptate/cliptate.github.io/issues)
+- **问题与反馈：** [GitHub Issues](https://github.com/cliptate/cliptate/issues)
 
 ---
 

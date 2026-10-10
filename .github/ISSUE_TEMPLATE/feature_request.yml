@@ -1,0 +1,15 @@
+name: Feature request
+description: Suggest a focused improvement to Cliptate.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or workflow
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+    validations:
+      required: true
