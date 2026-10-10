@@ -80,6 +80,8 @@ struct LightweightMenuView: View {
 
     Divider()
 
+    CheckForAppUpdatesButton()
+
     Button {
       NSApplication.shared.terminate(nil)
     } label: {

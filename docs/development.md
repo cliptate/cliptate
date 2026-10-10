@@ -55,13 +55,13 @@ branch pushes and pull requests do not build installers.
   the tagged source to that version's release and never moves version tags.
   The DMG filename and application version come from the app's build settings.
 
-Releases include the DMG and SHA-256 checksum and are publicly downloadable
+Releases include the DMG, SHA-256 checksum, and signed `appcast.xml` update feed and are publicly downloadable
 without signing in. Nightly updates replace the previous installer pair and move
 the `nightly` tag to the packaged commit; they do not become the latest stable
 release. Release publication runs separately from the build with `contents: write`
 permission and the built-in `GITHUB_TOKEN`; no personal access token is required.
 
-Each successful packaging run also retains the DMG and checksum as separate
+Each successful packaging run also retains the DMG, checksum, and appcast as separate
 Actions artifacts for 14 days. These artifact downloads require signing in to
 GitHub and contain the files themselves, without an additional ZIP archive.
 
@@ -88,6 +88,14 @@ Local source builds default to ad-hoc signing. CI packages require the Developer
 distribution setup below and fail before building if credentials are missing.
 An existing release produced before this setup may still be ad-hoc signed; check
 its release notes. Only successfully notarized packages are marked as such.
+
+## In-app update configuration
+
+Direct-download builds use Sparkle and a signed appcast. Configure the Actions
+variable `SPARKLE_PUBLIC_KEY` and secret `SPARKLE_PRIVATE_KEY` before the next
+package run. See [in-app updates](updates.md) for key generation, stable/Nightly
+feeds, version ordering, local testing, and App Store distribution requirements.
+The `APP_STORE` accessibility capability flag remains unchanged.
 
 ## Apple signing and notarization
 

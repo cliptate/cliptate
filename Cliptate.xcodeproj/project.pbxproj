@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C11F00000000000000000030 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = C11F00000000000000000031 /* Sparkle */; };
 		C11F00000000000000000008 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = C11F00000000000000000009 /* MLXLMCommon */; };
 		C11F00000000000000000005 /* MLX in Frameworks */ = {isa = PBXBuildFile; productRef = C11F00000000000000000006 /* MLX */; };
 		C11F00000000000000000002 /* HuggingFace in Frameworks */ = {isa = PBXBuildFile; productRef = C11F00000000000000000003 /* HuggingFace */; };
@@ -47,9 +48,18 @@
 		29F2C4D82E46DE8900B5995C /* CliptateUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CliptateUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C11F00000000000000000033 /* Build membership exceptions for Cliptate */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (Info.plist, Cliptate.entitlements, );
+			target = 29F2C4BD2E46DE8700B5995C /* Cliptate */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		29F2C4C02E46DE8700B5995C /* Cliptate */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (C11F00000000000000000033 /* Build membership exceptions for Cliptate */, );
 			path = Sources/Cliptate;
 			sourceTree = "<group>";
 		};
@@ -70,6 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C11F00000000000000000030 /* Sparkle in Frameworks */,
 				C11F00000000000000000005 /* MLX in Frameworks */,
 				C11F00000000000000000008 /* MLXLMCommon in Frameworks */,
 				C11F00000000000000000002 /* HuggingFace in Frameworks */,
@@ -153,6 +164,7 @@
 			);
 			name = Cliptate;
 			packageProductDependencies = (
+				C11F00000000000000000031 /* Sparkle */,
 				C11F00000000000000000009 /* MLXLMCommon */,
 				C11F00000000000000000006 /* MLX */,
 				C11F00000000000000000003 /* HuggingFace */,
@@ -249,6 +261,7 @@
 			mainGroup = 29F2C4B52E46DE8700B5995C;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				C11F00000000000000000032 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				C11F00000000000000000020 /* XCRemoteSwiftPackageReference "combine-schedulers" */,
 				C11F00000000000000000021 /* XCRemoteSwiftPackageReference "xctest-dynamic-overlay" */,
 				C11F00000000000000000010 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */,
@@ -698,6 +711,11 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		C11F00000000000000000032 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {kind = exactVersion; version = 2.10.0; };
+		};
 		C11F00000000000000000021 /* XCRemoteSwiftPackageReference "xctest-dynamic-overlay" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/xctest-dynamic-overlay";
@@ -789,6 +807,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		C11F00000000000000000031 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C11F00000000000000000032 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
 		C11F00000000000000000009 /* MLXLMCommon */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C11F00000000000000000010 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;

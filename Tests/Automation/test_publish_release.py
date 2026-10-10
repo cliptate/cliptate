@@ -1,5 +1,6 @@
 """Exercise release safety with a fake GitHub CLI; never publish test assets."""
 
+import base64
 import hashlib
 import json
 import os
@@ -63,7 +64,7 @@ sys.exit(code)
 
 class PublishReleaseTests(unittest.TestCase):
     def run_release(self, tag="nightly", *, existing=True, fail_upload=False,
-                    corrupt=False, tag_commit=COMMIT, signing_status="ad-hoc"):
+                    corrupt=False, tag_commit=COMMIT, signing_status="ad-hoc", appcast=False, wrong_feed=False):
         with tempfile.TemporaryDirectory() as temp:
             work = Path(temp)
             gh = work / "gh"
@@ -89,6 +90,16 @@ class PublishReleaseTests(unittest.TestCase):
                    "BUILT_COMMIT": COMMIT, "GITHUB_REPOSITORY": "cliptate/cliptate",
                    "GITHUB_RUN_ID": "123", "GH_TOKEN": "test-token",
                    "GITHUB_STEP_SUMMARY": str(work / "summary.md"), "SIGNING_STATUS": signing_status}
+            if appcast:
+                feed = work / "appcast.xml"
+                signature = base64.b64encode(b"s" * 64).decode()
+                feed_tag = "wrong" if wrong_feed else tag
+                feed.write_text(f'''<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"><channel><item>
+                  <sparkle:version>23</sparkle:version><sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+                  <enclosure url="https://github.com/cliptate/cliptate/releases/download/{feed_tag}/{DMG}"
+                    length="{dmg.stat().st_size}" sparkle:edSignature="{signature}" />
+                </item></channel></rss>''')
+                env["APPCAST_PATH"] = str(feed)
             result = subprocess.run([str(ROOT / "scripts/publish-release.sh"), str(dmg)],
                                     env=env, text=True, capture_output=True)
             return result, json.loads(state.read_text())
@@ -137,10 +148,28 @@ class PublishReleaseTests(unittest.TestCase):
         self.assertFalse(any(c[:2] == ["release", "upload"] for c in state["calls"]))
 
     def test_verified_signed_release_notes_describe_notarization(self):
-        result, state = self.run_release(signing_status="developer-id-notarized")
+        result, state = self.run_release(signing_status="developer-id-notarized", appcast=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Developer ID signed and Apple-notarized.", state["notes"])
         self.assertNotIn("ad-hoc", state["notes"])
+
+    def test_signed_feed_upload_follows_installer_upload(self):
+        result, state = self.run_release(signing_status="developer-id-notarized", appcast=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        uploads = [c for c in state["calls"] if c[:2] == ["release", "upload"]]
+        self.assertEqual(len(uploads), 2)
+        self.assertTrue(any(path.endswith(".dmg") for path in uploads[0]))
+        self.assertTrue(any(path.endswith("appcast.xml") for path in uploads[1]))
+
+    def test_wrong_feed_is_rejected_before_github_calls(self):
+        result, state = self.run_release(signing_status="developer-id-notarized", appcast=True, wrong_feed=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(state["calls"], [])
+
+    def test_adhoc_release_cannot_publish_an_update_feed(self):
+        result, state = self.run_release(appcast=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(state["calls"], [])
 
     def test_unknown_signing_status_is_rejected(self):
         result, state = self.run_release(signing_status="unknown")

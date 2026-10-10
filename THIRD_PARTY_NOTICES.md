@@ -10,6 +10,7 @@ by the committed dependency locks.
 
 | Dependency | License | Upstream |
 | --- | --- | --- |
+| Sparkle | MIT-style permissive and bundled component notices | https://github.com/sparkle-project/Sparkle |
 | KeyboardShortcuts | MIT | https://github.com/sindresorhus/KeyboardShortcuts |
 | LaunchAtLogin Modern | MIT | https://github.com/sindresorhus/LaunchAtLogin-Modern |
 | SwiftAssRenderer | MIT | https://github.com/mihai8804858/swift-ass-renderer |

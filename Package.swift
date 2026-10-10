@@ -14,6 +14,7 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0"),
         .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.4.0"),
         .package(url: "https://github.com/sindresorhus/LaunchAtLogin-Modern.git", from: "1.1.0"),
         .package(url: "https://github.com/mihai8804858/swift-ass-renderer", from: "1.3.1"),
@@ -34,6 +35,7 @@ let package = Package(
             name: "Cliptate",
             dependencies: [
                 "KeyboardShortcuts",
+                .product(name: "Sparkle", package: "Sparkle"),
                 .product(name: "LaunchAtLogin", package: "LaunchAtLogin-Modern"),
                 .product(name: "SwiftAssRenderer", package: "swift-ass-renderer"),
                 .product(name: "AudioKit", package: "AudioKit"),

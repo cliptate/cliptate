@@ -15,6 +15,17 @@ test -s "$DMG_PATH"
 test -s "$CHECKSUM_PATH"
 (cd "$(dirname "$DMG_PATH")" && shasum -a 256 -c "$DMG_NAME.sha256")
 
+ASSET_PATHS=("$DMG_PATH" "$CHECKSUM_PATH")
+if [[ -n "${APPCAST_PATH:-}" ]]; then
+  if [[ "${SIGNING_STATUS:-}" != developer-id-notarized ]]; then
+    echo 'Only notarized Developer ID releases can publish update feeds.' >&2
+    exit 1
+  fi
+  test "$(basename "$APPCAST_PATH")" = appcast.xml
+  python3 "$(dirname "${BASH_SOURCE[0]}")/validate-appcast.py" \
+    "$APPCAST_PATH" "$DMG_PATH" "$GH_REPO" "$TAG"
+fi
+
 NOTES="$(mktemp)"
 trap 'rm -f "$NOTES"' EXIT
 case "${SIGNING_STATUS:-ad-hoc}" in
@@ -52,7 +63,11 @@ if ! gh release view "$TAG" --json id >/dev/null 2>&1; then
     --notes-file "$NOTES" "${FLAGS[@]}"
 fi
 
-gh release upload "$TAG" "$DMG_PATH" "$CHECKSUM_PATH" --clobber
+gh release upload "$TAG" "${ASSET_PATHS[@]}" --clobber
+# Publish the feed only after its referenced installer has uploaded successfully.
+if [[ -n "${APPCAST_PATH:-}" ]]; then
+  gh release upload "$TAG" "$APPCAST_PATH" --clobber
+fi
 
 if [[ "$TAG" == nightly ]]; then
   gh api --method PATCH "repos/$GH_REPO/git/refs/tags/nightly" \

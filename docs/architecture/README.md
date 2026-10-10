@@ -23,6 +23,10 @@ to unit tests. [CONTEXT.md](../../CONTEXT.md) defines the domain vocabulary.
   across reshaped segments.
 - **Subscription:** RevenueCat, access control, and paywall code are included. SDK
   configuration is supplied locally, independently from source distribution.
+- **Application updates:** `AppUpdateManager` owns one Sparkle controller shared by
+  the app menu, status item, and settings. Distribution metadata and receipt checks
+  live in `AppUpdateConfiguration`; update preferences belong to Sparkle. Release
+  automation generates feeds from notarized DMGs. See [in-app updates](../updates.md).
 - **Platform capabilities:** `AccessibilityGate` selects capability behavior according
   to the `APP_STORE` compilation condition; see [ADR 0001](../adr/0001-accessibility-gate-for-app-store.md).
 

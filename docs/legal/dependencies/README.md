@@ -15,6 +15,7 @@ Regenerate with `python3 scripts/update-dependency-notices.py` after resolving u
 | `mlx-swift` | `0.31.3` | [LICENSE](mlx-swift/LICENSE) |
 | `mlx-swift-lm` | `3.31.3` | [LICENSE](mlx-swift-lm/LICENSE) |
 | `purchases-ios-spm` | `5.94.0` | [LICENSE](purchases-ios-spm/LICENSE) |
+| `sparkle` | `2.10.0` | [LICENSE](sparkle/LICENSE) |
 | `swift-asn1` | `1.7.3` | [LICENSE.txt](swift-asn1/LICENSE.txt), [NOTICE.txt](swift-asn1/NOTICE.txt) |
 | `swift-ass-renderer` | `1.3.1` | [LICENSE](swift-ass-renderer/LICENSE) |
 | `swift-collections` | `1.7.2` | [LICENSE.txt](swift-collections/LICENSE.txt) |

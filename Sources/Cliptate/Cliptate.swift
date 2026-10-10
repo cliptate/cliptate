@@ -80,6 +80,10 @@ struct CliptateApp: App {
         }
       }
 
+      DispatchQueue.main.async {
+        AppUpdateManager.shared.start()
+      }
+
       _ = sharedConfigurationRuntime
     }
   }
@@ -109,6 +113,11 @@ struct CliptateApp: App {
               .frame(minHeight: 500)
           }
         }
+      }
+    }
+    .commands {
+      CommandGroup(after: .appInfo) {
+        CheckForAppUpdatesButton()
       }
     }
     .defaultSize(width: 1280, height: 800)

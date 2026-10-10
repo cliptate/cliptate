@@ -8,6 +8,11 @@ APP_BUNDLE="$DERIVED_DATA_PATH/Build/Products/$CONFIGURATION/Cliptate.app"
 SIGNING_IDENTITY="${CODE_SIGN_IDENTITY:--}"
 SIGNING_TEAM="${DEVELOPMENT_TEAM:-}"
 SIGNING_FLAGS=(CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$SIGNING_TEAM")
+for setting in CLIPTATE_SPARKLE_PUBLIC_KEY CLIPTATE_UPDATE_FEED_URL CLIPTATE_UPDATES_ENABLED CURRENT_PROJECT_VERSION; do
+  if [[ -n "${!setting:-}" ]]; then
+    SIGNING_FLAGS+=("$setting=${!setting}")
+  fi
+done
 if [[ "$SIGNING_IDENTITY" != - ]]; then
   if [[ -z "$SIGNING_TEAM" ]]; then
     echo "DEVELOPMENT_TEAM is required when CODE_SIGN_IDENTITY is set." >&2
@@ -29,6 +34,9 @@ xcodebuild -quiet -project "$ROOT_DIR/Cliptate.xcodeproj" -scheme Cliptate \
   -derivedDataPath "$DERIVED_DATA_PATH" \
   -onlyUsePackageVersionsFromResolvedFile \
   "${SIGNING_FLAGS[@]}" build
+if [[ "$SIGNING_IDENTITY" != - ]]; then
+  "$ROOT_DIR/scripts/sign-sparkle.sh" "$APP_BUNDLE"
+fi
 case "$MODE" in
   build) echo "$APP_BUNDLE" ;;
   run) open "$APP_BUNDLE" ;;

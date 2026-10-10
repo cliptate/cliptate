@@ -29,7 +29,7 @@ jobs:
       commit: ${{ steps.source.outputs.commit }}
       release-tag: ${{ steps.source.outputs.release-tag }}
       dmg-name: ${{ steps.package.outputs.dmg-name }}
-      artifact-ids: ${{ steps.upload-dmg.outputs.artifact-id }},${{ steps.upload-checksum.outputs.artifact-id }}
+      artifact-ids: ${{ steps.upload-dmg.outputs.artifact-id }},${{ steps.upload-checksum.outputs.artifact-id }},${{ steps.upload-appcast.outputs.artifact-id }}
       signing-status: ${{ steps.notarize.outputs.signing-status }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -65,6 +65,28 @@ jobs:
         run: swift package resolve --force-resolved-versions
       - name: Verify dependency notices
         run: python3 scripts/update-dependency-notices.py --check
+      - name: Configure signed updates
+        env:
+          SPARKLE_PUBLIC_KEY: ${{ vars.SPARKLE_PUBLIC_KEY }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          RELEASE_TAG: ${{ steps.source.outputs.release-tag }}
+        run: |
+          python3 - <<'PY'
+          import base64, os
+          if not os.environ["SPARKLE_PRIVATE_KEY"]:
+              raise SystemExit("Configure secrets.SPARKLE_PRIVATE_KEY with the exported signing key")
+          key = os.environ["SPARKLE_PUBLIC_KEY"]
+          if len(base64.b64decode(key, validate=True)) != 32:
+              raise SystemExit("Configure vars.SPARKLE_PUBLIC_KEY with a 32-byte public Ed25519 key")
+          feed = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/"
+          feed += "download/nightly" if os.environ["RELEASE_TAG"] == "nightly" else "latest/download"
+          with open(os.environ["GITHUB_ENV"], "a") as output:
+              output.write(f"CLIPTATE_SPARKLE_PUBLIC_KEY={key}\n")
+              output.write(f"CLIPTATE_UPDATE_FEED_URL={feed}/appcast.xml\n")
+              # Monotonic across daily runs even when the marketing version is unchanged.
+              build = 1000 + int(os.environ["GITHUB_RUN_NUMBER"])
+              output.write(f"CURRENT_PROJECT_VERSION={build}.{os.environ['GITHUB_RUN_ATTEMPT']}\n")
+          PY
       - name: Build macOS application
         env:
           CODE_SIGN_IDENTITY: ${{ steps.signing.outputs.signing-identity }}
@@ -88,6 +110,21 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
         run: ./scripts/notarize-dmg.sh "$DMG_PATH"
+      - name: Generate signed appcast
+        env:
+          RELEASE_TAG: ${{ steps.source.outputs.release-tag }}
+          SIGNING_STATUS: ${{ steps.notarize.outputs.signing-status }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: ./scripts/generate-appcast.sh "${{ steps.package.outputs.dmg-path }}"
+      - name: Upload appcast
+        id: upload-appcast
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          path: dist/appcast.xml
+          archive: false
+          if-no-files-found: error
+          retention-days: 14
+          overwrite: true
       - name: Upload DMG
         id: upload-dmg
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -134,4 +171,5 @@ jobs:
           BUILT_COMMIT: ${{ needs.build.outputs.commit }}
           DMG_NAME: ${{ needs.build.outputs.dmg-name }}
           SIGNING_STATUS: ${{ needs.build.outputs.signing-status }}
+          APPCAST_PATH: dist/appcast.xml
         run: ./scripts/publish-release.sh "dist/$DMG_NAME"

@@ -65,6 +65,13 @@ struct AISettingsView: View {
           appearanceSection
           startupSection
         }
+        SettingsCard(
+          title: "Updates",
+          subtitle: "Keep Cliptate up to date.",
+          systemImage: "arrow.triangle.2.circlepath"
+        ) {
+          AppUpdateSettingsView()
+        }
         providerSection
       }
       .padding(.horizontal, 28)

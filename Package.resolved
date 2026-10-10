@@ -1,5 +1,5 @@
 {
-  "originHash" : "9247ea954565eee36cb76b51388069277c550ca3ec8b00c9d56a0401789d44b0",
+  "originHash" : "5ad7d3be06b815e8618c159355443389c082035d2876461dc332dcc336064abb",
   "pins" : [
     {
       "identity" : "audiokit",
@@ -79,6 +79,15 @@
       "state" : {
         "revision" : "1152c719f7b35f86d16a2d0053aba9d26972a962",
         "version" : "5.94.0"
+      }
+    },
+    {
+      "identity" : "sparkle",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sparkle-project/Sparkle",
+      "state" : {
+        "revision" : "eef1a539a373c1f1a320624b1130fc5de7b2e100",
+        "version" : "2.10.0"
       }
     },
     {

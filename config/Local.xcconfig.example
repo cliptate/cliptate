@@ -1,3 +1,8 @@
 // Optional public RevenueCat SDK key for your own application.
 // Never use RevenueCat secret REST API keys here.
 CLIPTATE_REVENUECAT_API_KEY =
+
+// Public Ed25519 key printed by Sparkle's generate_keys tool (never the private key).
+CLIPTATE_SPARKLE_PUBLIC_KEY =
+// Set to NO for Mac App Store distribution. APP_STORE still controls accessibility.
+// CLIPTATE_UPDATES_ENABLED = NO

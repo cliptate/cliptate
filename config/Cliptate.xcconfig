@@ -1,4 +1,9 @@
 // Source builds need no billing credentials. Override locally to use your own app.
 CLIPTATE_REVENUECAT_API_KEY =
+// Direct-download updates are independent of the APP_STORE capability flag.
+CLIPTATE_UPDATES_ENABLED = YES
+CLIPTATE_UPDATE_FEED_URL = https:/$()/github.com/cliptate/cliptate/releases/latest/download/appcast.xml
+CLIPTATE_SPARKLE_PUBLIC_KEY =
 #include? "Local.xcconfig"
-INFOPLIST_KEY_CliptateRevenueCatAPIKey = $(CLIPTATE_REVENUECAT_API_KEY)
+
+INFOPLIST_FILE = Sources/Cliptate/Info.plist
