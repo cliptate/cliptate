@@ -4,6 +4,9 @@ Work directly in this checkout unless the user requests a worktree.
 Read `docs/development.md` for build prerequisites, signing, and optional billing configuration.
 Read `CONTEXT.md` when changing domain concepts and `docs/architecture/README.md` when changing module boundaries.
 
+Use Conventional Commits for every new commit and squash-merge title; follow the
+commit-message conventions in `CONTRIBUTING.md`.
+
 ## Validation
 
 Use `swift build` and `swift test` for library changes. Use focused regression tests

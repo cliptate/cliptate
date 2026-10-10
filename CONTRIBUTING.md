@@ -11,6 +11,37 @@ Start with the [development guide](docs/development.md) and
    run `./scripts/build-and-run.sh build` using full Xcode.
 5. Open a pull request describing the user-visible result and your validation.
 
+## Commit messages
+
+Use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
+`type(scope): summary`. Gitflow describes branching and release workflows;
+this convention defines the commit messages used alongside them.
+
+- Use a lowercase type: `feat`, `fix`, `docs`, `refactor`, `perf`, `test`,
+  `build`, `ci`, `style`, `chore`, or `revert`.
+- Use a short lowercase scope naming the affected area, such as `cli`, `runtime`,
+  `models`, or `release`. Omit it for changes that span the repository.
+- Write the summary in English, starting with a lowercase imperative verb,
+  without a trailing period. Aim for a subject of 72 characters or fewer.
+- Add a body when the reason, compatibility impact, or validation needs explanation.
+  Separate the body and footers from the subject with blank lines.
+- Mark breaking changes with `!` before the colon and explain the impact and
+  migration in a `BREAKING CHANGE:` footer.
+- Apply the same format to the final squash-merge title. For release preparation,
+  use `chore(release): prepare vX.Y.Z`; choose `ci(release)` for release automation.
+
+Examples:
+
+```text
+feat(cli): add batch transcription
+fix(runtime): avoid blocking login item queries
+ci(release): require detailed version release notes
+docs(release): document v1.0 changes
+chore(release): prepare v1.1.0
+```
+
+## Code and resources
+
 Application code belongs in `Sources/Cliptate`, unit tests in `Tests/CliptateTests`,
 and UI tests in `Tests/CliptateUITests`. SwiftPM discovers unit tests automatically.
 Keep scripts independent of the current working directory and machine-specific paths.
