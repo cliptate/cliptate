@@ -61,7 +61,7 @@ swift test
 Source code is in `Sources/Cliptate`, tests in `Tests`, the Xcode project at the
 repository root, and tooling in `scripts`. See [development](docs/development.md),
 [architecture](docs/architecture/README.md), [contributing](CONTRIBUTING.md),
-[third-party notices](THIRD_PARTY_NOTICES.md), and the [migration record](docs/migration.md).
+and [third-party notices](THIRD_PARTY_NOTICES.md).
 App Store source builds use optional local billing configuration; model weights are downloaded separately.
 
 

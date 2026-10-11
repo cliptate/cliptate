@@ -1,8 +1,7 @@
 # Previously unselected tests
 
-These 12 Swift files were present in WhisperCutPro but omitted from its explicit
-SwiftPM `sources:` list. They remain available here, outside the active package and
-Xcode unit-test target, so the migration preserves the original active test suite.
+These 12 Swift files are archived outside the active SwiftPM package and Xcode
+unit-test target.
 Some use retired test hooks, old model catalog expectations, or pre-Swift-6 isolation
 assumptions (the Paywall view test fails strict concurrency compilation).
 

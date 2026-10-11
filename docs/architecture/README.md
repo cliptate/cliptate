@@ -52,7 +52,6 @@ to unit tests. [CONTEXT.md](../../CONTEXT.md) defines the domain vocabulary.
 
 - [Development and build instructions](../development.md)
 - [Release vocabulary](../../GLOSSARY.md)
-- [Migration record](../migration.md)
 - [Historical architecture investigations](archive/ARCHITECTURE_INDEX.md)
 - Existing design records under `docs/plans/` and `docs/superpowers/`
 

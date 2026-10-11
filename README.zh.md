@@ -54,8 +54,8 @@ swift test
 
 应用源码位于 `Sources/Cliptate`，测试位于 `Tests`，Xcode 工程位于仓库根目录，
 工具脚本位于 `scripts`。参见[开发指南](docs/development.md)、
-[架构说明](docs/architecture/README.md)、[贡献指南](CONTRIBUTING.md)、
-[第三方许可](THIRD_PARTY_NOTICES.md)和[迁移记录](docs/migration.md)。
+[架构说明](docs/architecture/README.md)、[贡献指南](CONTRIBUTING.md)和
+[第三方许可](THIRD_PARTY_NOTICES.md)。
 源码构建可选择配置自己的订阅服务；模型权重单独下载，遵循各自许可证。
 
 

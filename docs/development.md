@@ -296,5 +296,4 @@ docs/                    development, architecture, ADRs, plans, and release not
 .agents/skills/          repository-local agent skills and supporting references
 ```
 
-The app remains a single module: this migration preserves its existing Models,
-Services, Views, and Utilities boundaries instead of changing runtime ownership.
+The app uses a single module with Models, Services, Views, and Utilities boundaries.

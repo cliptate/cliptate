@@ -37,7 +37,3 @@ Preserve production bundle identifiers unless the task explicitly changes distri
 - For issue work, read `docs/agents/issue-tracker.md`; issues belong to `cliptate/cliptate`.
 - For triage, read `docs/agents/triage-labels.md`.
 - For existing product requirements, read `docs/agents/legacy-requirements.md`.
-- For migration decisions and prior paths, read `docs/migration.md`.
-
-The 2026-10-10 migration request is to publish the whole application in Cliptate,
-use a standard Swift repository layout, and keep original behavior and the source checkout.
