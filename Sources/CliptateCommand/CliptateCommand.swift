@@ -122,6 +122,11 @@ struct CliptateCommand {
   }
 
   @MainActor private static func execute(_ request: CLIRequest) async throws -> CLIEvent {
+    try await CLIRequestClient(launch: { try await launchApplication(for: $0) })
+      .execute(request, progress: { stderr($0) })
+  }
+
+  @MainActor private static func launchApplication(for endpoint: CLIEndpoint) async throws {
     guard let app = applicationURL() else {
       throw CLIError(
         String(
@@ -129,7 +134,6 @@ struct CliptateCommand {
             "Cliptate was not found. Install the direct-download app or set CLIPTATE_APP to its path.",
           bundle: CLILocalization.bundle))
     }
-    let endpoint = CLIEndpoint()
     let configuration = NSWorkspace.OpenConfiguration()
     configuration.activates = false
     // Respect an explicitly selected development bundle instead of an older installation.
@@ -145,53 +149,6 @@ struct CliptateCommand {
     configuration.arguments = ["--cliptate-cli"]
     try await NSWorkspace.shared.open(
       [endpoint.url], withApplicationAt: app, configuration: configuration)
-    let deadline = ContinuousClock.now + .seconds(30)
-    var channel: CLIChannel?
-    while ContinuousClock.now < deadline {
-      try Task.checkCancellation()
-      let candidate = CLIChannel()
-      do {
-        // A deadline also bounds a port occupied by a process that never responds.
-        let timeout = Task {
-          try? await Task.sleep(for: .seconds(2))
-          if !Task.isCancelled { candidate.cancel() }
-        }
-        defer { timeout.cancel() }
-        try await candidate.start()
-        try await candidate.send(CLIEvent(.hello, token: endpoint.id))
-        let hello = try await candidate.receive(CLIEvent.self)
-        guard hello.kind == .hello, hello.token == endpoint.proof(for: "server") else {
-          throw CLIChannel.protocolError()
-        }
-        channel = candidate
-        break
-      } catch {
-        candidate.cancel()
-        try Task.checkCancellation()
-        try await Task.sleep(for: .milliseconds(150))
-      }
-    }
-    guard let channel else {
-      throw CLIError(
-        String(
-          localized:
-            "Could not connect to Cliptate within 30 seconds. Check that it is a direct-download build and the CLI port is available.",
-          bundle: CLILocalization.bundle))
-    }
-    defer { channel.cancel() }
-    var authorized = request
-    authorized.authorization = endpoint.proof(for: "client")
-    try await channel.send(authorized)
-    while true {
-      let event = try await channel.receive(CLIEvent.self)
-      switch event.kind {
-      case .progress: if let message = event.message { stderr(message) }
-      case .result: return event
-      case .failure:
-        throw CLIError(event.message ?? CLIChannel.protocolError().localizedDescription)
-      case .hello: throw CLIChannel.protocolError()
-      }
-    }
   }
 
   @MainActor private static func applicationURL() -> URL? {

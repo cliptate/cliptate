@@ -1,8 +1,14 @@
-# Cliptate release language
+# Cliptate language
 
-Release terms complement the application vocabulary in `CONTEXT.md`.
+These terms complement the application vocabulary in `CONTEXT.md`.
 
 ## Language
+
+**CLI request session**:
+One authenticated exchange between the Cliptate command and the selected application,
+ending in a result, failure, or cancellation. Its progress and terminal outcome
+belong to that exchange.
+_Avoid_: CLI connection, command job
 
 **Release channel**:
 The choice between Cliptate's rolling Nightly prerelease and a stable version release. This is distinct from App Store versus direct-download distribution.

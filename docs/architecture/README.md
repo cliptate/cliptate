@@ -13,11 +13,17 @@ to unit tests. [CONTEXT.md](../../CONTEXT.md) defines the domain vocabulary.
 - **Configuration:** `AppConfiguration` owns settings. `ConfigurationRuntime` orders
   restoration, presets, persistence, and warmup.
 - **Command line:** `CliptateCommand` owns parsing, terminal output, and file writes;
-  the lightweight `CliptateCLIKit` target shares the wire protocol and formatters.
-  `CLIApplicationServer` authenticates local requests, while `CLIRequestHandler`
+  the lightweight `CliptateCLIKit` target owns the CLI request session through
+  `CLIRequestClient` and `CLIRequestServer`, alongside the wire protocol and formatters.
+  The client owns authenticated startup retries; the server owns one-use credentials,
+  transcription admission, ordered progress and terminal events, and disconnect cleanup.
+  Application launch and the framed `CLIChannel` transport are adapters at internal seams.
+  `CLIApplicationServer` owns the direct-build listener, while `CLIRequestHandler`
   uses the existing configuration and batch runtime. Dictionary mutations flush
-  through `ConfigurationRuntime` before success. Only direct builds embed the
-  helper and activate the listener. See [CLI documentation](../cli.md).
+  through `ConfigurationRuntime` before success. Transcription admission stays occupied
+  until cancelled work exits; dictionary requests remain available during transcription.
+  Callers and real-loopback tests cross the same request interfaces. Only direct
+  builds embed the helper and activate the listener. See [CLI documentation](../cli.md).
 - **Inference:** `ModelRuntime` coordinates sessions. `ModelDownloadManager` handles
   disk artifacts; `ModelCacheManager` handles loaded models, leases, and eviction.
   Active workflows use the cache manager rather than legacy `TranscriberPool`.

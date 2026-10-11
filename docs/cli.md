@@ -90,8 +90,10 @@ the connection, cancels the active app request cooperatively, and stops later
 inputs. Already emitted text and saved files remain available.
 
 Exit status: `0` success; `1` execution/file failure; `2` invalid arguments;
-`130` interrupted. CLI startup is limited to 30 seconds; transcription has no
-fixed timeout.
+`130` interrupted. After application launch, connection retries have a 30-second
+window; an in-flight handshake is limited to two seconds. Transcription has no
+fixed timeout. Requests are not retried after authentication, because a lost
+response does not imply that a dictionary mutation failed to commit.
 
 ## Manage the existing dictionary
 
@@ -118,8 +120,10 @@ The direct app listens only on `127.0.0.1`, on port `49152 + uid % 16000`. The C
 opens a launch URL in the selected app to register a one-use, 60-second credential.
 Both peers authenticate using separate HMAC-SHA256 proofs before exchanging a
 length-prefixed JSON request. Unauthenticated connections expire after five
-seconds; frames are limited to 16 MiB. No filesystem paths or dictionary contents
-are placed in the launch URL. File access is passed using an implicit bookmark;
+seconds; frames are limited to 16 MiB. Progress is sent before the terminal result
+or failure, and callbacks after completion are ignored. A cancelled transcription
+keeps its admission slot until its work exits. No filesystem paths or dictionary
+contents are placed in the launch URL. File access is passed using an implicit bookmark;
 the CLI itself reads dictionary imports and writes output files.
 
 GitHub/direct builds run without App Sandbox, as explicitly selected by

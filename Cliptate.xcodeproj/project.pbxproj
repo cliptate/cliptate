@@ -25,6 +25,7 @@
 		C11C00000000000000000015 = {isa = PBXBuildFile; fileRef = C11C0000000000000000000B; };
 		C11C00000000000000000016 = {isa = PBXBuildFile; fileRef = C11C0000000000000000000C; };
 		C11C00000000000000000017 = {isa = PBXBuildFile; fileRef = C11C0000000000000000000D; };
+		C11C00000000000000000022 = {isa = PBXBuildFile; fileRef = C11C00000000000000000021; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +57,7 @@
 		C11C0000000000000000000C = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/Cliptate/CLIShared/CLIChannel.swift; sourceTree = SOURCE_ROOT; };
 		C11C0000000000000000000D = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/CliptateCommand/CliptateCommand.swift; sourceTree = SOURCE_ROOT; };
 		C11C00000000000000000002 /* cliptate */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cliptate; sourceTree = BUILT_PRODUCTS_DIR; };
+		C11C00000000000000000021 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/Cliptate/CLIShared/CLIRequestSession.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -157,7 +159,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		C11C00000000000000000003 /* CLI command */ = {isa = PBXGroup; children = (C11C0000000000000000000A, C11C0000000000000000000B, C11C0000000000000000000C, C11C0000000000000000000D, ); name = "CLI command"; sourceTree = "<group>"; };
+		C11C00000000000000000003 /* CLI command */ = {isa = PBXGroup; children = (C11C00000000000000000021, C11C0000000000000000000A, C11C0000000000000000000B, C11C0000000000000000000C, C11C0000000000000000000D, ); name = "CLI command"; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -354,7 +356,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C11C00000000000000000004 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (C11C00000000000000000014, C11C00000000000000000015, C11C00000000000000000016, C11C00000000000000000017, ); runOnlyForDeploymentPostprocessing = 0; };
+		C11C00000000000000000004 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (C11C00000000000000000022, C11C00000000000000000014, C11C00000000000000000015, C11C00000000000000000016, C11C00000000000000000017, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
