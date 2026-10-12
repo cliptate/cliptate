@@ -19,12 +19,24 @@ jobs:
         with:
           persist-credentials: false
       - name: Inspect toolchain
+        id: toolchain
         run: |
           test "$(uname -m)" = arm64
           xcodebuild -version
           swift --version
+          fingerprint="$( { sw_vers -buildVersion; xcodebuild -version; swift --version; } | shasum -a 256 | cut -d ' ' -f 1)"
+          echo "cache-key=$fingerprint" >> "$GITHUB_OUTPUT"
       - name: Verify release automation
         run: python3 -m unittest discover -s Tests/Automation -v
+      - name: Cache SwiftPM build and dependencies
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          # This job only writes SwiftPM products to .build; never share it with signed packaging.
+          path: .build
+          key: swiftpm-test-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.cache-key }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-${{ github.sha }}
+          # Reuse the latest build with the same toolchain and locked dependency graph.
+          restore-keys: |
+            swiftpm-test-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.cache-key }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-
       - name: Resolve locked Swift packages
         run: swift package resolve --force-resolved-versions
       - name: Build library

@@ -84,6 +84,22 @@ builds the SwiftPM library, verifies license notices, and runs unit tests on eve
 push (all branches and tags) and pull request. It also supports manual runs.
 New pushes do not cancel tests for earlier commits.
 
+Both macOS workflows use GitHub Actions caches isolated by OS, CPU architecture,
+the macOS build, Xcode/Swift versions, and dependency inputs. Test runs cache the
+SwiftPM `.build` directory per commit and can restore the latest build with the
+same manifest and lockfile. Unchanged dependency products can be reused; fresh
+checkout timestamps may still cause project sources to recompile. Locked resolution,
+library builds, and all tests still run on cache hits.
+
+Packaging caches only SwiftPM downloads/state and Xcode's `SourcePackages`, keyed
+by both lockfiles, the manifest, and the Xcode project. It builds and signs the app
+on every run. Signing credentials, update configuration, app bundles, and installers
+are outside the cached paths. Test and release caches use separate keys and paths.
+The first run for new dependency inputs or a changed toolchain populates the cache;
+later runs benefit from it. Compare the cache restore/save, resolution, and build
+step durations in Actions to measure the net improvement. Increment the `v1` cache
+prefix in the relevant workflow to discard old entries if needed.
+
 The independent **Package and release** workflow (`.github/workflows/package.yml`)
 builds the macOS application in Release configuration and verifies a compressed
 DMG. It runs manually, daily at **03:17 Beijing time** (19:17 UTC on the previous

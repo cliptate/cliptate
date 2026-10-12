@@ -50,10 +50,24 @@ jobs:
           RELEASE_TAG: ${{ steps.source.outputs.release-tag }}
         run: python3 scripts/release-notes.py "$RELEASE_TAG" --check
       - name: Inspect toolchain
+        id: toolchain
         run: |
           test "$(uname -m)" = arm64
           xcodebuild -version
           swift --version
+          fingerprint="$( { sw_vers -buildVersion; xcodebuild -version; swift --version; } | shasum -a 256 | cut -d ' ' -f 1)"
+          echo "cache-key=$fingerprint" >> "$GITHUB_OUTPUT"
+      - name: Cache release dependencies
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          # Cache dependency downloads only, excluding app products and signing/update configuration.
+          path: |
+            .build/artifacts
+            .build/checkouts
+            .build/repositories
+            .build/workspace-state.json
+            .build/xcode/SourcePackages
+          key: packages-release-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.cache-key }}-${{ hashFiles('Package.swift', 'Package.resolved', 'Cliptate.xcodeproj/project.pbxproj', 'Cliptate.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
       - name: Install Developer ID certificate
         id: signing
         env:
