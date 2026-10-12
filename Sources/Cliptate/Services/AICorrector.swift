@@ -288,7 +288,8 @@ actor AICorrector {
         prompt: prompt,
         apiKey: apiKey,
         authType: .bearer,
-        systemPrompt: resolvedSystemPrompt
+        systemPrompt: resolvedSystemPrompt,
+        includeGenerationParameters: false
       )
     case .gemini:
       response = try await sendGeminiRequest(
@@ -359,7 +360,8 @@ actor AICorrector {
         prompt: prompt,
         apiKey: apiKey,
         authType: .bearer,
-        systemPrompt: systemPrompt
+        systemPrompt: systemPrompt,
+        includeGenerationParameters: false
       )
     case .gemini:
       response = try await sendGeminiRequest(
@@ -406,7 +408,8 @@ actor AICorrector {
     prompt: String,
     apiKey: String,
     authType: AuthType,
-    systemPrompt: String = fallbackCorrectionSystemPrompt
+    systemPrompt: String = fallbackCorrectionSystemPrompt,
+    includeGenerationParameters: Bool = true
   ) async throws -> String {
     let requestURL = URL(string: url)!
     var request = URLRequest(url: requestURL)
@@ -420,15 +423,18 @@ actor AICorrector {
       request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
     }
 
-    let requestBody: [String: Any] = [
+    var requestBody: [String: Any] = [
       "model": model,
       "messages": [
         ["role": "system", "content": systemPrompt],
         ["role": "user", "content": prompt],
       ],
-      "temperature": 0.3,
-      "max_tokens": 4000,
     ]
+
+    if includeGenerationParameters {
+      requestBody["temperature"] = 0.3
+      requestBody["max_tokens"] = 4000
+    }
 
     request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
 
@@ -1110,7 +1116,8 @@ extension AICorrector {
         prompt: prompt,
         apiKey: apiKey,
         authType: .bearer,
-        systemPrompt: systemPrompt
+        systemPrompt: systemPrompt,
+        includeGenerationParameters: false
       )
     case .gemini:
       response = try await sendGeminiRequest(
