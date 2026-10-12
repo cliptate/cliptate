@@ -5,14 +5,20 @@ struct AICutLauncherView: View {
   @EnvironmentObject private var config: AppConfiguration
 
   var body: some View {
-    AICutLandingView(
-      onImportURLs: { urls in
-        AICutDetachedSessionWindowManager.shared.openSession(urls: urls, config: config)
-      },
-      onTap: {
-        presentVideoPicker()
-      }
-    )
+    ScrollView {
+      AICutLandingView(
+        onImportURLs: { urls in
+          AICutDetachedSessionWindowManager.shared.openSession(urls: urls, config: config)
+        },
+        onTap: {
+          presentVideoPicker()
+        }
+      )
+    }
+    .defaultScrollAnchor(.center, for: .alignment)
+    .appPageHeader {
+      AppPageHeader(.aiCut)
+    }
   }
 
   @MainActor

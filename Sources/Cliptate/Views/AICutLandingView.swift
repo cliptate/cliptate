@@ -52,6 +52,6 @@ struct AICutLandingView: View {
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .padding(32)
-    .background(.regularMaterial)
+    .background(AppSurface.pageBackground)
   }
 }

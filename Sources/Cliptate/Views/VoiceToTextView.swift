@@ -191,7 +191,12 @@ struct VoiceToTextView: View {
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
-    .background(Color(nsColor: .windowBackgroundColor))
+    .background(AppSurface.pageBackground)
+    .appPageHeader {
+      AppPageHeader {
+        header
+      }
+    }
     .task { await transcriber.refreshMicrophoneStatus() }
     .onAppear {
       refreshSelectedModelStatus()
@@ -297,8 +302,6 @@ struct VoiceToTextView: View {
 
   private var mainPanelContent: some View {
     VStack(alignment: .leading, spacing: 0) {
-      header
-        .padding(.bottom, 16)
       VStack(alignment: .leading, spacing: 20) {
         controls
       }
@@ -309,7 +312,8 @@ struct VoiceToTextView: View {
     HStack(alignment: .center, spacing: 12) {
       VStack(alignment: .leading, spacing: 2) {
         Text("Voice To Text")
-          .font(.system(.title3, design: .rounded).weight(.semibold))
+          .font(.title2.weight(.semibold))
+          .accessibilityAddTraits(.isHeader)
         Text("Dictate and transcribe audio in real time")
           .font(.caption)
           .foregroundStyle(.secondary)

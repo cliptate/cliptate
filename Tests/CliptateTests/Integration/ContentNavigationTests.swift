@@ -6,6 +6,22 @@ import Testing
 
 @Suite("Content navigation")
 struct ContentNavigationTests {
+  @Test("sidebar groups keep creation, library, and app destinations together")
+  func sidebarGroups() {
+    #expect(AppSidebarGroup.create.sections(requiresGettingStarted: false) == [.aiCut, .voiceToText, .ttsStudio])
+    #expect(AppSidebarGroup.library.sections(requiresGettingStarted: false) == [.history, .models, .dictionary])
+    #expect(AppSidebarGroup.app.sections(requiresGettingStarted: false) == [.pro, .setting])
+    #expect(AppSidebarGroup.app.sections(requiresGettingStarted: true) == [.permissions, .pro, .setting])
+  }
+
+  @Test("grouped sidebar includes every available destination exactly once", arguments: [false, true])
+  func sidebarDestinationCoverage(requiresGettingStarted: Bool) {
+    let sections = visibleAppSections(requiresGettingStarted: requiresGettingStarted)
+    let expected = AppSection.allCases.filter { requiresGettingStarted || $0 != .permissions }
+    #expect(Set(sections) == Set(expected))
+    #expect(sections.count == Set(sections).count)
+  }
+
   @Test("getting started section label and description are exposed")
   func gettingStartedSectionMetadata() {
     #expect(AppSection.permissions.label == LocalizedStringKey("Getting Started"))

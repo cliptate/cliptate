@@ -267,126 +267,126 @@ struct ModelsView: View {
           .padding(.vertical, 16)
         }
       }
-      .background(Color(NSColor.controlBackgroundColor))
     }
+    .background(AppSurface.pageBackground)
   }
 
   // MARK: - Dashboard Header
 
   private var dashboardHeader: some View {
     VStack(alignment: .leading, spacing: 0) {
-      HStack(spacing: 16) {
-        // Title block
-        VStack(alignment: .leading, spacing: 3) {
-          HStack(spacing: 8) {
-            Image(systemName: "square.stack.3d.down.right.fill")
-              .font(.system(size: 17, weight: .semibold))
-              .foregroundStyle(Color.accentColor)
-            Text("Models Library")
-              .font(.system(size: 20, weight: .bold))
-          }
-          Text("Manage local AI models, download status and active selections")
-            .font(.system(size: 12))
-            .foregroundStyle(.secondary)
-        }
-
-        Spacer()
-
-        // Stat pills
-        HStack(spacing: 10) {
-          let stats = summaryStats ?? (0, 0)
-          ModelsStatPill(
-            icon: "checkmark.circle.fill",
-            value: "\(stats.downloadedCount)",
-            label: String(localized: "Downloaded"),
-            color: .green
-          )
-          ModelsStatPill(
-            icon: "externaldrive.fill",
-            value: "\(stats.totalDiskUsage) MB",
-            label: String(localized: "Disk Usage"),
-            color: Color.accentColor
-          )
-          ModelsStatPill(
-            icon: "memorychip.fill",
-            value: "\(config.modelLifecycleTotalMemoryMB) MB",
-            label: String(localized: "Cache Memory"),
-            color: Color.accentColor
-          )
-        }
-
-        // Action buttons
-        HStack(spacing: 8) {
-          Button(action: { Task { await refreshStatuses(force: true) } }) {
-            Label("Refresh", systemImage: "arrow.clockwise")
-              .font(.system(size: 12, weight: .semibold))
-          }
-          .buttonStyle(.bordered)
-          .controlSize(.small)
-          .disabled(isRefreshing)
-          .accessibilityLabel("Refresh model statuses")
-
-          Button {
-            showHeaderToolsPopover.toggle()
-          } label: {
-            Image(systemName: "ellipsis.circle")
-              .font(.system(size: 14, weight: .medium))
-          }
-          .buttonStyle(.bordered)
-          .controlSize(.small)
-          .popover(isPresented: $showHeaderToolsPopover, arrowEdge: .top) {
-            VStack(alignment: .leading, spacing: 14) {
-              HStack(spacing: 8) {
-                Button(action: preloadSelectedAlignModel) {
-                  if isPreloadingAlignModel {
-                    Label("Preloading Align...", systemImage: "hourglass")
-                  } else {
-                    Label("Preload Align", systemImage: "text.alignleft")
-                  }
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .disabled(isPreloadingAlignModel || config.alignModelVariant == nil)
-
-                Button(action: preloadSelectedTTSModel) {
-                  if isPreloadingTTSModel {
-                    Label("Preloading TTS...", systemImage: "hourglass")
-                  } else {
-                    Label("Preload TTS", systemImage: "waveform.badge.mic")
-                  }
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .disabled(isPreloadingTTSModel)
-              }
-
-              Button(role: .destructive) {
-                showClearCacheConfirmation = true
-                showHeaderToolsPopover = false
-              } label: {
-                if isClearingModelCache {
-                  Label("Clearing...", systemImage: "trash")
-                } else {
-                  Label("Clear Cache", systemImage: "trash")
-                }
-              }
-              .buttonStyle(.bordered)
-              .controlSize(.small)
-              .disabled(isClearingModelCache)
-
-              Divider()
-              cacheStatusOverview
-              Divider()
-              asrIdleTimeoutControl
+      AppPageHeader {
+        HStack(spacing: 16) {
+          // Title block
+          VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 8) {
+              Image(systemName: "square.stack.3d.down.right.fill")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(Color.accentColor)
+              Text("Models Library")
+                .font(.title2.weight(.semibold))
+                .accessibilityAddTraits(.isHeader)
             }
-            .padding(16)
-            .frame(width: 360)
+            Text("Manage local AI models, download status and active selections")
+              .font(.system(size: 12))
+              .foregroundStyle(.secondary)
+          }
+
+          Spacer()
+
+          // Stat pills
+          HStack(spacing: 10) {
+            let stats = summaryStats ?? (0, 0)
+            ModelsStatPill(
+              icon: "checkmark.circle.fill",
+              value: "\(stats.downloadedCount)",
+              label: String(localized: "Downloaded"),
+              color: .green
+            )
+            ModelsStatPill(
+              icon: "externaldrive.fill",
+              value: "\(stats.totalDiskUsage) MB",
+              label: String(localized: "Disk Usage"),
+              color: Color.accentColor
+            )
+            ModelsStatPill(
+              icon: "memorychip.fill",
+              value: "\(config.modelLifecycleTotalMemoryMB) MB",
+              label: String(localized: "Cache Memory"),
+              color: Color.accentColor
+            )
+          }
+
+          // Action buttons
+          HStack(spacing: 8) {
+            Button(action: { Task { await refreshStatuses(force: true) } }) {
+              Label("Refresh", systemImage: "arrow.clockwise")
+                .font(.system(size: 12, weight: .semibold))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .disabled(isRefreshing)
+            .accessibilityLabel("Refresh model statuses")
+
+            Button {
+              showHeaderToolsPopover.toggle()
+            } label: {
+              Image(systemName: "ellipsis.circle")
+                .font(.system(size: 14, weight: .medium))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .popover(isPresented: $showHeaderToolsPopover, arrowEdge: .top) {
+              VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 8) {
+                  Button(action: preloadSelectedAlignModel) {
+                    if isPreloadingAlignModel {
+                      Label("Preloading Align...", systemImage: "hourglass")
+                    } else {
+                      Label("Preload Align", systemImage: "text.alignleft")
+                    }
+                  }
+                  .buttonStyle(.bordered)
+                  .controlSize(.small)
+                  .disabled(isPreloadingAlignModel || config.alignModelVariant == nil)
+
+                  Button(action: preloadSelectedTTSModel) {
+                    if isPreloadingTTSModel {
+                      Label("Preloading TTS...", systemImage: "hourglass")
+                    } else {
+                      Label("Preload TTS", systemImage: "waveform.badge.mic")
+                    }
+                  }
+                  .buttonStyle(.bordered)
+                  .controlSize(.small)
+                  .disabled(isPreloadingTTSModel)
+                }
+
+                Button(role: .destructive) {
+                  showClearCacheConfirmation = true
+                  showHeaderToolsPopover = false
+                } label: {
+                  if isClearingModelCache {
+                    Label("Clearing...", systemImage: "trash")
+                  } else {
+                    Label("Clear Cache", systemImage: "trash")
+                  }
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(isClearingModelCache)
+
+                Divider()
+                cacheStatusOverview
+                Divider()
+                asrIdleTimeoutControl
+              }
+              .padding(16)
+              .frame(width: 360)
+            }
           }
         }
       }
-      .padding(.horizontal, 24)
-      .padding(.top, 18)
-      .padding(.bottom, 14)
 
       // Error strip
       if let cacheErrorStatus = cacheErrorStatuses.first,
@@ -414,8 +414,6 @@ struct ModelsView: View {
         .padding(.horizontal, 24)
         .padding(.bottom, 10)
       }
-
-      Divider()
     }
   }
 
@@ -490,7 +488,7 @@ struct ModelsView: View {
     }
     .padding(.horizontal, 24)
     .padding(.vertical, 10)
-    .background(Color(NSColor.windowBackgroundColor).opacity(0.95))
+    .background(AppSurface.pageBackground)
     .overlay(alignment: .bottom) {
       Divider()
     }
@@ -1152,7 +1150,7 @@ struct ModelsView: View {
     VStack(alignment: .leading, spacing: 12) {
       // Qwen3 TTS section
       if showQwen3Section {
-        
+
         VStack(alignment: .leading, spacing: 8) {
           HStack(spacing: 10) {
             Image(systemName: "sparkles")
@@ -1167,7 +1165,7 @@ struct ModelsView: View {
             }
             Spacer()
           }
-          
+
           let models = filteredMLXModels
           if models.isEmpty {
             emptyState
@@ -1247,7 +1245,7 @@ struct ModelsView: View {
 
 
 
-  
+
 
   private func startMLXDownload(_ definition: MLXTTSModelDefinition) {
     let model = definition.modelVariant
@@ -1324,7 +1322,7 @@ struct ModelsView: View {
       }
     }
   }
-  
+
   private func openMLXModelFolder(_ definition: MLXTTSModelDefinition) {
     Task {
       let cacheDir = await ModelDownloadManager.shared.getModelDirectory(for: definition.modelVariant)
@@ -1936,11 +1934,11 @@ extension ModelsView {
     TTSProvider(rawValue: ttsProviderStorage) ?? .all
   }
 
-  
+
   private var showQwen3Section: Bool {
     selectedTTSProvider == .all || selectedTTSProvider == .qwen3
   }
-  
+
   private var filteredMLXModels: [MLXTTSModelDefinition] {
     Self.filteredTTSModels(
       from: MLXTTSModelDefinition.availableModels,
@@ -2259,8 +2257,8 @@ private struct CompactModelRowView: View {
     .background(
       RoundedRectangle(cornerRadius: 16, style: .continuous)
         .fill(isHovering
-          ? Color(NSColor.windowBackgroundColor).opacity(0.95)
-          : Color(NSColor.windowBackgroundColor))
+          ? AppSurface.cardBackground.opacity(0.95)
+          : AppSurface.cardBackground)
     )
     .overlay(
       RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -2430,8 +2428,8 @@ private struct CompactMLXTTSRowView: View {
     .background(
       RoundedRectangle(cornerRadius: 16, style: .continuous)
         .fill(isHovering
-          ? Color(NSColor.windowBackgroundColor).opacity(0.95)
-          : Color(NSColor.windowBackgroundColor))
+          ? AppSurface.cardBackground.opacity(0.95)
+          : AppSurface.cardBackground)
     )
     .overlay(
       RoundedRectangle(cornerRadius: 16, style: .continuous)

@@ -100,7 +100,12 @@ struct HistoryView: View {
         compactLayout
       }
     }
-    .background(Color(NSColor.windowBackgroundColor))
+    .background(AppSurface.pageBackground, ignoresSafeAreaEdges: [])
+    .appPageHeader {
+      AppPageHeader {
+        pageHeader
+      }
+    }
     .confirmationDialog(
       String(localized: "Delete this record?", comment: "History: delete confirmation title"),
       isPresented: $showingDeleteConfirmation,
@@ -172,73 +177,75 @@ struct HistoryView: View {
     }
   }
 
+  private var pageHeader: some View {
+    HStack(alignment: .center, spacing: 0) {
+      VStack(alignment: .leading, spacing: 2) {
+        Text("History")
+          .font(.title2.weight(.semibold))
+          .accessibilityAddTraits(.isHeader)
+        Text(
+          historyRuntime.allSortedSessions.count == 1
+            ? String(localized: "1 record", comment: "History: single record count")
+            : String(localized: "\(historyRuntime.allSortedSessions.count) records", comment: "History: record count")
+        )
+        .font(.caption)
+        .foregroundStyle(.secondary)
+      }
+      Spacer()
+      if !historyRuntime.allSortedSessions.isEmpty {
+        Menu {
+          Button(role: .destructive) {
+            historyRuntime.removeAll(source: .voiceDictation)
+            pruneSelectedIfNeeded()
+          } label: {
+            Label("Clear Dictation History", systemImage: "mic.slash")
+          }
+          Button(role: .destructive) {
+            historyRuntime.removeAll(source: .fileTranscription)
+            pruneSelectedIfNeeded()
+          } label: {
+            Label("Clear File Transcription History", systemImage: "trash")
+          }
+          Button(role: .destructive) {
+            historyRuntime.removeAll(source: .ttsSynthesis)
+            pruneSelectedIfNeeded()
+          } label: {
+            Label("Clear Text To Sound History", systemImage: "waveform.slash")
+          }
+          Divider()
+          Button(role: .destructive) {
+            historyRuntime.removeAll()
+            selectedSessionID = nil
+          } label: {
+            Label("Clear All History", systemImage: "trash")
+          }
+          if config.aiEnabled {
+            Divider()
+            Button {
+              analyzeForDictionary()
+            } label: {
+              if isDictionaryAnalyzing {
+                Label("Analyzing…", systemImage: "sparkles")
+              } else {
+                Label("Analyze for Dictionary", systemImage: "text.badge.plus")
+              }
+            }
+            .disabled(filteredSessions.isEmpty || isDictionaryAnalyzing)
+          }
+        } label: {
+          Image(systemName: "ellipsis.circle")
+            .font(.body)
+            .foregroundStyle(.secondary)
+        }
+        .menuStyle(.borderlessButton)
+        .fixedSize()
+        .help(String(localized: "Manage history", comment: "History: manage button tooltip"))
+      }
+    }
+  }
+
   private var listHeader: some View {
     VStack(alignment: .leading, spacing: 12) {
-      // Title row
-      HStack(alignment: .center, spacing: 0) {
-        VStack(alignment: .leading, spacing: 2) {
-          Text("History")
-            .font(.title2.weight(.bold))
-          Text(
-            historyRuntime.allSortedSessions.count == 1
-              ? String(localized: "1 record", comment: "History: single record count")
-              : String(localized: "\(historyRuntime.allSortedSessions.count) records", comment: "History: record count")
-          )
-          .font(.caption)
-          .foregroundStyle(.secondary)
-        }
-        Spacer()
-        if !historyRuntime.allSortedSessions.isEmpty {
-          Menu {
-            Button(role: .destructive) {
-              historyRuntime.removeAll(source: .voiceDictation)
-              pruneSelectedIfNeeded()
-            } label: {
-              Label("Clear Dictation History", systemImage: "mic.slash")
-            }
-            Button(role: .destructive) {
-              historyRuntime.removeAll(source: .fileTranscription)
-              pruneSelectedIfNeeded()
-            } label: {
-              Label("Clear File Transcription History", systemImage: "trash")
-            }
-            Button(role: .destructive) {
-              historyRuntime.removeAll(source: .ttsSynthesis)
-              pruneSelectedIfNeeded()
-            } label: {
-              Label("Clear Text To Sound History", systemImage: "waveform.slash")
-            }
-            Divider()
-            Button(role: .destructive) {
-              historyRuntime.removeAll()
-              selectedSessionID = nil
-            } label: {
-              Label("Clear All History", systemImage: "trash")
-            }
-            if config.aiEnabled {
-              Divider()
-              Button {
-                analyzeForDictionary()
-              } label: {
-                if isDictionaryAnalyzing {
-                  Label("Analyzing…", systemImage: "sparkles")
-                } else {
-                  Label("Analyze for Dictionary", systemImage: "text.badge.plus")
-                }
-              }
-              .disabled(filteredSessions.isEmpty || isDictionaryAnalyzing)
-            }
-          } label: {
-            Image(systemName: "ellipsis.circle")
-              .font(.body)
-              .foregroundStyle(.secondary)
-          }
-          .menuStyle(.borderlessButton)
-          .fixedSize()
-          .help(String(localized: "Manage history", comment: "History: manage button tooltip"))
-        }
-      }
-
       // Filter chips
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 6) {
@@ -367,7 +374,7 @@ struct HistoryView: View {
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(Color(NSColor.controlBackgroundColor))
+    .background(AppSurface.pageBackground)
   }
 
   // MARK: - Empty state

@@ -32,7 +32,7 @@ enum AppSection: String, CaseIterable, Identifiable {
     case .history: return "clock.fill"
     case .ttsStudio: return "waveform.badge.mic"
     case .models: return "square.and.arrow.down"
-    case .setting: return "sparkles"
+    case .setting: return "gearshape"
     case .dictionary: return "text.book.closed"
     case .permissions: return "shield.lefthalf.filled"
     case .pro: return "crown"
@@ -62,7 +62,7 @@ enum AppSection: String, CaseIterable, Identifiable {
 }
 
 func visibleAppSections(requiresGettingStarted: Bool) -> [AppSection] {
-  AppSection.allCases.filter { requiresGettingStarted || $0 != .permissions }
+  AppSidebarGroup.allCases.flatMap { $0.sections(requiresGettingStarted: requiresGettingStarted) }
 }
 
 func resolvedAppSection(
@@ -249,59 +249,10 @@ struct ContentView: View {
     )
 
     NavigationSplitView {
-      List(
-        visibleAppSections(requiresGettingStarted: permissionStatusManager.requiresGettingStarted),
-        selection: selectionBinding
-      ) { section in
-        HStack(alignment: .center, spacing: 12) {
-          Image(systemName: section.icon)
-            .font(.title2)
-            .foregroundColor(currentSection == section ? .white : .accentColor)
-            .frame(width: 28, height: 28)
-            .background(
-              RoundedRectangle(cornerRadius: 8)
-                .fill(
-                  currentSection == section ? Color.accentColor : Color.accentColor.opacity(0.1))
-            )
-
-          VStack(alignment: .leading, spacing: 2) {
-            Text(section.label)
-              .font(.headline)
-              .fontWeight(.medium)
-              .foregroundStyle(.primary)
-            Text(section.description)
-              .font(.caption)
-              .foregroundStyle(.secondary)
-          }
-
-          Spacer()
-        }
-        .padding(.vertical, 6)
-        .padding(.horizontal, 8)
-        .tag(section as AppSection?)
-        .contentShape(Rectangle())
-        .onTapGesture {
-          currentSection = section
-        }
-        .listRowBackground(
-          currentSection == section ? Color.accentColor.opacity(0.1) : Color.clear
-        )
-        .listRowSeparator(.hidden)
-      }
-      .navigationTitle("Cliptate")
-      .navigationSubtitle("Professional Video Editing Tool")
-      .listStyle(.sidebar)
-      .background(
-        LinearGradient(
-          colors: [
-            Color.accentColor.opacity(0.05),
-            Color.accentColor.opacity(0.02),
-          ],
-          startPoint: .topLeading,
-          endPoint: .bottomTrailing
-        )
+      AppSidebar(
+        selection: selectionBinding,
+        requiresGettingStarted: permissionStatusManager.requiresGettingStarted
       )
-      .navigationSplitViewColumnWidth(min: 0, ideal: 260, max: 360)
     } detail: {
       Group {
         switch currentSection {
@@ -331,9 +282,10 @@ struct ContentView: View {
           ProHubView()
         }
       }
-      .background(Color(NSColor.controlBackgroundColor))
+      .background(AppSurface.pageBackground)
     }
     .navigationSplitViewStyle(.balanced)
+    .toolbar(removing: .title)
     .onReceive(NotificationCenter.default.publisher(for: .openModelsLibrary)) { _ in
       currentSection = .models
     }

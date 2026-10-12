@@ -152,7 +152,7 @@ struct AICutEditorView: View {
           }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(AppSurface.pageBackground)
         .overlay(alignment: .bottom) {
           ExportProgressOverlay(exportProgress: exportProgress, onDismiss: onDismissExport)
             .padding(.bottom, 16)
@@ -205,6 +205,7 @@ struct AICutEditorView: View {
       .layoutPriority(1)
       .id(activeVideoURL)
     }
+    .background(AppSurface.pageBackground)
   }
 
   private var editorPlaceholder: some View {

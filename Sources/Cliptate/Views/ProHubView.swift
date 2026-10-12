@@ -9,10 +9,15 @@ struct ProHubView: View {
     @StateObject private var subscriptionStatusViewModel = SubscriptionStatusViewModel()
 
     var body: some View {
-        if SubscriptionPolicy.isBillingEnabled {
-            subscriptionContent
-        } else {
-            freeAccessContent
+        Group {
+            if SubscriptionPolicy.isBillingEnabled {
+                subscriptionContent
+            } else {
+                freeAccessContent
+            }
+        }
+        .appPageHeader {
+            AppPageHeader(.pro)
         }
     }
 
@@ -34,7 +39,7 @@ struct ProHubView: View {
             .padding(28)
             .frame(maxWidth: .infinity)
         }
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(AppSurface.pageBackground)
     }
 
     private var subscriptionContent: some View {
@@ -47,7 +52,7 @@ struct ProHubView: View {
             }
             .frame(maxWidth: .infinity)
         }
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(AppSurface.pageBackground)
         .sheet(isPresented: paywallPresentationBinding) {
             PaywallView()
                 .environmentObject(paywallManager)

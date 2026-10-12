@@ -82,7 +82,10 @@ struct AISettingsView: View {
       .padding(.horizontal, 28)
       .padding(.vertical, 32)
     }
-    .background(Color(NSColor.controlBackgroundColor))
+    .background(AppSurface.pageBackground)
+    .appPageHeader {
+      AppPageHeader(.setting)
+    }
     .onChange(of: config.selectedAIProvider) {
       verifyState = .idle
     }

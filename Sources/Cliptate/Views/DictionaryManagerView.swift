@@ -17,8 +17,9 @@ struct DictionaryManagerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            headerBar
-            Divider()
+            AppPageHeader {
+                headerBar
+            }
             HSplitView {
                 editorPanel
                     .frame(minWidth: 260, idealWidth: 340, maxWidth: 480)
@@ -26,7 +27,7 @@ struct DictionaryManagerView: View {
                     .frame(minWidth: 260, maxWidth: .infinity)
             }
         }
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(AppSurface.pageBackground)
         .navigationTitle("Dictionary")
         .onAppear(perform: loadFromConfiguration)
         .onChange(of: config.voiceToTextCustomDictionary) { _, entries in
@@ -44,6 +45,7 @@ struct DictionaryManagerView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text("Custom Dictionary")
                     .font(.title2.weight(.semibold))
+                    .accessibilityAddTraits(.isHeader)
                 Text("Words and phrases that guide transcription accuracy")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -51,8 +53,6 @@ struct DictionaryManagerView: View {
             Spacer()
             statsRow
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 18)
     }
 
     private var statsRow: some View {
@@ -138,7 +138,7 @@ struct DictionaryManagerView: View {
                 }
             }
         }
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(AppSurface.pageBackground)
     }
 
     private var tagsPanelHeader: some View {

@@ -93,9 +93,11 @@ struct TTSSynthesisView: View {
                 .padding(.horizontal, 24)
                 .padding(.vertical, 24)
             }
-            .background(Color(NSColor.controlBackgroundColor))
         }
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(AppSurface.pageBackground)
+        .appPageHeader {
+            AppPageHeader(.ttsStudio)
+        }
         .task {
             await refreshStatus()
             // Restore reference audio URL from saved bookmark (preferred) or plain path.
@@ -284,7 +286,7 @@ struct TTSSynthesisView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color(NSColor.windowBackgroundColor))
+                .fill(AppSurface.cardBackground)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -316,7 +318,7 @@ struct TTSSynthesisView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
         }
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(NSColor.windowBackgroundColor)))
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(AppSurface.cardBackground))
         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color.secondary.opacity(0.15)))
     }
 
@@ -777,7 +779,7 @@ struct TTSSynthesisView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color(NSColor.windowBackgroundColor))
+                .fill(AppSurface.cardBackground)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -824,7 +826,7 @@ struct TTSSynthesisView: View {
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color(NSColor.windowBackgroundColor))
+                .fill(AppSurface.cardBackground)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)

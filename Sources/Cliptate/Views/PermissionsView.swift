@@ -130,7 +130,6 @@ struct PermissionsView: View {
   var body: some View {
     ScrollView {
       VStack(spacing: 24) {
-        header
         VStack(spacing: 14) {
           PermissionCard(
             icon: "keyboard",
@@ -211,7 +210,12 @@ struct PermissionsView: View {
       }
       .padding(24)
     }
-    .background(Color(NSColor.controlBackgroundColor))
+    .background(AppSurface.pageBackground)
+    .appPageHeader {
+      AppPageHeader {
+        header
+      }
+    }
     .onAppear { manager.refreshAll() }
     .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) {
       _ in
@@ -268,24 +272,16 @@ struct PermissionsView: View {
   }
 
   private var header: some View {
-    VStack(spacing: 16) {
-      ZStack {
-        Circle()
-          .fill(Color.accentColor.opacity(0.12))
-          .frame(width: 96, height: 96)
-        Image(systemName: "shield.lefthalf.fill")
-          .font(.system(size: 36, weight: .semibold))
-          .foregroundStyle(Color.accentColor)
-      }
-      VStack(spacing: 6) {
-        Text("Getting Started")
-          .font(.system(size: 28, weight: .bold))
-        Text("Enable the permissions below to unlock dictation and assistant features.")
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-      }
+    VStack(alignment: .leading, spacing: 3) {
+      Text("Getting Started")
+        .font(.title2.weight(.semibold))
+        .accessibilityAddTraits(.isHeader)
+      Text("Enable the permissions below to unlock dictation and assistant features.")
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
     }
-    .frame(maxWidth: .infinity)
+    .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.top, 12)
     .padding(.bottom, 8)
   }
@@ -367,7 +363,7 @@ private struct PermissionCard: View {
     .padding(14)
     .background(
       RoundedRectangle(cornerRadius: 14)
-        .fill(Color(NSColor.windowBackgroundColor))
+        .fill(AppSurface.cardBackground)
         .shadow(color: Color.black.opacity(0.05), radius: 5, y: 2)
     )
   }
