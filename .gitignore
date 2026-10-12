@@ -9,6 +9,7 @@ Packages/
 Package.pins
 xcuserdata/
 *.xcuserstate
+default.profraw
 
 # Local configuration, credentials, and model downloads.
 config/Local.xcconfig
