@@ -646,9 +646,14 @@ final class StreamingAudioCaptureModule {
     await processBuffer(buffer, format: buffer.format)
   }
 
+  /// Wait for captured chunks to pass through VAD without waiting for ASR inference.
+  func testDrainCapturedAudio() async {
+    await captureProcessingTask?.value
+  }
+
   /// Wait for all in-flight and pending ASR work to complete.
   func testDrainPendingWork() async {
-    await captureProcessingTask?.value
+    await testDrainCapturedAudio()
     if isProcessing || !pendingSpeechWindows.isEmpty {
       await withCheckedContinuation { continuation in
         drainContinuation = continuation

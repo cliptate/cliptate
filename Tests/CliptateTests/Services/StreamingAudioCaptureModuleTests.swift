@@ -16,6 +16,7 @@ final class MockStreamingASREngine: StreamingASREngine, @unchecked Sendable {
   var transcribeResults: [String] = []
   /// Simulated inference delay in seconds (0 = instant).
   var inferenceDelay: TimeInterval = 0
+  var beforeTranscription: (@Sendable (Int) -> Void)?
 
   var transcribeCalls: [[Float]] {
     lock.lock()
@@ -41,6 +42,7 @@ final class MockStreamingASREngine: StreamingASREngine, @unchecked Sendable {
     _resultIndex += 1
     lock.unlock()
 
+    beforeTranscription?(index)
     if inferenceDelay > 0 {
       Thread.sleep(forTimeInterval: inferenceDelay)
     }
@@ -106,17 +108,32 @@ struct StreamingAudioCaptureModuleAsyncTests {
   @Test("Slow ASR coalesces obsolete previews while retaining complete speech windows")
   func slowASRCoalescesPreviewSnapshots() async throws {
     let engine = MockStreamingASREngine()
-    engine.inferenceDelay = 0.1
+    let inferenceStarted = AsyncStream<Void>.makeStream()
+    let finishInference = DispatchSemaphore(value: 0)
+    engine.beforeTranscription = { index in
+      guard index == 0 else { return }
+      inferenceStarted.continuation.yield(())
+      finishInference.wait()
+    }
+    defer { finishInference.signal() }
+
     let module = makeModule()
     module.testConfigure(engine: engine, language: .auto, streamingVAD: AllSpeechVAD())
-    for _ in 0..<5 {
+    await module.testProcessBuffer(try speechBuffer())
+    var startedIterator = inferenceStarted.stream.makeAsyncIterator()
+    _ = await startedIterator.next()
+
+    for _ in 0..<4 {
       await module.testProcessBuffer(try speechBuffer())
     }
+    await module.testDrainCapturedAudio()
+    #expect(engine.transcribeCalls.map(\.count) == [8000])
+
+    finishInference.signal()
     await module.testDrainPendingWork()
 
-    // First inference can already be running; only the newest queued snapshot is useful.
-    #expect(engine.transcribeCalls.count <= 2)
-    #expect(engine.transcribeCalls.last?.count == 40000)
+    // Only the newest queued snapshot should follow the blocked first inference.
+    #expect(engine.transcribeCalls.map(\.count) == [8000, 40000])
     _ = try await module.stop()
     #expect(module.takeFinalizedDictationCapture()?.samples.count == 40000)
   }
