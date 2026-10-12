@@ -1012,6 +1012,7 @@ public enum CliptateCLI {
     if model.isWhisperModel { return .whisper }
     if model.isQwen3ASRModel { return .qwen3 }
     if model.isFireRedASRModel { return .fireRed }
+    if model.isNemotronASRModel { return .nemotron }
     if model.isCohereTranscribeModel { return .cohere }
     return .parakeet
   }

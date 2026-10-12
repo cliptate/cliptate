@@ -292,6 +292,11 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
   // FireRed ASR models
   case fireRedASR2 = "firered-asr2-aed-mlx"
 
+  // NVIDIA Nemotron ASR checkpoints (3.5 8-bit is recommended).
+  case nemotronASR358bit = "nemotron-3.5-asr-streaming-0.6b-8bit"
+  case nemotronASR35bf16 = "nemotron-3.5-asr-streaming-0.6b"
+  case nemotronASREnglish8bit = "nemotron-speech-streaming-en-0.6b-mlx-8bit"
+
   // Cohere Transcribe models
   case cohereTranscribe03FP16 = "cohere-transcribe-03-2026-mlx-fp16"
   case cohereTranscribe038bit = "cohere-transcribe-03-2026-mlx-8bit"
@@ -380,6 +385,9 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
     case .qwen3ForcedAligner06Bbf16: return "Qwen3 Aligner 0.6B (bf16)"
     case .fireRedASR2:
       return NSLocalizedString("FireRed ASR 2", comment: "FireRed model display name")
+    case .nemotronASR358bit: return String(localized: "Nemotron 3.5 ASR 0.6B (8-bit)")
+    case .nemotronASR35bf16: return String(localized: "Nemotron 3.5 ASR 0.6B (bf16)")
+    case .nemotronASREnglish8bit: return String(localized: "Nemotron Speech English 0.6B (8-bit)")
     case .cohereTranscribe03FP16: return "Cohere Transcribe 03-2026 (FP16)"
     case .cohereTranscribe038bit: return "Cohere Transcribe 03-2026 (8-bit)"
     case .cohereTranscribe034bit: return "Cohere Transcribe 03-2026 (4-bit)"
@@ -413,6 +421,7 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
     if isParakeetModel { return .parakeet }
     if isFireRedASRModel { return .fireRed }
     if isCohereTranscribeModel { return .cohere }
+    if isNemotronASRModel { return .nemotron }
     if isQwen3Model { return .qwen3 }
     if isSortformerVADModel { return .qwen3 }
     if isSileroVADModel { return .qwen3 }
@@ -438,6 +447,10 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
       return NSLocalizedString("FireRed ASR 2 optimized for Mandarin dialects, English, mixed speech, and lyrics recognition.", comment: "FireRed model summary")
     case .cohereTranscribe03FP16, .cohereTranscribe038bit, .cohereTranscribe034bit:
       return "Encoder-decoder ASR trained on 14 languages with strong multilingual punctuation and transcription quality."
+    case .nemotronASR358bit, .nemotronASR35bf16:
+      return String(localized: "Multilingual Nemotron ASR on Apple Silicon with automatic language detection and sentence timestamps.")
+    case .nemotronASREnglish8bit:
+      return String(localized: "English-only Nemotron Speech on Apple Silicon with sentence timestamps.")
     case .sortformerStreaming:
       return NSLocalizedString(
         "Streaming diarization and speech activity detection optimized for low-latency MLX pipelines.",
@@ -490,6 +503,13 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
       return true
     default:
       return false
+    }
+  }
+
+  var isNemotronASRModel: Bool {
+    switch self {
+    case .nemotronASR358bit, .nemotronASR35bf16, .nemotronASREnglish8bit: return true
+    default: return false
     }
   }
 
@@ -585,6 +605,9 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
     case .qwen3ForcedAligner06B8bit: return 500
     case .qwen3ForcedAligner06Bbf16: return 900
     case .fireRedASR2: return 1000
+    case .nemotronASR358bit: return 756
+    case .nemotronASR35bf16: return 1276
+    case .nemotronASREnglish8bit: return 664
     case .cohereTranscribe03FP16: return 2200
     case .cohereTranscribe038bit: return 1200
     case .cohereTranscribe034bit: return 700
@@ -652,6 +675,9 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
     case .qwen3ForcedAligner06B8bit: return 8.3
     case .qwen3ForcedAligner06Bbf16: return 7.5
     case .fireRedASR2: return 8.1
+    case .nemotronASR358bit: return 8.5
+    case .nemotronASR35bf16: return 8.0
+    case .nemotronASREnglish8bit: return 8.5
     case .cohereTranscribe03FP16: return 6.8
     case .cohereTranscribe038bit: return 8.0
     case .cohereTranscribe034bit: return 9.1
@@ -706,6 +732,7 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
     case .qwen3ForcedAligner06B8bit: return 9.2
     case .qwen3ForcedAligner06Bbf16: return 9.3
     case .fireRedASR2: return 9.2
+    case .nemotronASR358bit, .nemotronASR35bf16, .nemotronASREnglish8bit: return 9.0
     case .cohereTranscribe03FP16: return 9.5
     case .cohereTranscribe038bit: return 9.2
     case .cohereTranscribe034bit: return 8.9
@@ -763,6 +790,16 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
         .greek, .dutch, .polish, .chinese, .japanese, .korean, .vietnamese,
         .arabic,
       ]
+    case .nemotronASREnglish8bit:
+      return [.english]
+    case .nemotronASR358bit, .nemotronASR35bf16:
+      // NVIDIA marks eight further locales as requiring adaptation/fine-tuning.
+      return [
+        .auto, .english, .chinese, .japanese, .korean, .spanish, .french,
+        .italian, .portuguese, .dutch, .german, .turkish, .russian, .arabic,
+        .hindi, .vietnamese, .ukrainian, .polish, .swedish, .czech, .norwegian,
+        .danish, .bulgarian, .finnish, .croatian, .slovak, .hungarian, .romanian, .estonian,
+      ]
     case _ where self.isQwen3AlignerModel:
       return [
         .english, .chinese, .japanese, .korean, .french, .german,
@@ -787,6 +824,10 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
       return NSLocalizedString("Chinese dialects, English, mixed speech, lyrics", comment: "FireRed language summary")
     case _ where self.isCohereTranscribeModel:
       return "14 supported languages"
+    case .nemotronASREnglish8bit:
+      return String(localized: "English only")
+    case .nemotronASR358bit, .nemotronASR35bf16:
+      return String(localized: "Multilingual · automatic language detection")
     case _ where self.isQwen3AlignerModel:
       return "11 supported languages"
     case _ where self.isSortformerVADModel:
@@ -816,6 +857,8 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
       ]
     case _ where self.isCohereTranscribeModel:
       return ["Encoder-decoder ASR", "14 languages", "Streaming support"]
+    case _ where isNemotronASRModel:
+      return [String(localized: "MLX optimized"), String(localized: "Sentence timestamps"), String(localized: "Live dictation")]
     case _ where self.isQwen3AlignerModel:
       return ["Word-level timestamps", "Forced alignment", "High precision"]
     case .sortformerStreaming:
@@ -904,6 +947,7 @@ public enum TranscriberType: String, CaseIterable, Identifiable, Codable, Sendab
   case qwen3 = "qwen3"
   case fireRed = "fireRed"
   case cohere = "cohere"
+  case nemotron = "nemotron"
 
   public var id: String { rawValue }
 
@@ -926,6 +970,7 @@ public enum TranscriberType: String, CaseIterable, Identifiable, Codable, Sendab
       return NSLocalizedString("FireRed", comment: "FireRed engine display name")
     case .cohere:
       return NSLocalizedString("Cohere", comment: "Cohere engine display name")
+    case .nemotron: return String(localized: "Nemotron ASR")
     }
   }
 
@@ -938,6 +983,7 @@ public enum TranscriberType: String, CaseIterable, Identifiable, Codable, Sendab
       return NSLocalizedString("FireRed ASR for Mandarin dialects, English, mixed speech, and lyrics recognition", comment: "FireRed engine description")
     case .cohere:
       return "Cohere Transcribe multilingual ASR optimized for Apple Silicon with paid MLX checkpoints."
+    case .nemotron: return String(localized: "NVIDIA Nemotron speech recognition optimized for Apple Silicon")
     }
   }
 
@@ -952,12 +998,14 @@ public enum TranscriberType: String, CaseIterable, Identifiable, Codable, Sendab
       return [.fireRedASR2]
     case .cohere:
       return [.cohereTranscribe03FP16, .cohereTranscribe038bit, .cohereTranscribe034bit]
+    case .nemotron: return [.nemotronASR358bit, .nemotronASR35bf16, .nemotronASREnglish8bit]
     }
   }
 
   // Deprecated: Use ModelVariant.supportedLanguages instead
   public var supportedLanguages: [Language] {
     switch self {
+    case .nemotron: return ModelVariant.nemotronASR358bit.supportedLanguages
     case .whisper: return ModelVariant.whisperLargeV3Turbo.supportedLanguages
     case .parakeet: return Language.allCases
     case .qwen3: return Language.allCases
@@ -985,6 +1033,8 @@ public enum TranscriberType: String, CaseIterable, Identifiable, Codable, Sendab
     case .fireRed:
       let fireRedModel = model.isFireRedASRModel ? model : .fireRedASR2
       return FireRedASRTranscriber(model: fireRedModel)
+    case .nemotron:
+      return NemotronASRTranscriber(model: model.isNemotronASRModel ? model : .nemotronASR358bit)
     case .cohere:
       let cohereModel = model.isCohereTranscribeModel ? model : .cohereTranscribe03FP16
       return CohereTranscribeASRTranscriber(model: cohereModel)

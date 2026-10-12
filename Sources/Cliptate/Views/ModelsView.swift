@@ -34,6 +34,7 @@ struct ModelsView: View {
     case parakeet
     case qwen3
     case fireRed
+    case nemotron
     case cohere
 
     var id: String { rawValue }
@@ -46,6 +47,7 @@ struct ModelsView: View {
       case .qwen3:    return String(localized: "Qwen3",    comment: "ASR provider name: Qwen3 ASR")
       case .fireRed:
         return NSLocalizedString("FireRed", comment: "FireRed ASR provider filter label")
+      case .nemotron: return String(localized: "Nemotron ASR")
       case .cohere:
         return NSLocalizedString("Cohere", comment: "Cohere ASR provider filter label")
       }
@@ -60,6 +62,7 @@ struct ModelsView: View {
         + TranscriberType.qwen3.supportedModels
         + TranscriberType.fireRed.supportedModels
         + TranscriberType.cohere.supportedModels
+        + TranscriberType.nemotron.supportedModels
     case .whisper:
       TranscriberType.whisper.supportedModels
     case .parakeet:
@@ -68,6 +71,8 @@ struct ModelsView: View {
       TranscriberType.qwen3.supportedModels
     case .fireRed:
       TranscriberType.fireRed.supportedModels
+    case .nemotron:
+      TranscriberType.nemotron.supportedModels
     case .cohere:
       TranscriberType.cohere.supportedModels
     }

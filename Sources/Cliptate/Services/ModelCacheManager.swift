@@ -741,6 +741,9 @@ actor ModelCacheManager: ModelLanguageSupportQuerying {
       } else if let transcriber = transcriber as? Qwen3ASRTranscriber {
         transcriber.unload()
         shouldClearMLXCache = true
+      } else if let transcriber = transcriber as? NemotronASRTranscriber {
+        transcriber.unload()
+        shouldClearMLXCache = true
       } else if let transcriber = transcriber as? CohereTranscribeASRTranscriber {
         transcriber.unload()
         shouldClearMLXCache = true

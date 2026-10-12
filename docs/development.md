@@ -244,6 +244,46 @@ RUN_WHISPER_MODEL_TESTS=1 WHISPER_TEST_AUDIO_PATH=/tmp/cliptate-whisper-smoke.ai
   swift test --filter MLXWhisperTranscriberTests.realModelSmoke
 ```
 
+### Nemotron transcription
+
+MLX Audio Swift 0.1.5 also supplies NVIDIA Nemotron ASR. Select **Nemotron ASR**
+in the model picker for AI Cut and Voice To Text. The recommended checkpoint is
+`mlx-community/nemotron-3.5-asr-streaming-0.6b-8bit` (~756 MB); the catalog also
+offers the 3.5 bf16 checkpoint (~1.28 GB) and the older English-only 8-bit
+checkpoint (~664 MB). Existing selections remain unchanged. These models are free
+in both distribution channels and download on demand into the shared model cache.
+
+Nemotron 3.5 exposes automatic language detection and the 28 language families
+represented by Cliptate from NVIDIA's transcription-ready and broad-coverage
+locales. The eight adaptation-ready locales require fine-tuning and are not offered
+as supported selections. Chinese uses the `zh-CN` prompt, Japanese `ja-JP`, and
+Norwegian Bokmål `nb-NO`; unsupported prompt identifiers would silently fall back
+to automatic detection upstream. The older English checkpoint accepts English only.
+See the [NVIDIA language table](https://huggingface.co/nvidia/nemotron-3.5-asr-streaming-0.6b#supported-languages).
+
+File inference uses bounded 30-second windows and preserves upstream sentence
+timestamps. Precise word timing uses the existing optional forced alignment.
+The shared batch pipeline uses VAD speech-range timing when alignment is disabled.
+Live dictation uses the shared VAD chunk pipeline; it does not yet keep a native
+Nemotron encoder cache between microphone chunks. The custom dictionary remains
+part of shared post-processing. Cancellation is checked between synchronous
+decodes; an active decode finishes before cancellation returns.
+
+Offline readiness requires nonempty safetensors and an embedded vocabulary in
+`config.json`; external tokenizer files are unnecessary for the Swift loader.
+Checkpoint weights retain the NVIDIA Open Model License and are never bundled.
+
+The optional real-model regression uses synthesized speech and keeps its audio
+and downloaded model outside the checkout:
+
+```bash
+say -v Samantha -o /tmp/cliptate-nemotron-smoke.aiff \
+  'The quick brown fox jumps over the lazy dog.'
+RUN_NEMOTRON_MODEL_TESTS=1 NEMOTRON_TEST_AUDIO_PATH=/tmp/cliptate-nemotron-smoke.aiff \
+  NEMOTRON_TEST_METALLIB_PATH="$(swift build --show-bin-path)/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib" \
+  swift test --filter NemotronASRTranscriberTests.realModelSmoke
+```
+
 ## Default folder access
 
 Sandboxed builds declare read/write access to Downloads, Movies, Music, and

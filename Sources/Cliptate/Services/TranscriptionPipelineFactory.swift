@@ -133,6 +133,12 @@ enum TranscriptionPipelineFactory {
           expected: "FireRedASRTranscriber", actual: String(describing: Swift.type(of: transcriber)))
       }
       engine = fireRed
+    case .nemotron:
+      guard let nemotron = transcriber as? NemotronASRTranscriber else {
+        throw TranscriptionPipelineError.transcirberTypeMismatch(
+          expected: "NemotronASRTranscriber", actual: String(describing: Swift.type(of: transcriber)))
+      }
+      engine = nemotron
     case .cohere:
       guard let cohere = transcriber as? CohereTranscribeASRTranscriber else {
         throw TranscriptionPipelineError.transcirberTypeMismatch(

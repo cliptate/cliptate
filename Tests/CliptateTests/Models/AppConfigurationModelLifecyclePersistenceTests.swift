@@ -96,6 +96,34 @@ struct AppConfigurationModelLifecyclePersistenceTests {
     #expect(configuration.voiceToTextLanguage == .english)
   }
 
+  @Test("Nemotron snapshot and preset selections restore for AI Cut and dictation")
+  func nemotronSnapshotRoundTrip() throws {
+    let configuration = AppConfiguration.shared
+    let original = configuration.makeSnapshot()
+    defer { configuration.applySnapshot(original) }
+    var changed = original
+    changed.transcriberType = .nemotron
+    changed.modelVariant = .nemotronASR35bf16
+    changed.language = .chinese
+    changed.voiceToTextLanguage = .japanese
+    let decoded = try JSONDecoder().decode(AppConfiguration.Snapshot.self, from: JSONEncoder().encode(changed))
+    configuration.applySnapshot(decoded)
+    #expect(configuration.modelVariant == .nemotronASR35bf16)
+    #expect(configuration.activeVoiceToTextTranscriberType == .nemotron)
+    #expect(configuration.activeVoiceToTextModelVariant == .nemotronASR35bf16)
+    #expect(configuration.language == .chinese)
+    #expect(configuration.voiceToTextLanguage == .japanese)
+
+    changed.modelVariant = .nemotronASREnglish8bit
+    configuration.applySnapshot(changed)
+    #expect(configuration.language == .english)
+    #expect(configuration.voiceToTextLanguage == .english)
+    changed.modelVariant = .parakeetV3
+    configuration.applySnapshot(changed)
+    #expect(configuration.modelVariant == .nemotronASR358bit)
+    #expect(configuration.activeVoiceToTextModelVariant == .nemotronASR358bit)
+  }
+
   @Test("saved sortformerOffline selection migrates to sileroVAD")
   func migratesOfflineVADSelection() throws {
     let original = AppConfiguration.shared.makeSnapshot()

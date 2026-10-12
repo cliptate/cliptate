@@ -91,6 +91,412 @@
         }
       }
     },
+    "English-only Nemotron Speech on Apple Silicon with sentence timestamps." : {
+      "comment" : "Nemotron ASR model and transcription interface",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Apple Silicon 上运行的英语专用 Nemotron Speech，支持句子时间戳。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Silicon 上の英語専用 Nemotron Speech。文単位のタイムスタンプに対応。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Silicon에서 문장 타임스탬프를 지원하는 영어 전용 Nemotron Speech."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Englischsprachiges Nemotron Speech auf Apple Silicon mit Satzzeitstempeln."
+          }
+        }
+      }
+    },
+    "Live dictation" : {
+      "comment" : "Nemotron ASR model and transcription interface",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时听写"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リアルタイム音声入力"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "실시간 받아쓰기"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live-Diktat"
+          }
+        }
+      }
+    },
+    "Loading Nemotron ASR..." : {
+      "comment" : "Nemotron ASR model and transcription interface",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在加载 Nemotron ASR…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR を読み込み中…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR 로드 중…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR wird geladen…"
+          }
+        }
+      }
+    },
+    "Multilingual Nemotron ASR on Apple Silicon with automatic language detection and sentence timestamps." : {
+      "comment" : "Nemotron ASR model and transcription interface",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Apple Silicon 上运行的多语言 Nemotron ASR，支持自动语言检测和句子时间戳。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Silicon 上の多言語 Nemotron ASR。言語自動検出と文単位のタイムスタンプに対応。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Silicon에서 자동 언어 감지와 문장 타임스탬프를 지원하는 다국어 Nemotron ASR."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mehrsprachige Nemotron ASR auf Apple Silicon mit automatischer Spracherkennung und Satzzeitstempeln."
+          }
+        }
+      }
+    },
+    "Multilingual · automatic language detection" : {
+      "comment" : "Nemotron ASR model and transcription interface",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多语言 · 自动语言检测"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多言語 · 言語自動検出"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다국어 · 자동 언어 감지"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mehrsprachig · automatische Spracherkennung"
+          }
+        }
+      }
+    },
+    "NVIDIA Nemotron speech recognition optimized for Apple Silicon" : {
+      "comment" : "Nemotron ASR model and transcription interface",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "针对 Apple Silicon 优化的 NVIDIA Nemotron 语音识别"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Silicon に最適化された NVIDIA Nemotron 音声認識"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Silicon에 최적화된 NVIDIA Nemotron 음성 인식"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für Apple Silicon optimierte NVIDIA Nemotron Spracherkennung"
+          }
+        }
+      }
+    },
+    "Nemotron 3.5 ASR 0.6B (8-bit)" : {
+      "comment" : "Nemotron ASR model and transcription interface",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron 3.5 ASR 0.6B（8 位）"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron 3.5 ASR 0.6B（8ビット）"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron 3.5 ASR 0.6B (8비트)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron 3.5 ASR 0.6B (8 Bit)"
+          }
+        }
+      }
+    },
+    "Nemotron 3.5 ASR 0.6B (bf16)" : {
+      "comment" : "Nemotron ASR model and transcription interface",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron 3.5 ASR 0.6B（bf16）"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron 3.5 ASR 0.6B（bf16）"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron 3.5 ASR 0.6B (bf16)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron 3.5 ASR 0.6B (bf16)"
+          }
+        }
+      }
+    },
+    "Nemotron ASR" : {
+      "comment" : "Nemotron ASR model and transcription interface",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR"
+          }
+        }
+      }
+    },
+    "Nemotron ASR ready" : {
+      "comment" : "Nemotron ASR model and transcription interface",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR 已就绪"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR の準備完了"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR 준비 완료"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR bereit"
+          }
+        }
+      }
+    },
+    "Nemotron ASR requires a language supported by the selected checkpoint." : {
+      "comment" : "Nemotron ASR model and transcription interface",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR 需要选择所选模型支持的语言。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR では選択したモデルが対応する言語を指定してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR은 선택한 모델에서 지원하는 언어가 필요합니다."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron ASR benötigt eine vom ausgewählten Modell unterstützte Sprache."
+          }
+        }
+      }
+    },
+    "Nemotron Speech English 0.6B (8-bit)" : {
+      "comment" : "Nemotron ASR model and transcription interface",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron Speech 英语 0.6B（8 位）"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron Speech 英語 0.6B（8ビット）"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron Speech 영어 0.6B (8비트)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron Speech Englisch 0.6B (8 Bit)"
+          }
+        }
+      }
+    },
+    "Running Nemotron transcription..." : {
+      "comment" : "Nemotron ASR model and transcription interface",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在使用 Nemotron 转写…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron で文字起こし中…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron으로 전사 중…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nemotron-Transkription läuft…"
+          }
+        }
+      }
+    },
+    "Sentence timestamps" : {
+      "comment" : "Nemotron ASR model and transcription interface",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "句子时间戳"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文単位のタイムスタンプ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "문장 타임스탬프"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satzzeitstempel"
+          }
+        }
+      }
+    },
     "Software Update" : {
       "extractionState" : "manual",
       "localizations" : {

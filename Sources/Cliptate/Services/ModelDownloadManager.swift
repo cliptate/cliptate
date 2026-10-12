@@ -134,7 +134,7 @@ actor ModelDownloadManager {
 
     let task = Task {
       switch Self.downloadBackend(for: model) {
-      case .whisperASR, .resolver, .qwen3ASR, .qwen3Aligner, .fireRedASR, .cohereASR, .sortformerVAD, .sileroVAD:
+      case .whisperASR, .resolver, .qwen3ASR, .qwen3Aligner, .fireRedASR, .nemotronASR, .cohereASR, .sortformerVAD, .sileroVAD:
         try await self.downloadMLXAudioModel(model, progressHandler: progressHandler)
       case .unsupported:
         await progressHandler(ModelDownloadProgress(currentStep: "Unsupported model type", progress: 0.0))
@@ -220,6 +220,16 @@ actor ModelDownloadManager {
                 of: repoID, kind: .model, revision: "main",
                 matching: Self.whisperDownloadPatterns
               )
+            guard Self.hasValidArtifacts(at: directory, fileManager: self.fileManager, model: model) else {
+              throw ModelPreparationError.modelNotDownloaded(model)
+            }
+          case .nemotronASR:
+            // Nemotron embeds its vocabulary in config.json. Download weights
+            // without allocating a second inference model just to prepare the cache.
+            let repoID = Repo.ID(rawValue: model.huggingFaceRepoId)!
+            let directory = try await HubClient(cache: HubCache(cacheDirectory: self.cacheRootProvider()))
+              .downloadSnapshot(of: repoID, kind: .model, revision: "main",
+                matching: ["*.safetensors", "config.json"])
             guard Self.hasValidArtifacts(at: directory, fileManager: self.fileManager, model: model) else {
               throw ModelPreparationError.modelNotDownloaded(model)
             }
@@ -555,7 +565,12 @@ actor ModelDownloadManager {
     guard fileManager.fileExists(atPath: configPath.path),
           let configData = try? Data(contentsOf: configPath),
           !configData.isEmpty,
-          (try? JSONSerialization.jsonObject(with: configData)) != nil else { return false }
+          let config = Self.artifactConfiguration(configData, model: model) else { return false }
+    if model?.isNemotronASRModel == true {
+      let joint = config["joint"] as? [String: Any]
+      let vocabulary = config["vocabulary"] as? [String] ?? joint?["vocabulary"] as? [String]
+      guard let vocabulary, !vocabulary.isEmpty else { return false }
+    }
     let files = try? fileManager.contentsOfDirectory(
       at: dir, includingPropertiesForKeys: [.fileSizeKey]
     )
@@ -588,6 +603,17 @@ actor ModelDownloadManager {
     return true
   }
 
+  private static func artifactConfiguration(_ data: Data, model: ModelVariant?) -> [String: Any]? {
+    var data = data
+    if model?.isNemotronASRModel == true, var text = String(data: data, encoding: .utf8) {
+      // Match NemotronASRModel.fromDirectory's NeMo config compatibility.
+      for literal in ["-Infinity", "Infinity", "NaN"] {
+        text = text.replacingOccurrences(of: literal, with: "null")
+      }
+      data = Data(text.utf8)
+    }
+    return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+  }
 }
 
 // MARK: - Progress computation (internal for testability)

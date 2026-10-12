@@ -56,6 +56,12 @@ weights or deploying a derived application. ASR, VAD, diarization, forced alignm
 and TTS models can have different terms; the inference library's license does not
 replace a model's license. Model identifiers are defined in the app's model catalog.
 
+The Nemotron 3.5 and English-only Nemotron Speech checkpoints retain the
+[NVIDIA Open Model License](https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/).
+See their upstream model cards for terms and attribution:
+[Nemotron 3.5](https://huggingface.co/nvidia/nemotron-3.5-asr-streaming-0.6b)
+and [Nemotron Speech English](https://huggingface.co/nvidia/nemotron-speech-streaming-en-0.6b).
+
 ## Attribution and distribution
 
 Original author headers from WhisperCutPro are retained. Cliptate application assets

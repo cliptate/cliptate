@@ -542,8 +542,11 @@ extension AppConfiguration {
   }
 
   func normalizeModelSelections() {
-    if transcriberType == .whisper {
+    if transcriberType == .whisper || transcriberType == .nemotron {
       normalizeAfterTranscriberChange()
+    }
+    if transcriberType == .nemotron {
+      normalizeVoiceToTextAfterTranscriberChange()
     }
     if vadModelVariant == .sortformerOffline {
       vadModelVariant = .sileroVAD

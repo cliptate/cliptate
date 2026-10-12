@@ -102,6 +102,31 @@ final class CLIRequestHandlerTests: XCTestCase {
       } catch { XCTAssertTrue(error is CLIError) }
     }
   }
+
+  @MainActor
+  func testNemotronModelOverrideSelectsEngineWithoutChangingSettings() async throws {
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try Data("fake audio".utf8).write(to: url)
+    defer { try? FileManager.default.removeItem(at: url) }
+    let bookmark = try url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+    let config = AppConfiguration()
+    let originalModel = config.modelVariant
+    let recorder = CLIRequestRecorder()
+    let handler = CLIRequestHandler(config: config, transcribe: { request, _ in
+      await recorder.record(request)
+      return BatchTranscriptionOutput(
+        result: TranscriptionResult(segments: [], totalDuration: 1, processingTime: 0.1, modelUsed: request.asrModel.rawValue),
+        speakerAnnotationApplied: false, sourceURLBookmark: nil)
+    }, ensureModel: { _, _, _ in })
+    _ = try await handler.execute(CLIRequest(
+      operation: .transcribe, bookmark: bookmark,
+      model: ModelVariant.nemotronASR358bit.rawValue, language: "zh"))
+    let captured = await recorder.request
+    XCTAssertEqual(captured?.asrModel, .nemotronASR358bit)
+    XCTAssertEqual(captured?.transcriberType, .nemotron)
+    XCTAssertEqual(captured?.language, .chinese)
+    XCTAssertEqual(config.modelVariant, originalModel)
+  }
 }
 
 private actor CLIRequestRecorder {

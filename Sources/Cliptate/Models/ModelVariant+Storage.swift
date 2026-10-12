@@ -8,6 +8,7 @@ enum ModelDownloadBackend: Equatable, Sendable {
   case qwen3ASR
   case qwen3Aligner
   case fireRedASR
+  case nemotronASR
   case cohereASR
   case sortformerVAD
   case sileroVAD
@@ -178,6 +179,7 @@ extension ModelVariant {
     if isParakeetModel { return .resolver }
     if isQwen3ASRModel { return .qwen3ASR }
     if isFireRedASRModel { return .fireRedASR }
+    if isNemotronASRModel { return .nemotronASR }
     if isCohereTranscribeModel { return .cohereASR }
     if isQwen3AlignerModel { return .qwen3Aligner }
     if isSortformerVADModel { return .sortformerVAD }
@@ -242,6 +244,9 @@ extension ModelVariant {
     case .qwen3ForcedAligner06B8bit: return "mlx-community/Qwen3-ForcedAligner-0.6B-8bit"
     case .qwen3ForcedAligner06Bbf16: return "mlx-community/Qwen3-ForcedAligner-0.6B-bf16"
     case .fireRedASR2: return "mlx-community/FireRedASR2-AED-mlx"
+    case .nemotronASR358bit: return "mlx-community/nemotron-3.5-asr-streaming-0.6b-8bit"
+    case .nemotronASR35bf16: return "mlx-community/nemotron-3.5-asr-streaming-0.6b"
+    case .nemotronASREnglish8bit: return "animaslabs/nemotron-speech-streaming-en-0.6b-mlx-8bit"
     case .cohereTranscribe03FP16: return "beshkenadze/cohere-transcribe-03-2026-mlx-fp16"
     case .cohereTranscribe038bit: return "beshkenadze/cohere-transcribe-03-2026-mlx-8bit"
     case .cohereTranscribe034bit: return "beshkenadze/cohere-transcribe-03-2026-mlx-4bit"
