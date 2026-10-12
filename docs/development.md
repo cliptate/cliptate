@@ -223,6 +223,14 @@ for other frameworks and the optional Large v3 FP32 shards. Readiness requires
 local tokenizer and generation configuration files as well as weights. Models
 are downloaded on demand and are never bundled with the app.
 
+All supported ASR engines share a live dictation pipeline that feeds the selected
+Silero or Sortformer VAD serially from 0.5-second
+microphone chunks. The ASR engine re-decodes the growing speech window to revise
+the displayed preview before silence; slow inference coalesces queued revisions.
+Speech windows close after three silent chunks or 2.5 seconds of speech. Preview
+text is display-only. Normal stop still transcribes the complete captured audio
+through the batch runtime, then delivers and saves that final result.
+
 The pinned upstream implementation provides whole-window text with a fixed
 30-second window and no word timestamps. Enable forced alignment for precise
 editing/subtitle timing. Although the upstream README describes automatic language

@@ -48,6 +48,14 @@ struct Qwen3StreamingSpeechAccumulatorTests {
     #expect(accumulator.flush() == nil)
   }
 
+  @Test("speech beyond the window cap is retained for the next preview")
+  func retainsSpeechBeyondWindowCap() {
+    var accumulator = StreamingSpeechAccumulator(maxBufferedSamples: 4)
+    #expect(accumulator.ingest(chunk: [0, 1, 2, 3, 4, 5], speechSampleRanges: [0..<6]) == [0, 1, 2, 3])
+    #expect(accumulator.pendingSpeech == [4, 5])
+    #expect(accumulator.flush() == [4, 5])
+  }
+
   @Test("requires three silent chunks before flushing buffered speech")
   func requiresThreeSilentChunksBeforeFlush() {
     var accumulator = StreamingSpeechAccumulator(

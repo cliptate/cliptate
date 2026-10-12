@@ -7,8 +7,8 @@ import os.log
 /// resampling, VAD, and dispatches speech chunks to any `StreamingASREngine`.
 ///
 /// Architecture: 2-stage pipeline
-/// - **Stage 1 (main thread)**: mic tap → resample → chunk → VAD → speech window accumulation + audio level callbacks
-/// - **Stage 2 (background)**: speech windows queued → ASR inference off main thread → results delivered back to main
+/// - **Stage 1**: mic tap → resample → ordered VAD feeds → growing speech windows + audio level callbacks
+/// - **Stage 2 (background)**: revisable snapshots → ASR inference off main thread → preview delivered back to main
 ///
 /// This ensures audio level updates and waveform rendering are never blocked by ASR inference.
 @MainActor
@@ -60,6 +60,9 @@ final class StreamingAudioCaptureModule {
   private var speechAccumulator: StreamingSpeechAccumulator
 
   private var accumulatedText: String = ""
+  private var committedText: String = ""
+  private var currentWindowText: String = ""
+  private var speechWindowID: UInt64 = 0
   /// True while a background ASR task is in flight.
   private var isProcessing = false
   private var isActive = false
@@ -68,9 +71,16 @@ final class StreamingAudioCaptureModule {
   private var sessionCaptureSamples: [Float] = []
   private var latestFinalizedDictationCapture: FinalizedDictationCapture?
 
-  /// Queued speech windows to process after current ASR inference completes.
-  /// Preserve FIFO order so continuous dictation doesn't silently drop windows.
-  private var pendingSpeechWindows: [[Float]] = []
+  private struct SpeechWindow: Sendable {
+    let id: UInt64
+    let samples: [Float]
+    let isComplete: Bool
+  }
+
+  /// Keep complete windows in order, but coalesce queued revisions of an open window.
+  private var pendingSpeechWindows: [SpeechWindow] = []
+  private var pendingVADChunks: [[Float]] = []
+  private var captureProcessingTask: Task<Void, Never>?
 
   /// Session token to prevent stale completions from a previous session.
   private var sessionToken: UInt64 = 0
@@ -132,6 +142,7 @@ final class StreamingAudioCaptureModule {
 
     if engine != nil {
       await processRemainingBuffer()
+      await captureProcessingTask?.value
       if let trailingSpeech = speechAccumulator.flush() {
         enqueueForTranscription(trailingSpeech)
       }
@@ -182,6 +193,7 @@ final class StreamingAudioCaptureModule {
   }
 
   private func resetState(preservingRecordingSink: Bool = false) {
+    sessionToken &+= 1
     isActive = false
     stopAudioCapture()
 
@@ -196,8 +208,13 @@ final class StreamingAudioCaptureModule {
     )
     sessionCaptureSamples.removeAll(keepingCapacity: false)
     accumulatedText = ""
+    committedText = ""
+    currentWindowText = ""
+    speechWindowID = 0
     isProcessing = false
     pendingSpeechWindows.removeAll(keepingCapacity: false)
+    pendingVADChunks.removeAll(keepingCapacity: false)
+    captureProcessingTask = nil
     currentLanguage = .auto
     dictionaryContext = nil
     engine = nil
@@ -234,11 +251,12 @@ final class StreamingAudioCaptureModule {
     chunkScratchBuffer = Array(repeating: 0, count: samplesPerChunk)
 
     removeInputTapIfNeeded()
+    let capturedToken = sessionToken
     inputNode.installTap(onBus: 0, bufferSize: 4096, format: tapFormat) { [weak self] buffer, _ in
       // The audio thread reuses tap buffers; own the samples before handing them to an async task.
       guard let buffer = Self.copyPCMBuffer(buffer) else { return }
       Task { @MainActor [weak self] in
-        guard let self else { return }
+        guard let self, self.sessionToken == capturedToken else { return }
         await self.processBuffer(buffer, format: buffer.format)
       }
     }
@@ -256,6 +274,7 @@ final class StreamingAudioCaptureModule {
 
   private func processBuffer(_ buffer: AVAudioPCMBuffer, format: AVAudioFormat) async {
     guard isActive else { return }
+    let capturedToken = sessionToken
 
     if let recordingSink {
       if let recordingBuffer = Self.copyPCMBuffer(buffer) {
@@ -270,6 +289,8 @@ final class StreamingAudioCaptureModule {
         self.recordingSink = nil
       }
     }
+
+    guard isActive, sessionToken == capturedToken else { return }
 
     if currentFormat?.sampleRate != format.sampleRate {
       currentFormat = format
@@ -302,10 +323,8 @@ final class StreamingAudioCaptureModule {
       }
       audioBufferHead = end
 
-      // Stage 1: Always process VAD/resampling (fast, stays on main thread)
-      await processChunk(chunkScratchBuffer)
-
-      await Task.yield()
+      // Capture and levels stay responsive while the serial VAD worker is suspended.
+      enqueueCapturedChunk(chunkScratchBuffer)
     }
 
     if audioBufferHead > 0 {
@@ -314,26 +333,54 @@ final class StreamingAudioCaptureModule {
     }
   }
 
-  private func processChunk(_ rawChunk: [Float]) async {
+  private func enqueueCapturedChunk(_ rawChunk: [Float]) {
     guard !rawChunk.isEmpty else { return }
 
     let samples = preparedSamples(from: rawChunk)
     guard !samples.isEmpty else { return }
     sessionCaptureSamples.append(contentsOf: samples)
+    pendingVADChunks.append(samples)
+    guard captureProcessingTask == nil else { return }
+    let capturedToken = sessionToken
+    captureProcessingTask = Task { [weak self] in
+      guard let self else { return }
+      while self.sessionToken == capturedToken, !self.pendingVADChunks.isEmpty {
+        let chunk = self.pendingVADChunks.removeFirst()
+        await self.processChunk(chunk, sessionToken: capturedToken)
+      }
+      guard self.sessionToken == capturedToken else { return }
+      self.captureProcessingTask = nil
+    }
+  }
 
+  private func processChunk(_ samples: [Float], sessionToken token: UInt64) async {
     if let vad = streamingVAD {
       do {
         let activity = try await vad.feed(samples: samples)
+        guard sessionToken == token else { return }
         if let speechWindow = speechAccumulator.ingest(
-          chunk: samples,
+          chunk: activity.samples ?? samples,
           speechSampleRanges: activity.speechSampleRanges
         ) {
           // Stage 2: Dispatch speech window to background ASR
           enqueueForTranscription(speechWindow)
         }
+        while let speechWindow = speechAccumulator.takeFullWindow() {
+          enqueueForTranscription(speechWindow)
+        }
+        // Re-decode the growing window so words can appear and be corrected before silence.
+        if !activity.speechSampleRanges.isEmpty, speechAccumulator.hasPendingSpeech {
+          enqueueForTranscription(speechAccumulator.pendingSpeech, isComplete: false)
+        }
       } catch {
+        guard sessionToken == token else { return }
         self.streamingVAD = nil
         logger.error("🎤 VAD chunk failed, switching to fixed chunks: \(error.localizedDescription)")
+        if let speech = speechAccumulator.flush() {
+          enqueueForTranscription(speech)
+        }
+        await vad.stop()
+        guard sessionToken == token else { return }
         enqueueForTranscription(samples)
       }
       return
@@ -352,49 +399,29 @@ final class StreamingAudioCaptureModule {
     let level = configuration.levelCalculator(remainingSamples)
     callbacks.onAudioLevel(level)
 
-    let samples = preparedSamples(from: remainingSamples)
-    guard !samples.isEmpty else { return }
-    sessionCaptureSamples.append(contentsOf: samples)
-
-    if let vad = streamingVAD {
-      do {
-        let activity = try await vad.feed(samples: samples)
-        if let speechWindow = speechAccumulator.ingest(
-          chunk: samples,
-          speechSampleRanges: activity.speechSampleRanges
-        ) {
-          enqueueForTranscription(speechWindow)
-        }
-        if let trailingSpeech = speechAccumulator.flush() {
-          enqueueForTranscription(trailingSpeech)
-        }
-      } catch {
-        logger.error("🎤 VAD final chunk failed: \(error.localizedDescription)")
-        enqueueForTranscription(samples)
-      }
-      return
-    }
-
-    enqueueForTranscription(samples)
+    enqueueCapturedChunk(remainingSamples)
   }
 
   // MARK: - Stage 2: Async ASR Dispatch
 
   /// Enqueue a speech window for background ASR. If ASR is already in flight,
   /// the window is queued and processed after the current inference completes.
-  private func enqueueForTranscription(_ samples: [Float]) {
+  private func enqueueForTranscription(_ samples: [Float], isComplete: Bool = true) {
     guard !samples.isEmpty else { return }
+    let window = SpeechWindow(id: speechWindowID, samples: samples, isComplete: isComplete)
+    pendingSpeechWindows.removeAll { $0.id == window.id }
+    if isComplete { speechWindowID &+= 1 }
 
     if isProcessing {
-      pendingSpeechWindows.append(samples)
+      pendingSpeechWindows.append(window)
       return
     }
 
-    transcribeAsync(samples: samples)
+    transcribeAsync(window: window)
   }
 
   /// Run ASR inference on a background thread, deliver results back to main.
-  private func transcribeAsync(samples: [Float]) {
+  private func transcribeAsync(window: SpeechWindow) {
     guard let engine else { return }
     isProcessing = true
     let capturedToken = sessionToken
@@ -405,34 +432,40 @@ final class StreamingAudioCaptureModule {
       let text: String?
       do {
         let result = try engine.transcribeStreamingChunk(
-          samples16k: samples,
+          samples16k: window.samples,
           language: lang,
           dictionaryContext: dict
         )
-        text = result.isEmpty ? nil : result
+        text = result
       } catch {
         text = nil
       }
-      await self?.handleTranscriptionResult(text: text, sessionToken: capturedToken)
+      await self?.handleTranscriptionResult(text: text, window: window, sessionToken: capturedToken)
     }
   }
 
   /// Called on main thread when background ASR completes.
-  private func handleTranscriptionResult(text: String?, sessionToken token: UInt64) {
+  private func handleTranscriptionResult(text: String?, window: SpeechWindow, sessionToken token: UInt64) {
     // Ignore results from a stale session
     guard token == sessionToken else { return }
 
     isProcessing = false
 
-    if let text {
-      accumulatedText = mergeTranscript(accumulatedText, with: text)
-      callbacks.onInterimText(collapseWhitespace(accumulatedText))
+    if let text { currentWindowText = collapseWhitespace(text) }
+    if window.isComplete {
+      committedText = joinedTranscript(committedText, currentWindowText)
+      currentWindowText = ""
+    }
+    let updatedText = joinedTranscript(committedText, currentWindowText)
+    if updatedText != accumulatedText {
+      accumulatedText = updatedText
+      callbacks.onInterimText(updatedText)
     }
 
     // Process queued speech window if any
     if !pendingSpeechWindows.isEmpty {
       let queued = pendingSpeechWindows.removeFirst()
-      transcribeAsync(samples: queued)
+      transcribeAsync(window: queued)
     } else if drainContinuation != nil {
       // No more work — resume drain
       drainContinuation?.resume()
@@ -547,26 +580,10 @@ final class StreamingAudioCaptureModule {
     return trimmed.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
   }
 
-  private func mergeTranscript(_ base: String, with addition: String) -> String {
+  private func joinedTranscript(_ base: String, _ addition: String) -> String {
     guard !addition.isEmpty else { return base }
     guard !base.isEmpty else { return addition }
-    if addition == base { return base }
-    if base.contains(addition) { return base }
-    if addition.contains(base) { return addition }
-    let overlap = longestOverlap(between: base, and: addition)
-    let suffixStart = addition.index(addition.startIndex, offsetBy: overlap)
-    let additionSuffix = String(addition[suffixStart...]).trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !additionSuffix.isEmpty else { return base }
-    return base + (base.hasSuffix(" ") ? "" : " ") + additionSuffix
-  }
-
-  private func longestOverlap(between base: String, and addition: String) -> Int {
-    let maxOverlap = min(base.count, addition.count)
-    guard maxOverlap > 0 else { return 0 }
-    for overlap in stride(from: maxOverlap, through: 1, by: -1) {
-      if base.suffix(overlap) == addition.prefix(overlap) { return overlap }
-    }
-    return 0
+    return base + " " + addition
   }
 
   private static func maxSpeechWindowSamples(for configuration: Configuration) -> Int {
@@ -631,6 +648,7 @@ final class StreamingAudioCaptureModule {
 
   /// Wait for all in-flight and pending ASR work to complete.
   func testDrainPendingWork() async {
+    await captureProcessingTask?.value
     if isProcessing || !pendingSpeechWindows.isEmpty {
       await withCheckedContinuation { continuation in
         drainContinuation = continuation

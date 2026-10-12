@@ -20,7 +20,7 @@ actor SileroStreamingVADModule {
   private var model: SileroVAD?
   private var streamingState: SileroVADStreamingState?
   private var loadedVariant: ModelVariant?
-  private var processedSamples: Int = 0
+  private var audioBuffer = SileroStreamingAudioBuffer()
 
   /// Silero requires exactly 512 samples per chunk at 16 kHz (or 256 at 8 kHz).
   private var chunkSize: Int { configuration.sampleRate == 16_000 ? 512 : 256 }
@@ -52,12 +52,12 @@ actor SileroStreamingVADModule {
 
     ModelArtifactStatusNotifier.postChange(for: variant)
     streamingState = try model?.initialState(sampleRate: configuration.sampleRate)
-    processedSamples = 0
+    audioBuffer = SileroStreamingAudioBuffer()
   }
 
   func stop() {
     streamingState = nil
-    processedSamples = 0
+    audioBuffer = SileroStreamingAudioBuffer()
   }
 
   func feed(samples: [Float]) async throws -> SortformerSpeechActivity {
@@ -73,6 +73,9 @@ actor SileroStreamingVADModule {
       )
     }
 
+    // Retain incomplete frames across microphone feeds rather than discarding
+    // the tail of every 0.5s chunk (8000 is not a multiple of 512).
+    let samples = audioBuffer.append(samples, frameSize: chunkSize)
     // Process input in fixed-size chunks (512 samples at 16 kHz)
     var speechRanges: [Range<Int>] = []
     var offset = 0
@@ -97,9 +100,7 @@ actor SileroStreamingVADModule {
     }
 
     streamingState = state
-    processedSamples += offset
-
-    return SortformerSpeechActivity(speechSampleRanges: mergedRanges(speechRanges))
+    return SortformerSpeechActivity(samples: samples, speechSampleRanges: mergedRanges(speechRanges))
   }
 
   private func mergedRanges(_ ranges: [Range<Int>]) -> [Range<Int>] {
@@ -122,3 +123,15 @@ actor SileroStreamingVADModule {
 }
 
 extension SileroStreamingVADModule: StreamingVADProvider {}
+
+struct SileroStreamingAudioBuffer: Sendable {
+  private(set) var pendingSamples: [Float] = []
+
+  mutating func append(_ samples: [Float], frameSize: Int) -> [Float] {
+    pendingSamples.append(contentsOf: samples)
+    let count = pendingSamples.count / frameSize * frameSize
+    let completeFrames = Array(pendingSamples.prefix(count))
+    pendingSamples.removeFirst(count)
+    return completeFrames
+  }
+}

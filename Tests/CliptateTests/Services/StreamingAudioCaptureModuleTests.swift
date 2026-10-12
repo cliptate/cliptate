@@ -83,6 +83,84 @@ struct StreamingAudioCaptureModuleAsyncTests {
 
   // MARK: - Async Transcription Tests
 
+  @Test("Continuous speech updates preview before endpointing and replaces earlier hypotheses")
+  func continuousSpeechRevisesPreview() async throws {
+    let engine = MockStreamingASREngine()
+    engine.transcribeResults = ["I scream", "Ice cream please", "Ice cream please"]
+    var texts: [String] = []
+    let module = makeModule(onInterimText: { texts.append($0) })
+    module.testConfigure(engine: engine, language: .auto, streamingVAD: AllSpeechVAD())
+
+    for _ in 0..<2 {
+      let buffer = try speechBuffer()
+      await module.testProcessBuffer(buffer)
+      await module.testDrainPendingWork()
+    }
+
+    #expect(texts == ["I scream", "Ice cream please"])
+    #expect(engine.transcribeCalls.map(\.count) == [8000, 16000])
+    #expect(try await module.stop() == "Ice cream please")
+    #expect(module.takeFinalizedDictationCapture()?.samples.count == 16000)
+  }
+
+  @Test("Slow ASR coalesces obsolete previews while retaining complete speech windows")
+  func slowASRCoalescesPreviewSnapshots() async throws {
+    let engine = MockStreamingASREngine()
+    engine.inferenceDelay = 0.1
+    let module = makeModule()
+    module.testConfigure(engine: engine, language: .auto, streamingVAD: AllSpeechVAD())
+    for _ in 0..<5 {
+      await module.testProcessBuffer(try speechBuffer())
+    }
+    await module.testDrainPendingWork()
+
+    // First inference can already be running; only the newest queued snapshot is useful.
+    #expect(engine.transcribeCalls.count <= 2)
+    #expect(engine.transcribeCalls.last?.count == 40000)
+    _ = try await module.stop()
+    #expect(module.takeFinalizedDictationCapture()?.samples.count == 40000)
+  }
+
+  @Test("Separate speech windows preserve intentionally repeated text")
+  func repeatedSpeechWindowsArePreserved() async throws {
+    let engine = MockStreamingASREngine()
+    engine.transcribeResults = ["yes", "yes"]
+    let module = makeModule(maxSpeechWindowDuration: 0.5)
+    module.testConfigure(engine: engine, language: .auto, streamingVAD: AllSpeechVAD())
+    for _ in 0..<2 {
+      await module.testProcessBuffer(try speechBuffer())
+      await module.testDrainPendingWork()
+    }
+    #expect(try await module.stop() == "yes yes")
+  }
+
+  private func speechBuffer() throws -> AVAudioPCMBuffer {
+    let format = try #require(AVAudioFormat(standardFormatWithSampleRate: 16_000, channels: 1))
+    let buffer = try #require(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 8000))
+    buffer.frameLength = 8000
+    buffer.floatChannelData![0].initialize(repeating: 0.5, count: 8000)
+    return buffer
+  }
+
+  @Test("VAD feeds remain serial while microphone levels and capture continue")
+  func vadFeedsAreSerialAndStopDrainsCapture() async throws {
+    let vad = DelayedSpeechVAD()
+    let engine = MockStreamingASREngine()
+    var levels: [CGFloat] = []
+    let module = makeModule(onAudioLevel: { levels.append($0) })
+    module.testConfigure(engine: engine, language: .auto, streamingVAD: vad)
+    await module.testProcessBuffer(try speechBuffer())
+    while !(await vad.hasStarted) { await Task.yield() }
+    for _ in 0..<2 {
+      await module.testProcessBuffer(try speechBuffer())
+    }
+    #expect(levels.count == 3)
+    _ = try await module.stop()
+    #expect(await vad.maximumConcurrentFeeds == 1)
+    #expect(await vad.feedSampleCounts == [8000, 8000, 8000])
+    #expect(module.takeFinalizedDictationCapture()?.samples.count == 24000)
+  }
+
   @Test("ASR inference does not block main thread during transcription")
   func asrInferenceRunsOffMainThread() async throws {
     let engine = MockStreamingASREngine()
@@ -387,7 +465,7 @@ struct StreamingAudioCaptureModuleAsyncTests {
   @Test("Stop flushes speech retained by VAD even with no partial audio chunk")
   func stopFlushesVADWithoutPartialChunk() async throws {
     let engine = MockStreamingASREngine()
-    engine.transcribeResults = ["hello"]
+    engine.transcribeResults = ["hello", "hello"]
     let module = makeModule()
     module.testConfigure(engine: engine, language: .auto, streamingVAD: AllSpeechVAD())
     let format = try #require(AVAudioFormat(standardFormatWithSampleRate: 16_000, channels: 1))
@@ -395,9 +473,10 @@ struct StreamingAudioCaptureModuleAsyncTests {
     buffer.frameLength = 8000
     buffer.floatChannelData![0].initialize(repeating: 0.5, count: 8000)
     await module.testProcessBuffer(buffer)
-    #expect(engine.transcribeCalls.isEmpty)
-    #expect(try await module.stop() == "hello")
+    await module.testDrainPendingWork()
     #expect(engine.transcribeCalls.count == 1)
+    #expect(try await module.stop() == "hello")
+    #expect(engine.transcribeCalls.count == 2)
     #expect(module.takeFinalizedDictationCapture()?.samples.count == 8000)
   }
 
@@ -527,5 +606,23 @@ private struct AllSpeechVAD: StreamingVADProvider {
   func stop() async {}
   func feed(samples: [Float]) async throws -> SortformerSpeechActivity {
     SortformerSpeechActivity(speechSampleRanges: [0..<samples.count])
+  }
+}
+
+private actor DelayedSpeechVAD: StreamingVADProvider {
+  private var concurrentFeeds = 0
+  private(set) var maximumConcurrentFeeds = 0
+  private(set) var feedSampleCounts: [Int] = []
+  var hasStarted: Bool { !feedSampleCounts.isEmpty }
+
+  func start(model: ModelVariant) async throws {}
+  func stop() async {}
+  func feed(samples: [Float]) async throws -> SortformerSpeechActivity {
+    concurrentFeeds += 1
+    maximumConcurrentFeeds = max(maximumConcurrentFeeds, concurrentFeeds)
+    feedSampleCounts.append(samples.count)
+    try await Task.sleep(for: .milliseconds(20))
+    concurrentFeeds -= 1
+    return SortformerSpeechActivity(speechSampleRanges: [0..<samples.count])
   }
 }

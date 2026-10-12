@@ -114,6 +114,55 @@ struct VoiceTranscriberStopReasonTests {
     transcriber.testResetAfterQwen3StreamAssertions()
   }
 
+  @Test("Revised previews remain display-only and batch output replaces them for delivery and history")
+  func batchResultReplacesRevisedPreviews() {
+    let transcriber = VoiceTranscriber.shared
+    transcriber.testPrepareForQwen3StreamAssertions()
+    let previousAutoType = transcriber.autoTypeEnabled
+    let session = TranscriptSession()
+    defer {
+      TranscriptHistoryStore.shared.remove(id: session.id)
+      transcriber.autoTypeEnabled = previousAutoType
+      transcriber.testResetAfterQwen3StreamAssertions()
+    }
+    transcriber.autoTypeEnabled = false
+    transcriber.testSetSession(session)
+    transcriber.testHandleQwen3StreamUpdate("I scream")
+    transcriber.testHandleQwen3StreamUpdate("Ice cream")
+    #expect(transcriber.liveText == "Ice cream")
+    #expect(transcriber.session?.lines.isEmpty == true)
+    let deliveredBeforeBatch = Mirror(reflecting: transcriber).children
+      .first { $0.label == "deliveredText" }?.value as? String
+    #expect(deliveredBeforeBatch == "")
+
+    let batch = BatchTranscriptionOutput(
+      result: TranscriptionResult(
+        segments: [Segment(startTime: 0, endTime: 1, text: "Ice cream, please.")],
+        totalDuration: 1, processingTime: 0, modelUsed: ModelVariant.whisperTiny.rawValue
+      ), speakerAnnotationApplied: false, sourceURLBookmark: nil
+    )
+    transcriber.testApplyDictationBatchOutput(batch)
+    #expect(transcriber.liveText == "Ice cream, please.")
+    #expect(transcriber.session?.combinedText == "Ice cream, please.")
+    #expect(TranscriptHistoryStore.shared.recentDictationSessions
+      .first { $0.id == session.id }?.combinedText == "Ice cream, please.")
+    let deliveredAfterBatch = Mirror(reflecting: transcriber).children
+      .first { $0.label == "deliveredText" }?.value as? String
+    #expect(deliveredAfterBatch == "Ice cream, please.")
+  }
+
+  @Test("An empty revised hypothesis clears the preview without changing the session")
+  func emptyRevisionClearsPreview() {
+    let transcriber = VoiceTranscriber.shared
+    transcriber.testPrepareForQwen3StreamAssertions()
+    defer { transcriber.testResetAfterQwen3StreamAssertions() }
+    transcriber.testSetSession(TranscriptSession())
+    transcriber.testHandleQwen3StreamUpdate("false start")
+    transcriber.testHandleQwen3StreamUpdate("")
+    #expect(transcriber.liveText.isEmpty)
+    #expect(transcriber.session?.lines.isEmpty == true)
+  }
+
   @Test("Delivered dictation output collapses embedded newlines before typing")
   func deliveredOutputCollapsesEmbeddedNewlines() {
     let transcriber = VoiceTranscriber.shared

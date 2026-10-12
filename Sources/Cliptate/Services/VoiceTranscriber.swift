@@ -730,10 +730,10 @@ public final class VoiceTranscriber: ObservableObject {
       to: normalized,
       dictionaryEntries: AppConfiguration.shared.voiceToTextCustomDictionary
     )
-    guard !biased.isEmpty, biased != lastTranscriptText else { return }
+    guard biased != lastTranscriptText else { return }
     lastTranscriptText = biased
     liveText = biased
-    recordSpeechActivity()
+    if !biased.isEmpty { recordSpeechActivity() }
     deliverTranscript(biased, isFinal: false, updateSession: false)
   }
 

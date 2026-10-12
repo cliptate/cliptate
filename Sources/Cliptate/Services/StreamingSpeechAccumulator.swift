@@ -38,9 +38,13 @@ struct StreamingSpeechAccumulator: Sendable {
       pendingSpeech.append(contentsOf: chunk[lowerBound..<upperBound])
     }
 
+    return takeFullWindow()
+  }
+
+  mutating func takeFullWindow() -> [Float]? {
     guard pendingSpeech.count >= maxBufferedSamples else { return nil }
     let emission = Array(pendingSpeech.prefix(maxBufferedSamples))
-    pendingSpeech.removeAll(keepingCapacity: true)
+    pendingSpeech.removeFirst(maxBufferedSamples)
     consecutiveSilentChunks = 0
     return emission
   }

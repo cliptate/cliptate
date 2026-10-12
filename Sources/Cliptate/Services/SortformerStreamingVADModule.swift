@@ -4,6 +4,8 @@ import MLXAudioVAD
 import os.log
 
 struct SortformerSpeechActivity: Sendable {
+  /// Nil means ranges refer to the input chunk. Fixed-frame VAD may return buffered samples.
+  var samples: [Float]? = nil
   let speechSampleRanges: [Range<Int>]
 }
 
@@ -19,7 +21,6 @@ actor SortformerStreamingVADModule {
   private var model: SortformerModel?
   private var streamingState: StreamingState?
   private var loadedVariant: ModelVariant?
-  private var processedSamples: Int = 0
 
   init(
     logger: Logger,
@@ -48,12 +49,10 @@ actor SortformerStreamingVADModule {
 
     ModelArtifactStatusNotifier.postChange(for: variant)
     streamingState = model?.initStreamingState()
-    processedSamples = 0
   }
 
   func stop() {
     streamingState = nil
-    processedSamples = 0
   }
 
   func feed(samples: [Float]) async throws -> SortformerSpeechActivity {
@@ -69,9 +68,12 @@ actor SortformerStreamingVADModule {
       )
     }
 
-    let chunkStartTime = Double(processedSamples) / Double(configuration.sampleRate)
-    let chunkDuration = Double(samples.count) / Double(configuration.sampleRate)
-    let chunkEndTime = chunkStartTime + chunkDuration
+    // Upstream offsets segments by encoded frames; 0.5s input chunks may round to
+    // 0.56s of frames. Using raw sample time here would drift on every feed.
+    let processor = model.config.processorConfig
+    let frameDuration = Double(processor.hopLength * model.config.fcEncoderConfig.subsamplingFactor)
+      / Double(processor.samplingRate)
+    let chunkStartTime = Double(state.framesProcessed) * frameDuration
 
     nonisolated(unsafe) let capturedModel = model
     let (output, newState) = try await capturedModel.feed(
@@ -82,37 +84,51 @@ actor SortformerStreamingVADModule {
     )
 
     streamingState = newState
-    processedSamples += samples.count
 
-    let ranges = mergedRanges(
-      output.segments.compactMap { segment in
-        let startTime = max(Double(segment.start), chunkStartTime)
-        let endTime = min(Double(segment.end), chunkEndTime)
+    let ranges = Self.speechSampleRanges(
+      segmentTimes: output.segments.map { (Double($0.start), Double($0.end)) },
+      chunkStartTime: chunkStartTime,
+      sampleCount: samples.count,
+      sampleRate: configuration.sampleRate
+    )
+
+    return SortformerSpeechActivity(speechSampleRanges: ranges)
+  }
+
+  nonisolated static func speechSampleRanges(
+    segmentTimes: [(start: Double, end: Double)],
+    chunkStartTime: Double,
+    sampleCount: Int,
+    sampleRate: Int
+  ) -> [Range<Int>] {
+    let chunkEndTime = chunkStartTime + Double(sampleCount) / Double(sampleRate)
+    return mergedRanges(
+      segmentTimes.compactMap { segment in
+        let startTime = max(segment.start, chunkStartTime)
+        let endTime = min(segment.end, chunkEndTime)
         guard endTime > startTime else { return nil }
 
         let lowerBound = max(
           0,
           min(
-            samples.count,
-            Int(((startTime - chunkStartTime) * Double(configuration.sampleRate)).rounded(.down))
+            sampleCount,
+            Int(((startTime - chunkStartTime) * Double(sampleRate)).rounded(.down))
           )
         )
         let upperBound = max(
           lowerBound,
           min(
-            samples.count,
-            Int(((endTime - chunkStartTime) * Double(configuration.sampleRate)).rounded(.up))
+            sampleCount,
+            Int(((endTime - chunkStartTime) * Double(sampleRate)).rounded(.up))
           )
         )
         guard lowerBound < upperBound else { return nil }
         return lowerBound..<upperBound
       }
     )
-
-    return SortformerSpeechActivity(speechSampleRanges: ranges)
   }
 
-  private func mergedRanges(_ ranges: [Range<Int>]) -> [Range<Int>] {
+  private nonisolated static func mergedRanges(_ ranges: [Range<Int>]) -> [Range<Int>] {
     guard !ranges.isEmpty else { return [] }
 
     let sortedRanges = ranges.sorted { lhs, rhs in

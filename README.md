@@ -34,7 +34,9 @@ Cliptate is a native macOS app for turning speech into editable text, subtitles,
 
 **GitHub downloads are free:** all models and Pro features are unlocked, with no subscription or purchase required. Optional online AI services use your own provider configuration.
 
-![Cliptate home screen](assets/screenshots/home.en.jpg)
+![Cliptate AI Cut workspace in English](assets/screenshots/home.en.jpg)
+
+The AI Cut workspace keeps navigation in the sidebar and video import in the main area. The interface supports English, Simplified Chinese, Japanese, Korean, and German; choose your display language in **Settings → Language**.
 
 [Get started](#get-started) · [Features](#features) · [CLI](#command-line) · [Privacy](#privacy-and-models) · [Build from source](#build-from-source)
 
