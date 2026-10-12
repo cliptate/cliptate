@@ -20,7 +20,9 @@ to unit tests. [CONTEXT.md](../../CONTEXT.md) defines the domain vocabulary.
   Application launch and the framed `CLIChannel` transport are adapters at internal seams.
   `CLIApplicationServer` owns the direct-build listener, while `CLIRequestHandler`
   uses the existing configuration, batch runtime, and TTS session runtime. Dictionary
-  mutations flush through `ConfigurationRuntime` before success. Inference admission
+  mutations flush through `ConfigurationRuntime` before success. History queries use
+  `HistoryRuntime` and bounded portable text projections, including applied AI correction
+  evidence; they never read the history file from the CLI process. Inference admission
   stays occupied until cancelled work exits; dictionary requests remain available
   during transcription or TTS. The command owns a private staging WAV passed by bookmark; it publishes the output atomically after synthesis succeeds,
   keeping large audio outside JSON frames and preserving existing files on failure.

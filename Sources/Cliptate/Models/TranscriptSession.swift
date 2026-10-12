@@ -52,6 +52,10 @@ public struct TranscriptSession: Identifiable, Equatable, Sendable {
   /// Allows AI Cut to restore the editing state without re-transcribing.
   /// Translations are embedded in each segment's `translation` field.
   public var aiCutSegments: [Segment]?
+  /// Original transcription used by Restore Original, retained across app restarts.
+  public var aiCutOriginalSegments: [Segment]?
+  /// Applied AI correction evidence; absent in legacy sessions.
+  public var corrections: [TranscriptCorrection]?
   /// The translation target language last applied in AI Cut, if any.
   public var aiCutLastTranslatedLanguage: Language?
   /// Processed translations dict keyed by post-processing segment IDs.
@@ -75,6 +79,8 @@ public struct TranscriptSession: Identifiable, Equatable, Sendable {
     sourceURLBookmark: Data? = nil,
     ttsAudioBookmark: Data? = nil,
     aiCutSegments: [Segment]? = nil,
+    aiCutOriginalSegments: [Segment]? = nil,
+    corrections: [TranscriptCorrection]? = nil,
     aiCutLastTranslatedLanguage: Language? = nil,
     aiCutProcessedTranslations: [String: SegmentTranslation]? = nil,
     aiCutRemovedSegmentIDs: Set<SegmentIdentifier>? = nil
@@ -92,6 +98,8 @@ public struct TranscriptSession: Identifiable, Equatable, Sendable {
     self.sourceURLBookmark = sourceURLBookmark
     self.ttsAudioBookmark = ttsAudioBookmark
     self.aiCutSegments = aiCutSegments
+    self.aiCutOriginalSegments = aiCutOriginalSegments
+    self.corrections = corrections
     self.aiCutLastTranslatedLanguage = aiCutLastTranslatedLanguage
     self.aiCutProcessedTranslations = aiCutProcessedTranslations
     self.aiCutRemovedSegmentIDs = aiCutRemovedSegmentIDs
@@ -172,7 +180,7 @@ extension TranscriptSession: Codable {
     case transcriberType, modelVariant, language
     case source, sourceFileName, sourceURLBookmark
     case ttsAudioBookmark, aiCutSegments, aiCutTranslations, aiCutLastTranslatedLanguage
-    case aiCutProcessedTranslations, aiCutRemovedSegmentIDs
+    case aiCutProcessedTranslations, aiCutRemovedSegmentIDs, aiCutOriginalSegments, corrections
   }
 
   public init(from decoder: Decoder) throws {
@@ -210,6 +218,8 @@ extension TranscriptSession: Codable {
     }
 
     aiCutSegments = decodedSegments
+    aiCutOriginalSegments = try container.decodeIfPresent([Segment].self, forKey: .aiCutOriginalSegments)
+    corrections = try container.decodeIfPresent([TranscriptCorrection].self, forKey: .corrections)
     aiCutLastTranslatedLanguage = try container.decodeIfPresent(
       Language.self,
       forKey: .aiCutLastTranslatedLanguage
@@ -239,6 +249,8 @@ extension TranscriptSession: Codable {
     try container.encodeIfPresent(sourceURLBookmark, forKey: .sourceURLBookmark)
     try container.encodeIfPresent(ttsAudioBookmark, forKey: .ttsAudioBookmark)
     try container.encodeIfPresent(aiCutSegments, forKey: .aiCutSegments)
+    try container.encodeIfPresent(aiCutOriginalSegments, forKey: .aiCutOriginalSegments)
+    try container.encodeIfPresent(corrections, forKey: .corrections)
     try container.encodeIfPresent(aiCutLastTranslatedLanguage, forKey: .aiCutLastTranslatedLanguage)
     try container.encodeIfPresent(aiCutProcessedTranslations, forKey: .aiCutProcessedTranslations)
     try container.encodeIfPresent(aiCutRemovedSegmentIDs, forKey: .aiCutRemovedSegmentIDs)

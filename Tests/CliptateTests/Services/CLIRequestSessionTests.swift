@@ -37,6 +37,25 @@ final class CLIRequestSessionTests: XCTestCase {
     XCTAssertEqual(response.entries, ["你好", "Café"])
   }
 
+  func testHistoryQueryAndPageCrossAuthenticatedTransport() async throws {
+    let query = CLIHistoryQuery(action: .list, source: "fileTranscription", limit: 1)
+    let server = CLIRequestServer { request, _ in
+      XCTAssertEqual(request.operation, .history)
+      XCTAssertEqual(request.history, query)
+      var page = CLIHistoryPage()
+      page.sessions = [CLIHistorySession(id: UUID().uuidString,
+        startTime: "2026-10-12T00:00:00.000Z", endTime: nil, source: "fileTranscription",
+        sourceFileName: "test.wav", language: "zh", model: "test", lineCount: 1,
+        correctionCount: 0, preview: "你好")]
+      return CLIEvent(.result, history: page)
+    }
+    let loopback = try await SessionLoopback(server: server)
+    defer { loopback.close() }
+    let response = try await loopback.client.execute(CLIRequest(operation: .history, history: query))
+    XCTAssertEqual(response.history?.sessions.first?.preview, "你好")
+    XCTAssertEqual(response.history?.schemaVersion, 1)
+  }
+
   func testSpeechPayloadAndMetadataCrossAuthenticatedTransport() async throws {
     let server = CLIRequestServer { request, progress in
       XCTAssertEqual(request.operation, .tts)
@@ -105,6 +124,9 @@ final class CLIRequestSessionTests: XCTestCase {
     }
     let dictionary = try await loopback.client.execute(CLIRequest(operation: .dictionaryList))
     XCTAssertEqual(dictionary.entries, ["Available"])
+    let history = try await loopback.client.execute(
+      CLIRequest(operation: .history, history: CLIHistoryQuery(action: .corrections)))
+    XCTAssertEqual(history.entries, ["Available"])
 
     release.open()
     _ = try await active.value

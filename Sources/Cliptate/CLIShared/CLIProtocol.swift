@@ -62,7 +62,7 @@ public struct CLIEndpoint: Sendable {
 }
 
 public enum CLIOperation: String, Codable, Sendable {
-  case transcribe, tts, dictionaryList, dictionaryAdd, dictionaryRemove
+  case transcribe, tts, dictionaryList, dictionaryAdd, dictionaryRemove, history
 }
 
 public struct CLIRequest: Codable, Sendable {
@@ -76,11 +76,13 @@ public struct CLIRequest: Codable, Sendable {
   public var entries: [String]
   public var tts: CLITTSParameters?
   public var outputBookmark: Data?
+  public var history: CLIHistoryQuery?
 
   public init(
     operation: CLIOperation, bookmark: Data? = nil, model: String? = nil,
     language: String? = nil, useDictionary: Bool = true, download: Bool = false,
-    entries: [String] = [], tts: CLITTSParameters? = nil, outputBookmark: Data? = nil
+    entries: [String] = [], tts: CLITTSParameters? = nil, outputBookmark: Data? = nil,
+    history: CLIHistoryQuery? = nil
   ) {
     self.operation = operation
     self.bookmark = bookmark
@@ -91,6 +93,7 @@ public struct CLIRequest: Codable, Sendable {
     self.entries = entries
     self.tts = tts
     self.outputBookmark = outputBookmark
+    self.history = history
   }
 }
 
@@ -166,9 +169,11 @@ public struct CLIEvent: Codable, Sendable {
   public let transcript: CLIFileResult?
   public let entries: [String]?
   public let audio: CLIAudioResult?
+  public let history: CLIHistoryPage?
   public init(
     _ kind: Kind, token: String? = nil, message: String? = nil,
-    transcript: CLIFileResult? = nil, entries: [String]? = nil, audio: CLIAudioResult? = nil
+    transcript: CLIFileResult? = nil, entries: [String]? = nil, audio: CLIAudioResult? = nil,
+    history: CLIHistoryPage? = nil
   ) {
     self.kind = kind
     self.token = token
@@ -176,5 +181,157 @@ public struct CLIEvent: Codable, Sendable {
     self.transcript = transcript
     self.entries = entries
     self.audio = audio
+    self.history = history
   }
+}
+
+/// Only textual, portable history fields cross the CLI transport. No audio paths or bookmarks.
+public struct CLIHistoryQuery: Codable, Equatable, Sendable {
+  public enum Action: String, Codable, Sendable { case list, show, corrections }
+  public var action: Action
+  public var sessionID: String?
+  public var source: String?
+  public var since: String?
+  public var until: String?
+  public var search: String?
+  public var correctionsOnly: Bool
+  public var limit: Int
+  public var cursor: String?
+
+  public init(action: Action, sessionID: String? = nil, source: String? = nil,
+    since: String? = nil, until: String? = nil, search: String? = nil,
+    correctionsOnly: Bool = false, limit: Int = 50, cursor: String? = nil) {
+    self.action = action
+    self.sessionID = sessionID
+    self.source = source
+    self.since = since
+    self.until = until
+    self.search = search
+    self.correctionsOnly = correctionsOnly
+    self.limit = limit
+    self.cursor = cursor
+  }
+
+  public static func date(_ value: String) -> Date? {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return formatter.date(from: value) ?? ISO8601DateFormatter().date(from: value)
+  }
+
+  public func validate() throws {
+    guard (1...200).contains(limit),
+      source == nil || ["voiceDictation", "fileTranscription", "ttsSynthesis"].contains(source!),
+      sessionID == nil || UUID(uuidString: sessionID!) != nil,
+      action != .show || (sessionID != nil && source == nil && since == nil && until == nil
+        && search == nil && !correctionsOnly),
+      since == nil || Self.date(since!) != nil,
+      until == nil || Self.date(until!) != nil,
+      cursor == nil || (cursor!.utf8.count <= 16_384 && !cursor!.isEmpty)
+    else { throw Self.invalidArguments() }
+    if let since, let until, let start = Self.date(since), let end = Self.date(until), start > end {
+      throw Self.invalidArguments()
+    }
+  }
+
+  public static func invalidArguments() -> CLIError {
+    CLIError(String(localized: "Invalid history arguments. Run cliptate history --help.", bundle: CLILocalization.bundle))
+  }
+}
+
+public struct CLIHistorySession: Codable, Sendable {
+  public let id: String
+  public let startTime: String
+  public let endTime: String?
+  public let source: String
+  public let sourceFileName: String?
+  public let language: String?
+  public let model: String?
+  public let lineCount: Int
+  public let correctionCount: Int
+  public let preview: String
+
+  public init(id: String, startTime: String, endTime: String?, source: String,
+    sourceFileName: String?, language: String?, model: String?, lineCount: Int,
+    correctionCount: Int, preview: String) {
+    self.id = id
+    self.startTime = startTime
+    self.endTime = endTime
+    self.source = source
+    self.sourceFileName = sourceFileName
+    self.language = language
+    self.model = model
+    self.lineCount = lineCount
+    self.correctionCount = correctionCount
+    self.preview = preview
+  }
+}
+
+public struct CLIHistoryLine: Codable, Sendable {
+  public let id: String
+  public let timestamp: Double
+  public let text: String
+  public let speakerId: Int?
+  public init(id: String, timestamp: Double, text: String, speakerId: Int?) {
+    self.id = id
+    self.timestamp = timestamp
+    self.text = text
+    self.speakerId = speakerId
+  }
+}
+
+public struct CLIHistoryCorrection: Codable, Sendable {
+  public let id: String
+  public let batchID: String
+  public let sessionID: String
+  public let relatedSessionIDs: [String]
+  public let source: String
+  public let sourceFileName: String?
+  public let recordedAt: String
+  public let kind: String
+  public let status: String
+  public let statusChangedAt: String?
+  public let original: String
+  public let corrected: String
+  public let originalContext: String
+  public let correctedContext: String
+  public let targetID: String?
+  public let timestamp: Double?
+  public let provider: String
+  public let model: String
+  public let language: String
+
+  public init(id: String, batchID: String, sessionID: String, relatedSessionIDs: [String],
+    source: String, sourceFileName: String?, recordedAt: String, kind: String, status: String,
+    statusChangedAt: String?, original: String, corrected: String, originalContext: String,
+    correctedContext: String, targetID: String?, timestamp: Double?, provider: String,
+    model: String, language: String) {
+    self.id = id
+    self.batchID = batchID
+    self.sessionID = sessionID
+    self.relatedSessionIDs = relatedSessionIDs
+    self.source = source
+    self.sourceFileName = sourceFileName
+    self.recordedAt = recordedAt
+    self.kind = kind
+    self.status = status
+    self.statusChangedAt = statusChangedAt
+    self.original = original
+    self.corrected = corrected
+    self.originalContext = originalContext
+    self.correctedContext = correctedContext
+    self.targetID = targetID
+    self.timestamp = timestamp
+    self.provider = provider
+    self.model = model
+    self.language = language
+  }
+}
+
+public struct CLIHistoryPage: Codable, Sendable {
+  public var sessions: [CLIHistorySession] = []
+  public var lines: [CLIHistoryLine] = []
+  public var corrections: [CLIHistoryCorrection] = []
+  public var nextCursor: String?
+  public let schemaVersion = 1
+  public init() {}
 }

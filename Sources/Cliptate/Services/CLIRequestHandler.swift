@@ -17,6 +17,7 @@ struct CLISpeechRequest: Sendable {
 @MainActor
 final class CLIRequestHandler {
   private let config: AppConfiguration
+  private let history: HistoryRuntime?
   private let persist: @MainActor (AppConfiguration) throws -> Void
   private let transcribe:
     @Sendable (BatchTranscriptionRequest, @escaping @Sendable (String) -> Void) async throws ->
@@ -27,6 +28,7 @@ final class CLIRequestHandler {
 
   init(
     config: AppConfiguration,
+    history: HistoryRuntime? = nil,
     persist: @escaping @MainActor (AppConfiguration) throws -> Void = {
       try ConfigurationRuntime.shared.flush(using: $0)
     },
@@ -69,6 +71,7 @@ final class CLIRequestHandler {
       }
   ) {
     self.config = config
+    self.history = history
     self.persist = persist
     self.transcribe = transcribe
     self.ensureModel = ensureModel
@@ -80,6 +83,9 @@ final class CLIRequestHandler {
   {
     try Task.checkCancellation()
     switch request.operation {
+    case .history:
+      guard let query = request.history else { throw CLIChannel.protocolError() }
+      return CLIEvent(.result, history: try (history ?? .shared).query(query))
     case .dictionaryList: return CLIEvent(.result, entries: config.voiceToTextCustomDictionary)
     case .dictionaryAdd, .dictionaryRemove:
       let previous = config.voiceToTextCustomDictionary

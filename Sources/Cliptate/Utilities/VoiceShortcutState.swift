@@ -19,6 +19,7 @@ final class VoiceShortcutState: ObservableObject {
   struct SessionResult {
     let mode: VoiceShortcutMode
     let transcript: String
+    let sessionIDs: [UUID]
   }
 
   @Published private(set) var activeMode: VoiceShortcutMode?
@@ -29,6 +30,7 @@ final class VoiceShortcutState: ObservableObject {
   private(set) var pendingEndMode: VoiceShortcutMode?
   /// Tracks the last transcriber session ID whose text was absorbed, preventing double-append.
   private var lastAbsorbedSessionID: UUID?
+  private var absorbedSessionIDs: [UUID] = []
 
   init() {}
 
@@ -37,6 +39,7 @@ final class VoiceShortcutState: ObservableObject {
     pendingResult = nil
     pendingEndMode = nil
     lastAbsorbedSessionID = nil
+    absorbedSessionIDs = []
     activeMode = mode
     phase = .ready
   }
@@ -60,8 +63,9 @@ final class VoiceShortcutState: ObservableObject {
   func absorbSessionTextOnce(sessionID: UUID?, text: String) {
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else { return }
-    guard let sessionID, sessionID != lastAbsorbedSessionID else { return }
+    guard let sessionID, sessionID != lastAbsorbedSessionID, !absorbedSessionIDs.contains(sessionID) else { return }
     lastAbsorbedSessionID = sessionID
+    absorbedSessionIDs.append(sessionID)
     appendSegmentText(trimmed)
   }
 
@@ -73,8 +77,9 @@ final class VoiceShortcutState: ObservableObject {
     phase = .idle
     accumulatedTranscript = ""
     pendingEndMode = nil
-    let result = SessionResult(mode: mode, transcript: transcript)
+    let result = SessionResult(mode: mode, transcript: transcript, sessionIDs: absorbedSessionIDs)
     pendingResult = result
+    absorbedSessionIDs = []
     return result
   }
 
@@ -91,6 +96,7 @@ final class VoiceShortcutState: ObservableObject {
     accumulatedTranscript = ""
     pendingEndMode = nil
     pendingResult = nil
+    absorbedSessionIDs = []
   }
 
   /// Phase 1: Mark the session as ending. Stores the mode but does NOT capture
@@ -113,8 +119,9 @@ final class VoiceShortcutState: ObservableObject {
     }
     pendingEndMode = nil
     accumulatedTranscript = ""
-    let result = SessionResult(mode: mode, transcript: transcript)
+    let result = SessionResult(mode: mode, transcript: transcript, sessionIDs: absorbedSessionIDs)
     pendingResult = result
+    absorbedSessionIDs = []
     return result
   }
 }

@@ -1223,13 +1223,13 @@ struct VoiceToTextView: View {
 
     switch pending.mode {
     case .dictation:
-      startDictationAutofix(transcript: pending.transcript)
+      startDictationAutofix(transcript: pending.transcript, sessionIDs: pending.sessionIDs)
     case .assistant:
       startAssistantCommand(transcript: pending.transcript)
     }
   }
 
-  private func startDictationAutofix(transcript: String) {
+  private func startDictationAutofix(transcript: String, sessionIDs: [UUID]) {
     guard config.voiceToTextDictationAIEnhanceEnabled else {
       transcriber.deliverAssistantOutput(transcript)
       restoreTranscriptDeliveryIfNeeded()
@@ -1260,6 +1260,7 @@ struct VoiceToTextView: View {
     let model = config.aiModel(for: provider)
     let endpoint = config.aiOpenAIEndpoint
     let dictionaryContext = config.dictionaryContextText
+    let language = config.voiceToTextLanguage
 
     postProcessingTask = Task {
       do {
@@ -1277,20 +1278,29 @@ struct VoiceToTextView: View {
           prompt: userPrompt,
           provider: provider,
           model: model,
-          systemPrompt: String(format: AIPrompts.dictationSystemPrompt, AIPrompts.languageOutputRule(for: config.voiceToTextLanguage)),
+          systemPrompt: String(format: AIPrompts.dictationSystemPrompt, AIPrompts.languageOutputRule(for: language)),
           apiKey: apiKey,
           openAIBaseURL: endpoint
         )
 
         logger.notice("Dictation autofix prompt: (\(userPrompt))\nresponse: \(response)")
 
+        try Task.checkCancellation()
         await MainActor.run {
+          guard !Task.isCancelled else { return }
           finishPostProcessing(
             mode: .dictation,
             response: response,
             transcript: transcript,
             statusMessage: "Transcript corrected and delivered via AI."
           )
+          do {
+            try historyRuntime.recordDictationCorrection(sessionIDs: sessionIDs, original: transcript,
+              corrected: response, provider: provider.rawValue, model: model, language: language.rawValue)
+          } catch {
+            postProcessingErrorMessage = String(format: String(localized:
+              "AI text was applied, but correction history could not be saved: %@."), error.localizedDescription)
+          }
         }
       } catch is CancellationError {
         await MainActor.run {

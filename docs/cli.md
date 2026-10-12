@@ -9,7 +9,8 @@ the CLI or start its listener.
 Run `cliptate --help` for the complete command reference, including input and output
 rules, the JSON structure, dictionary behavior, environment variables, exit codes,
 and examples. The same reference is available with `cliptate transcribe --help`,
-`cliptate tts --help`, and `cliptate dictionary --help`, without launching the app.
+`cliptate tts --help`, `cliptate dictionary --help`, and `cliptate history --help`,
+without launching the app.
 
 For AI agents and scripts, prefer `--format json`, capture stdout separately from
 stderr, and inspect both the exit status and each `files[].error`. Batch JSON is
@@ -127,6 +128,80 @@ normalization trims entries, drops blanks, and deduplicates case and diacritics
 while retaining the first spelling and order. Remove uses the same comparison.
 Mutations return only after configuration persistence succeeds. An open dictionary
 editor updates to reflect CLI changes. These commands manage recognition vocabulary.
+
+## Query history and learn dictionary vocabulary
+
+```sh
+cliptate history list --corrections-only --limit 50
+cliptate history show 00000000-0000-0000-0000-000000000001
+cliptate history corrections --source fileTranscription --since 2026-10-01T00:00:00Z
+cliptate history corrections --search "Cliptate" > correction-evidence.json
+cliptate history corrections --session 00000000-0000-0000-0000-000000000001
+cliptate dictionary list > current-dictionary.json
+# After an AI analyzes the evidence and selects correct recognition vocabulary:
+cliptate dictionary add "Cliptate" "SwiftUI"
+cliptate dictionary import selected-terms.json
+```
+
+History commands always return JSON (`--format json` is accepted). The shape is
+`{ "schemaVersion": 1, "sessions": [], "lines": [], "corrections": [], "nextCursor": "..." }`;
+`nextCursor` is omitted on the last page. `list` returns compact session summaries
+with ID, source, dates, model/language, line/correction counts, and a 160-character
+preview. `show` returns one summary and pages transcript lines followed by correction
+records. `corrections` returns correction evidence directly. No recordings, audio
+paths, security bookmarks, word timing, or internal editing state are exported.
+
+`list` and `corrections` accept `--source voiceDictation|fileTranscription|ttsSynthesis`,
+`--session UUID`, `--since ISO-8601`, `--until ISO-8601`, and `--search TEXT`.
+`list --corrections-only` selects sessions with correction evidence. Time bounds are
+inclusive and must include a timezone; output dates are UTC ISO-8601 with milliseconds.
+Time filters/order use session start for `list`, correction time for `corrections`.
+Search covers transcript/filename/pairs for `list`, and pair/context/filename for
+`corrections`. `show` accepts only `--limit`, `--cursor`, and `--format json` after its ID.
+
+All three commands accept `--limit 1..200` (default 50) and `--cursor TOKEN`.
+Follow `nextCursor` with the same command and filters until it is absent. Changing
+filters rejects the cursor; changing the limit is permitted. List/correction
+pagination uses time and stable IDs, so newly inserted newer entries do not move
+older pages. Show cursors bind to the text snapshot: if the session changes while
+paging, restart without a cursor. Responses also have an 8 MiB byte budget and may
+contain fewer entries than the count limit. Evidence is never silently truncated;
+an individual record larger than the byte budget produces an explicit error.
+A missing/expired `show` ID fails with exit status 1; empty list/correction queries
+succeed with empty arrays. Invalid arguments return exit status 2.
+
+AI Cut saves only validated word/phrase substitutions that actually changed text,
+from both single-file and batch correction. Each record contains `id`, `batchID`,
+`sessionID`, `relatedSessionIDs`, `recordedAt`, `kind`, `status`, optional
+`statusChangedAt`, `original`, `corrected`, before/after context, target segment ID,
+timestamp, and AI provider/model/language. AI-enhanced dictation saves before/after
+whole text (`kind: "dictation"`), rather than inventing word pairs. When a shortcut
+combines multiple recordings, one event carries all captured originating session
+IDs and is emitted once by `corrections`. Assistant answers are not correction records.
+
+`applied` means the edit was applied at that time; it is historical evidence,
+not user approval or a guarantee that the present text still contains it.
+Restore Original marks applicable evidence `reverted`; new transcription marks
+older revision evidence `superseded`. Ordinary edits, translations, deletions, and
+app restarts preserve the audit text and provenance. Restore Original and its
+baseline now survive history restoration. Old sessions remain readable and have
+no fabricated correction records. The History detail page displays these records,
+and its dictionary analysis prioritizes applied correction evidence.
+
+An external AI can page through `history corrections`, read `dictionary list`,
+analyze proper nouns/technical vocabulary in corrected context, and write selected
+terms using the existing `dictionary add/import` commands. Filter out reverted or
+superseded evidence; inspect whole-text dictation rewrites rather than treating
+style/grammar changes as vocabulary. Deduplicate evidence by event ID, and terms
+with the dictionary's normal comparison. Recognition vocabulary remains a string
+array, not an incorrect-to-correct replacement map. History queries make no AI calls;
+the external agent owns analysis and can automate that workflow.
+
+Correction records follow their parent sessions' deletion and retention:
+dictation 24 hours, files/TTS 30 days. Analyze dictation before expiry if it is to
+contribute vocabulary. Production and development history/dictionaries remain
+separate. Reads use the existing authenticated app service and stay available
+while CLI inference is running. CLI transcription/TTS still do not create history.
 
 ## Local transport and distribution
 

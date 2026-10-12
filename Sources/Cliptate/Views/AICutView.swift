@@ -501,7 +501,8 @@ struct AICutView: View {
       sourceURLBookmark: sourceURLBookmark,
       duration: duration,
       existingSessionID: historyRuntime.existingFileTranscriptionSessionID(
-        forSourceURL: url)
+        forSourceURL: url),
+      replacingTranscription: true
     )
   }
 
@@ -515,7 +516,8 @@ struct AICutView: View {
     removedSegmentIDs: Set<SegmentIdentifier>? = nil,
     sourceURLBookmark: Data? = nil,
     duration: TimeInterval,
-    existingSessionID: UUID?
+    existingSessionID: UUID?,
+    replacingTranscription: Bool = false
   ) -> UUID? {
     guard !segments.isEmpty else { return existingSessionID }
     do {
@@ -526,6 +528,8 @@ struct AICutView: View {
         existingSessionID: existingSessionID,
         url: url,
         segments: segments,
+        originalSegments: replacingTranscription ? segments
+          : (videoStates[url]?.originalSegments.isEmpty == false ? videoStates[url]?.originalSegments : nil),
         lastTranslatedLanguage: lastTranslatedLanguage,
         processedTranslations: processedTranslations,
         removedSegmentIDs: removedSegmentIDs,
@@ -535,7 +539,7 @@ struct AICutView: View {
         modelVariant: config.modelVariant,
         language: config.language
       )
-      historyRuntime.add(session)
+      historyRuntime.add(session, replacingTranscription: replacingTranscription)
       return session.id
     } catch {
       print("[AICutView] Failed to persist file transcription history: \(error.localizedDescription)")
@@ -3023,7 +3027,9 @@ struct AICutView: View {
       var allCorrectedTexts: [String] = []
 
       let promptToUse = resolvedCorrectionPrompt(customPrompt: customPrompt)
-      let correctionModel = config.aiModel(for: config.selectedAIProvider)
+      let correctionProvider = config.selectedAIProvider
+      let correctionLanguage = config.language
+      let correctionModel = config.aiModel(for: correctionProvider)
       let correctionSystemPrompt = AppConfiguration.defaultSystemCorrectionPrompt
 
       for (index, url) in transcribedURLs.enumerated() {
@@ -3040,7 +3046,9 @@ struct AICutView: View {
 
         // 准备批量纠错的数据
         var segmentsToCorrect: [(index: Int, segment: Segment)] = []
-        var correctedSegments: [Segment] = videoState.segments
+        let inputSegments = videoState.segments
+        var appliedCorrections: [AICorrector.CorrectionItem] = []
+        var correctedSegments: [Segment] = inputSegments
 
         // 收集需要纠错的 segment
         for (segIndex, segment) in videoState.segments.enumerated() {
@@ -3061,11 +3069,11 @@ struct AICutView: View {
           let textsToCorrect = segmentsToCorrect.map { $0.segment.text }
           let (correctedTexts, corrections) = try await AICorrector.correctBatchDiff(
             textsToCorrect,
-            provider: config.selectedAIProvider,
+            provider: correctionProvider,
             model: correctionModel,
             systemPrompt: correctionSystemPrompt,
             apiKey: apiKey,
-            language: config.language,
+            language: correctionLanguage,
             customPrompt: promptToUse,
             openAIBaseURL: config.aiOpenAIEndpoint
           )
@@ -3073,7 +3081,11 @@ struct AICutView: View {
           guard AICutSessionGuard.shouldApplyUpdate(
             capturedGeneration: sessionGeneration,
             activeGeneration: aiCutSessionGeneration
-          ) else { return }
+          ), videoStates[url] === videoState, videoState.segments == inputSegments else {
+            applyIfCurrentAICutSession(sessionGeneration) { isAICorrecting = false }
+            return
+          }
+          appliedCorrections = corrections
 
           // 将纠正后的文本应用回 segment
           for (arrayIndex, (segIndex, originalSegment)) in segmentsToCorrect.enumerated() {
@@ -3113,6 +3125,8 @@ struct AICutView: View {
           }
           if let state = videoStates[url] {
             markSegmentsChanged(for: url, state: state)
+            persistAICorrectionEvidence(appliedCorrections, segments: segmentsToCorrect.map { $0.segment },
+              state: state, provider: correctionProvider, model: correctionModel, language: correctionLanguage)
           }
         }
       }
@@ -3183,10 +3197,15 @@ struct AICutView: View {
           String(localized: "AI correcting \(url.lastPathComponent) using \(config.selectedAIProvider.displayName)...", comment: "AI Cut status message")
       }
       let promptToUse = resolvedCorrectionPrompt(customPrompt: customPrompt)
+      let correctionProvider = config.selectedAIProvider
+      let correctionLanguage = config.language
+      let correctionModel = config.aiModel(for: correctionProvider)
 
       // 准备批量纠错的数据
       var segmentsToCorrect: [(index: Int, segment: Segment)] = []
-      var correctedSegments: [Segment] = videoState.segments
+      let inputSegments = videoState.segments
+      var appliedCorrections: [AICorrector.CorrectionItem] = []
+      var correctedSegments: [Segment] = inputSegments
       var hasErrors = false
       var correctedTextForDictionary: [String]? = nil
 
@@ -3205,11 +3224,11 @@ struct AICutView: View {
           let textsToCorrect = segmentsToCorrect.map { $0.segment.text }
           let (correctedTexts, corrections) = try await AICorrector.correctBatchDiff(
             textsToCorrect,
-            provider: config.selectedAIProvider,
-            model: config.aiModel(for: config.selectedAIProvider),
+            provider: correctionProvider,
+            model: correctionModel,
             systemPrompt: AppConfiguration.defaultSystemCorrectionPrompt,
             apiKey: apiKey,
-            language: config.language,
+            language: correctionLanguage,
             customPrompt: promptToUse,
             openAIBaseURL: config.aiOpenAIEndpoint
           )
@@ -3217,7 +3236,11 @@ struct AICutView: View {
           guard AICutSessionGuard.shouldApplyUpdate(
             capturedGeneration: sessionGeneration,
             activeGeneration: aiCutSessionGeneration
-          ) else { return }
+          ), videoStates[url] === videoState, videoState.segments == inputSegments else {
+            applyIfCurrentAICutSession(sessionGeneration) { isAICorrecting = false }
+            return
+          }
+          appliedCorrections = corrections
 
           // 将纠正后的文本应用回 segment
           for (arrayIndex, (segIndex, originalSegment)) in segmentsToCorrect.enumerated() {
@@ -3262,6 +3285,8 @@ struct AICutView: View {
         processedSegments = currentSegments  // force UI refresh after text correction
         if let state = videoStates[url] {
           markSegmentsChanged(for: url, state: state)
+          persistAICorrectionEvidence(appliedCorrections, segments: segmentsToCorrect.map { $0.segment },
+            state: state, provider: correctionProvider, model: correctionModel, language: correctionLanguage)
         }
 
         isAICorrecting = false
@@ -3278,6 +3303,21 @@ struct AICutView: View {
         dictionaryTermsFromCorrection = terms
         showCorrectionDictionarySheet = true
       }
+    }
+  }
+
+  @MainActor
+  private func persistAICorrectionEvidence(
+    _ corrections: [AICorrector.CorrectionItem], segments: [Segment], state: VideoState,
+    provider: AIProvider, model: String, language: Language
+  ) {
+    guard !corrections.isEmpty, let sessionID = state.historySessionID else { return }
+    do {
+      try historyRuntime.recordFileCorrections(corrections, segments: segments, for: sessionID,
+        provider: provider.rawValue, model: model, language: language.rawValue)
+    } catch {
+      aiErrorMessage = String(format: String(localized:
+        "AI text was applied, but correction history could not be saved: %@."), error.localizedDescription)
     }
   }
 
@@ -3319,6 +3359,15 @@ struct AICutView: View {
     }
 
     videoState.restoreOriginal()
+    processedSegments = currentSegments
+    if let sessionID = videoState.historySessionID {
+      do { try historyRuntime.markCorrections(for: sessionID, status: .reverted) }
+      catch {
+        aiErrorMessage = String(format: String(localized:
+          "Correction history status could not be saved: %@."), error.localizedDescription)
+      }
+    }
+    markSegmentsChanged(for: url, state: videoState)
     statusText = String(localized: "Restored original transcription for \(url.lastPathComponent)", comment: "AI Cut status message")
   }
 

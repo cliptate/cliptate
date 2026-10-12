@@ -98,6 +98,8 @@ struct TranscriptSessionHistoryTests {
 
         #expect(decoded.ttsAudioBookmark == nil)
         #expect(decoded.aiCutSegments == nil)
+        #expect(decoded.aiCutOriginalSegments == nil)
+        #expect(decoded.corrections == nil)
         #expect(decoded.aiCutLastTranslatedLanguage == nil)
         #expect(decoded.source == .fileTranscription)
     }
@@ -115,6 +117,8 @@ struct TranscriptSessionHistoryTests {
 
         #expect(json["ttsAudioBookmark"] == nil)
         #expect(json["aiCutSegments"] == nil)
+        #expect(json["aiCutOriginalSegments"] == nil)
+        #expect(json["corrections"] == nil)
         #expect(json["aiCutLastTranslatedLanguage"] == nil)
     }
 

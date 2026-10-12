@@ -211,9 +211,7 @@ actor AICorrector {
       openAIBaseURL: openAIBaseURL
     )
 
-    let corrections = parseCorrectionResponse(response)
-    let correctedTexts = applyCorrections(corrections, to: texts)
-    return (correctedTexts, corrections)
+    return applyCorrectionsWithEvidence(parseCorrectionResponse(response), to: texts)
   }
 
   /// Parse a diff-based correction response (JSON array of CorrectionItem).
@@ -240,14 +238,28 @@ actor AICorrector {
 
   /// Apply diff corrections to original texts, producing corrected texts.
   static func applyCorrections(_ corrections: [CorrectionItem], to texts: [String]) -> [String] {
+    applyCorrectionsWithEvidence(corrections, to: texts).correctedTexts
+  }
+
+  /// Discard proposals that did not change text. The returned pairs are safe to audit.
+  static func applyCorrectionsWithEvidence(
+    _ corrections: [CorrectionItem], to texts: [String]
+  ) -> (correctedTexts: [String], corrections: [CorrectionItem]) {
     var result = texts
+    var applied: [CorrectionItem] = []
     for correction in corrections {
-      let idx = correction.index - 1  // 1-based → 0-based
-      guard idx >= 0, idx < result.count else { continue }
-      result[idx] = result[idx].replacingOccurrences(
-        of: correction.original, with: correction.corrected)
+      guard correction.index > 0, correction.index <= result.count,
+        !correction.original.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+        !correction.corrected.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+        correction.original != correction.corrected
+      else { continue }
+      let index = correction.index - 1
+      let replacement = result[index].replacingOccurrences(of: correction.original, with: correction.corrected)
+      guard replacement != result[index] else { continue }
+      result[index] = replacement
+      applied.append(correction)
     }
-    return result
+    return (result, applied)
   }
   static func extractKeywords(
     from texts: [String],
@@ -1073,6 +1085,20 @@ extension AICorrector {
   ) -> String {
     var result = ""
     let separator = "\n---\n"
+    var uniqueEvidence: [UUID: TranscriptCorrection] = [:]
+    for event in sessions.flatMap({ $0.corrections ?? [] }) {
+      if let existing = uniqueEvidence[event.id], existing.status != .applied { continue }
+      uniqueEvidence[event.id] = event
+    }
+    let evidence = uniqueEvidence.values.filter { $0.status == .applied }
+      .sorted { $0.recordedAt > $1.recordedAt }
+    for event in evidence {
+      let text = "AI correction (\(event.kind.rawValue)): \(event.original) → \(event.corrected)\nCorrected context: \(event.correctedContext)"
+      let prefix = result.isEmpty ? "" : separator
+      let available = maxLength - result.count - prefix.count
+      guard available > 0 else { return result }
+      result += prefix + String(text.prefix(available))
+    }
     for session in sessions.sorted(by: { $0.startTime > $1.startTime }) {
       let text = session.combinedText.trimmingCharacters(in: .whitespacesAndNewlines)
       guard !text.isEmpty else { continue }
@@ -1168,6 +1194,9 @@ extension AICorrector {
 
     The text may contain multiple languages. Include terms from all languages present.
     Exclude common everyday words, filler words, grammatical particles, and punctuation.
+    AI correction records identify past applied edits. Prefer corrected vocabulary and its context;
+    never suggest the original erroneous spelling simply because it appears in a correction record.
+    Full dictation rewrites may include grammar/style edits: extract proper nouns and terms, not entire sentences.
 
     Return the result as a flat JSON array of strings. Example: ["Term1", "Term2", "Term3"]
     Respond with valid JSON only. Do not include explanations or markdown code fences.

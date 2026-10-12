@@ -177,6 +177,7 @@ final class CLITTSCommandTests: XCTestCase {
     let old = Data(
       #"{"operation":"dictionaryList","useDictionary":true,"download":false,"entries":[]}"#.utf8)
     XCTAssertNil(try JSONDecoder().decode(CLIRequest.self, from: old).tts)
+    XCTAssertNil(try JSONDecoder().decode(CLIRequest.self, from: old).history)
     let request = CLIRequest(
       operation: .tts, tts: CLITTSParameters(text: "你好", voice: "Ryan"),
       outputBookmark: Data([1, 2]))

@@ -33,7 +33,7 @@ struct CliptateCommand {
       }
       switch command {
       case .help:
-        try stdout(Data(help.utf8))
+        try stdout(Data((help + historyHelp).utf8))
         return 0
       case .version:
         let app = applicationURL()
@@ -91,6 +91,11 @@ struct CliptateCommand {
         try output.publish(expectedBytes: audio.bytes)
         audio.file = output.destination.path
         try stdout(options.json ? CLIOutput.encode(audio) : Data((audio.file + "\n").utf8))
+        return 0
+      case .history(let query):
+        let event = try await execute(CLIRequest(operation: .history, history: query))
+        guard let page = event.history else { throw CLIChannel.protocolError() }
+        try stdout(try CLIOutput.encode(page))
         return 0
       case .dictionary(let action, let values):
         let entries =
@@ -434,4 +439,35 @@ struct CliptateCommand {
         cliptate dictionary export > words.json
 
       """, bundle: CLILocalization.bundle)
+}
+
+private extension CliptateCommand {
+  static let historyHelp = String(localized: """
+    HISTORY
+      cliptate history list [filters]
+      cliptate history show <session UUID> [--limit N] [--cursor TOKEN]
+      cliptate history corrections [filters]
+      --source <source>        voiceDictation, fileTranscription, ttsSynthesis
+      --since <ISO-8601>       Inclusive lower time bound, e.g. 2026-10-01T00:00:00Z
+      --until <ISO-8601>       Inclusive upper time bound
+      --search <text>          Search transcript, filename, or correction evidence
+      --session <UUID>         Restrict list/corrections to one session
+      --corrections-only       List sessions that contain correction records
+      --limit <N>              Records per page: 1-200, default 50
+      --cursor <TOKEN>         Continue with nextCursor and the same filters
+      --format json            Optional; history always returns JSON
+      JSON: {schemaVersion, sessions, lines, corrections, nextCursor?}.
+      List returns summaries; show pages transcript lines followed by correction records.
+      Corrections pages evidence directly, newest-first by correction time. List uses session time.
+      Dates are UTC ISO-8601. Follow nextCursor until absent; pages also have a byte limit.
+      Changing text while paging show invalidates its cursor; restart that query.
+      Correction kinds: phrase (AI Cut word pairs), dictation (before/after whole text).
+      Status: applied, reverted, superseded. Applied means edited then, not user approval.
+      No bookmarks, audio paths, recordings, or word timing are included.
+      Retention: dictation 24 hours; file transcription 30 days. Older data has no invented corrections.
+      AI workflow: query history corrections and dictionary list; analyze terms; dictionary add/import.
+      Add correct vocabulary, not error spellings, grammar rewrites, or entire sentences.
+      History reads remain available during CLI transcription or speech generation.
+
+    """, bundle: CLILocalization.bundle)
 }

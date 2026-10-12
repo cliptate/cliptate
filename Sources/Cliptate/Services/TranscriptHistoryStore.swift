@@ -18,8 +18,8 @@ final class TranscriptHistoryStore: ObservableObject {
   /// How long to retain file-transcription sessions (text only, no audio ownership).
   private let fileTranscriptionRetentionInterval: TimeInterval = 60 * 60 * 24 * 30  // 30 days
 
-  private init() {
-    historyURL = Self.makeHistoryURL()
+  init(historyURL: URL? = nil) {
+    self.historyURL = historyURL ?? Self.makeHistoryURL()
     load()
     purgeExpiredSessions()
   }
@@ -37,7 +37,7 @@ final class TranscriptHistoryStore: ObservableObject {
     sessions.sorted { $0.startTime > $1.startTime }
   }
 
-  func add(_ session: TranscriptSession) {
+  func add(_ session: TranscriptSession, replacingTranscription: Bool = false) {
     guard !session.combinedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
       return
     }
@@ -48,6 +48,7 @@ final class TranscriptHistoryStore: ObservableObject {
     }
     if let existingIndex = sessions.firstIndex(where: { $0.id == normalized.id }) {
       let existing = sessions.remove(at: existingIndex)
+      normalized = Self.preservingEvidence(in: normalized, from: existing, replacingTranscription: replacingTranscription)
       if existing.recordingURL != normalized.recordingURL {
         deleteOwnedRecording(for: existing)
       }
@@ -68,6 +69,7 @@ final class TranscriptHistoryStore: ObservableObject {
     }
 
     let previous = sessions[index]
+    updated = Self.preservingEvidence(in: updated, from: previous)
     if previous.recordingURL != updated.recordingURL {
       deleteOwnedRecording(for: previous)
     }
@@ -129,6 +131,65 @@ final class TranscriptHistoryStore: ObservableObject {
       sessions.removeAll()
     }
     save()
+  }
+
+  /// Fresh editing snapshots must not discard audit events or replace their newer status.
+  private static func preservingEvidence(
+    in incoming: TranscriptSession, from existing: TranscriptSession, replacingTranscription: Bool = false
+  ) -> TranscriptSession {
+    var result = incoming
+    var events = existing.corrections ?? []
+    var ids = Set(events.map(\.id))
+    events.append(contentsOf: (incoming.corrections ?? []).filter { ids.insert($0.id).inserted })
+    let replacedTranscription: Bool
+    if let old = existing.aiCutSegments, let new = incoming.aiCutSegments {
+      replacedTranscription = !old.isEmpty && !new.isEmpty
+        && Set(old.map(\.id)).isDisjoint(with: Set(new.map(\.id)))
+    } else {
+      replacedTranscription = !existing.lines.isEmpty && !incoming.lines.isEmpty
+        && Set(existing.lines.map(\.id)).isDisjoint(with: Set(incoming.lines.map(\.id)))
+    }
+    if replacedTranscription || replacingTranscription {
+      for index in events.indices where events[index].status == .applied {
+        events[index].status = .superseded
+        events[index].statusChangedAt = Date()
+      }
+    }
+    result.corrections = events.isEmpty ? nil : events
+    if result.aiCutOriginalSegments == nil {
+      result.aiCutOriginalSegments = existing.aiCutOriginalSegments
+    }
+    return result
+  }
+
+  /// Persist audit changes atomically before publishing them to readers.
+  func recordCorrections(_ events: [TranscriptCorrection], for sessionIDs: [UUID]) throws {
+    var updated = sessions
+    for index in updated.indices where sessionIDs.contains(updated[index].id) {
+      var stored = updated[index].corrections ?? []
+      var ids = Set(stored.map(\.id))
+      stored.append(contentsOf: events.filter { ids.insert($0.id).inserted })
+      updated[index].corrections = stored.isEmpty ? nil : stored
+    }
+    try persist(updated)
+    sessions = updated
+  }
+
+  func markCorrections(for sessionID: UUID, status: TranscriptCorrection.Status) throws {
+    var updated = sessions
+    guard let index = updated.firstIndex(where: { $0.id == sessionID }),
+      var events = updated[index].corrections else { return }
+    for eventIndex in events.indices where events[eventIndex].status == .applied {
+      events[eventIndex].status = status
+      events[eventIndex].statusChangedAt = Date()
+    }
+    updated[index].corrections = events
+    try persist(updated)
+    sessions = updated
+  }
+
+  private func persist(_ updated: [TranscriptSession]) throws {
+    try JSONEncoder().encode(updated).write(to: historyURL, options: .atomic)
   }
 
   private func purgeExpiredSessions() {

@@ -522,13 +522,13 @@ extension ContentView {
     // Handle result delivery
     switch pending.mode {
     case .dictation:
-      shortcutDeliverDictation(transcript: pending.transcript)
+      shortcutDeliverDictation(transcript: pending.transcript, sessionIDs: pending.sessionIDs)
     case .assistant:
       shortcutDeliverAssistant(transcript: pending.transcript)
     }
   }
 
-  private func shortcutDeliverDictation(transcript: String) {
+  private func shortcutDeliverDictation(transcript: String, sessionIDs: [UUID]) {
     let transcriber = VoiceTranscriber.shared
 
     guard config.voiceToTextDictationAIEnhanceEnabled, config.aiEnabled else {
@@ -572,8 +572,17 @@ extension ContentView {
           apiKey: apiKey,
           openAIBaseURL: endpoint
         )
+        try Task.checkCancellation()
         await MainActor.run {
+          guard !Task.isCancelled else { return }
           transcriber.deliverAssistantOutput(response)
+          do {
+            try HistoryRuntime.shared.recordDictationCorrection(sessionIDs: sessionIDs, original: transcript,
+              corrected: response, provider: provider.rawValue, model: model, language: language.rawValue)
+          } catch {
+            print(String(format: String(localized:
+              "AI text was applied, but correction history could not be saved: %@."), error.localizedDescription))
+          }
           restoreTranscriptDelivery()
           transcriber.dismissOverlay()
         }

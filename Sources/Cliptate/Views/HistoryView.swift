@@ -721,23 +721,32 @@ private struct HistoryDetailView: View {
         fileTranscriptionToggles
         Divider()
         ScrollView {
-          fileTranscriptionContent(segments: filteredSegments(segments))
-            .padding(20)
+          VStack(alignment: .leading, spacing: 20) {
+            fileTranscriptionContent(segments: filteredSegments(segments))
+            HistoryCorrectionSection(events: session.corrections ?? [])
+          }
+          .padding(20)
         }
       } else if effectiveSource == .voiceDictation, session.lines.count > 1 {
         dictationDisplayToggles
         Divider()
         ScrollView {
-          dictationLinesContent
-            .padding(20)
+          VStack(alignment: .leading, spacing: 20) {
+            dictationLinesContent
+            HistoryCorrectionSection(events: session.corrections ?? [])
+          }
+          .padding(20)
         }
       } else {
         ScrollView {
-          Text(session.combinedText)
-            .font(.body)
-            .textSelection(.enabled)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(20)
+          VStack(alignment: .leading, spacing: 20) {
+            Text(session.combinedText)
+              .font(.body)
+              .textSelection(.enabled)
+              .frame(maxWidth: .infinity, alignment: .leading)
+            HistoryCorrectionSection(events: session.corrections ?? [])
+          }
+          .padding(20)
         }
       }
     }
@@ -1183,6 +1192,7 @@ private struct HistoryDetailView: View {
     var preloaded: [URL: VideoState] = [:]
     if let segments = session.aiCutSegments, !segments.isEmpty {
       let state = VideoState(segments: segments)
+      state.originalSegments = session.aiCutOriginalSegments ?? segments
       let maxEnd = segments.map(\.endTime).max() ?? 0
       state.audioDuration = maxEnd
       state.lastTranslatedLanguage = session.aiCutLastTranslatedLanguage
@@ -1567,4 +1577,54 @@ extension View {
 #Preview {
   HistoryView()
     .frame(width: 900, height: 600)
+}
+
+private struct HistoryCorrectionSection: View {
+  let events: [TranscriptCorrection]
+
+  var body: some View {
+    if !events.isEmpty {
+      DisclosureGroup("AI Correction History") {
+        LazyVStack(alignment: .leading, spacing: 16) {
+          Text("These records describe past AI edits, not approval to add dictionary entries.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+          ForEach(events) { event in
+            VStack(alignment: .leading, spacing: 6) {
+              HStack {
+                Text(event.recordedAt, style: .date)
+                Text(event.recordedAt, style: .time)
+                Text(status(event.status))
+              }
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              Text("Before AI").font(.caption.weight(.semibold))
+              Text(event.original).textSelection(.enabled)
+              Text("After AI").font(.caption.weight(.semibold))
+              Text(event.corrected).textSelection(.enabled)
+              if event.kind == .phrase {
+                Text(event.correctedContext)
+                  .font(.caption)
+                  .foregroundStyle(.secondary)
+                  .textSelection(.enabled)
+              }
+              Text(event.provider + " / " + event.model)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            }
+            Divider()
+          }
+        }
+        .padding(.top, 12)
+      }
+    }
+  }
+
+  private func status(_ status: TranscriptCorrection.Status) -> String {
+    switch status {
+    case .applied: return String(localized: "Applied")
+    case .reverted: return String(localized: "Reverted")
+    case .superseded: return String(localized: "Superseded")
+    }
+  }
 }

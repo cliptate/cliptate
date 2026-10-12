@@ -33311,6 +33311,383 @@
           }
         }
       }
+    },
+    "AI Correction History" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 修正历史"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 修正履歴"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 수정 기록"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KI-Korrekturverlauf"
+          }
+        }
+      }
+    },
+    "These records describe past AI edits, not approval to add dictionary entries." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这些记录反映过去的 AI 修正，不代表已批准加入字典。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この記録は過去の AI 修正を示すもので、辞書への追加承認ではありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 기록은 이전 AI 수정 내용이며 사전 추가 승인을 의미하지 않습니다."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Einträge dokumentieren frühere KI-Änderungen und keine Genehmigung zum Hinzufügen von Wörterbucheinträgen."
+          }
+        }
+      }
+    },
+    "Before AI" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 修正前"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 修正前"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 수정 전"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vor der KI-Korrektur"
+          }
+        }
+      }
+    },
+    "After AI" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 修正后"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 修正後"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 수정 후"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach der KI-Korrektur"
+          }
+        }
+      }
+    },
+    "Applied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已应用"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "適用済み"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "적용됨"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Angewendet"
+          }
+        }
+      }
+    },
+    "Reverted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已撤回"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取り消し済み"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "되돌림"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zurückgenommen"
+          }
+        }
+      }
+    },
+    "Superseded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已被新版本替代"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しい版に置き換え済み"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "새 버전으로 대체됨"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durch neuere Version ersetzt"
+          }
+        }
+      }
+    },
+    "Invalid history arguments. Run cliptate history --help." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "history 参数无效。请运行 cliptate history --help。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "history の引数が無効です。cliptate history --help を実行してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "history 인수가 잘못되었습니다. cliptate history --help를 실행하세요."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ungültige history-Argumente. Führen Sie cliptate history --help aus."
+          }
+        }
+      }
+    },
+    "History session was not found or has expired." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到历史会话，或会话已过期。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "履歴セッションが見つからないか、有効期限が切れています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기록 세션을 찾을 수 없거나 만료되었습니다."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Verlaufssitzung wurde nicht gefunden oder ist abgelaufen."
+          }
+        }
+      }
+    },
+    "A history record exceeds the CLI response size limit." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "单条历史记录超过 CLI 响应大小限制。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "履歴レコードが CLI 応答のサイズ上限を超えています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기록 하나가 CLI 응답 크기 제한을 초과합니다."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Verlaufseintrag überschreitet die Größenbeschränkung der CLI-Antwort."
+          }
+        }
+      }
+    },
+    "AI text was applied, but correction history could not be saved: %@." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 文本已应用，但修正历史保存失败：%@。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI のテキストを適用しましたが、修正履歴を保存できませんでした：%@。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 텍스트는 적용했지만 수정 기록을 저장하지 못했습니다: %@."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der KI-Text wurde angewendet, der Korrekturverlauf konnte jedoch nicht gespeichert werden: %@."
+          }
+        }
+      }
+    },
+    "Correction history status could not be saved: %@." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修正历史状态保存失败：%@。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修正履歴の状態を保存できませんでした：%@。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "수정 기록 상태를 저장하지 못했습니다: %@."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Status des Korrekturverlaufs konnte nicht gespeichert werden: %@."
+          }
+        }
+      }
+    },
+    "HISTORY\n  cliptate history list [filters]\n  cliptate history show <session UUID> [--limit N] [--cursor TOKEN]\n  cliptate history corrections [filters]\n  --source <source>        voiceDictation, fileTranscription, ttsSynthesis\n  --since <ISO-8601>       Inclusive lower time bound, e.g. 2026-10-01T00:00:00Z\n  --until <ISO-8601>       Inclusive upper time bound\n  --search <text>          Search transcript, filename, or correction evidence\n  --session <UUID>         Restrict list/corrections to one session\n  --corrections-only       List sessions that contain correction records\n  --limit <N>              Records per page: 1-200, default 50\n  --cursor <TOKEN>         Continue with nextCursor and the same filters\n  --format json            Optional; history always returns JSON\n  JSON: {schemaVersion, sessions, lines, corrections, nextCursor?}.\n  List returns summaries; show pages transcript lines followed by correction records.\n  Corrections pages evidence directly, newest-first by correction time. List uses session time.\n  Dates are UTC ISO-8601. Follow nextCursor until absent; pages also have a byte limit.\n  Changing text while paging show invalidates its cursor; restart that query.\n  Correction kinds: phrase (AI Cut word pairs), dictation (before/after whole text).\n  Status: applied, reverted, superseded. Applied means edited then, not user approval.\n  No bookmarks, audio paths, recordings, or word timing are included.\n  Retention: dictation 24 hours; file transcription 30 days. Older data has no invented corrections.\n  AI workflow: query history corrections and dictionary list; analyze terms; dictionary add/import.\n  Add correct vocabulary, not error spellings, grammar rewrites, or entire sentences.\n  History reads remain available during CLI transcription or speech generation.\n" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HISTORY（历史查询）\n  cliptate history list [筛选参数]\n  cliptate history show <会话 UUID> [--limit N] [--cursor TOKEN]\n  cliptate history corrections [筛选参数]\n  --source <来源>          voiceDictation、fileTranscription、ttsSynthesis\n  --since <ISO-8601>       时间下限（含），例如 2026-10-01T00:00:00Z\n  --until <ISO-8601>       时间上限（含）\n  --search <文本>          搜索转录文本、文件名或修正证据\n  --session <UUID>         将 list/corrections 限定到指定会话\n  --corrections-only       仅列出包含修正记录的会话\n  --limit <N>              每页 1-200 条，默认 50\n  --cursor <TOKEN>         使用 nextCursor 和相同筛选继续查询\n  --format json           可选；历史查询始终输出 JSON\n  JSON：{schemaVersion, sessions, lines, corrections, nextCursor?}。\n  list 返回摘要；show 分页返回转录行，随后返回修正记录。\n  corrections 直接返回证据，按修正时间从新到旧排序；list 使用会话时间。\n  日期为 UTC ISO-8601。跟随 nextCursor，直到该字段不再出现；分页另有字节上限。\n  show 分页期间文本变更会使游标失效，需重新开始查询。\n  修正类型：phrase（AI Cut 词对）、dictation（全文修正前后）。\n  状态：applied、reverted、superseded。applied 表示当时应用，不代表用户批准。\n  不包含书签、音频路径、录音或词级时间信息。\n  保留期限：听写 24 小时；文件转录 30 天。旧数据不会补造修正记录。\n  AI 工作流：查询 history corrections 和 dictionary list；分析词汇；dictionary add/import。\n  添加正确词汇，避免错误拼写、语法润色或整句。\n  CLI 转录或语音生成期间仍可查询历史。\n"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HISTORY（履歴照会）\n  cliptate history list [フィルター]\n  cliptate history show <セッション UUID> [--limit N] [--cursor TOKEN]\n  cliptate history corrections [フィルター]\n  --source <種別>          voiceDictation、fileTranscription、ttsSynthesis\n  --since <ISO-8601>       開始日時（含む）、例：2026-10-01T00:00:00Z\n  --until <ISO-8601>       終了日時（含む）\n  --search <テキスト>      転写、ファイル名、修正の根拠を検索\n  --session <UUID>         list/corrections を一つのセッションに限定\n  --corrections-only       修正記録があるセッションのみ表示\n  --limit <N>              1ページ 1-200 件、既定は 50\n  --cursor <TOKEN>         nextCursor と同じフィルターで続行\n  --format json           任意。履歴は常に JSON を返す\n  JSON：{schemaVersion, sessions, lines, corrections, nextCursor?}。\n  list は概要、show は転写行と修正記録を順にページ分割して返す。\n  corrections は修正日時の新しい順に根拠を返す。list はセッション日時を使用。\n  日時は UTC ISO-8601。nextCursor がなくなるまで続行。バイト数上限も適用される。\n  show のページ取得中にテキストが変わるとカーソルは無効になり、再照会が必要。\n  種類：phrase（AI Cut の語句ペア）、dictation（全文の修正前後）。\n  状態：applied、reverted、superseded。applied は当時の適用を示し、ユーザー承認ではない。\n  ブックマーク、音声パス、録音、単語タイミングは含まない。\n  保持：音声入力 24 時間、ファイル転写 30 日。旧データの修正記録は作らない。\n  AI 手順：history corrections と dictionary list を照会し、語句を分析して dictionary add/import。\n  誤表記、文法の書き換え、文全体ではなく、正しい語彙を追加する。\n  CLI の転写や音声生成中も履歴を照会できる。\n"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HISTORY(기록 조회)\n  cliptate history list [필터]\n  cliptate history show <세션 UUID> [--limit N] [--cursor TOKEN]\n  cliptate history corrections [필터]\n  --source <유형>          voiceDictation, fileTranscription, ttsSynthesis\n  --since <ISO-8601>       포함 시작 시간, 예: 2026-10-01T00:00:00Z\n  --until <ISO-8601>       포함 종료 시간\n  --search <텍스트>        전사, 파일 이름 또는 수정 근거 검색\n  --session <UUID>         list/corrections를 한 세션으로 제한\n  --corrections-only       수정 기록이 있는 세션만 나열\n  --limit <N>              페이지당 1-200개, 기본값 50\n  --cursor <TOKEN>         nextCursor와 같은 필터로 계속 조회\n  --format json           선택 사항. 기록은 항상 JSON 출력\n  JSON: {schemaVersion, sessions, lines, corrections, nextCursor?}.\n  list는 요약을, show는 전사 줄 다음에 수정 기록을 페이지로 반환한다.\n  corrections는 수정 시간의 최신순으로 근거를 반환하며 list는 세션 시간을 사용한다.\n  날짜는 UTC ISO-8601이다. nextCursor가 없을 때까지 계속 조회하며 바이트 제한도 적용된다.\n  show 페이지 조회 중 텍스트가 변경되면 커서가 무효화되므로 다시 조회한다.\n  종류: phrase(AI Cut 단어 쌍), dictation(전체 텍스트 수정 전후).\n  상태: applied, reverted, superseded. applied는 당시 적용을 의미하며 사용자 승인이 아니다.\n  북마크, 오디오 경로, 녹음 또는 단어별 시간 정보는 포함하지 않는다.\n  보존 기간: 받아쓰기 24시간, 파일 전사 30일. 이전 데이터에 수정 기록을 만들어 넣지 않는다.\n  AI 작업: history corrections와 dictionary list 조회, 용어 분석, dictionary add/import 실행.\n  오류 표기, 문법 변경이나 문장 전체 대신 올바른 어휘를 추가한다.\n  CLI 전사 또는 음성 생성 중에도 기록을 조회할 수 있다.\n"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HISTORY (Verlauf abfragen)\n  cliptate history list [Filter]\n  cliptate history show <Sitzungs-UUID> [--limit N] [--cursor TOKEN]\n  cliptate history corrections [Filter]\n  --source <Quelle>        voiceDictation, fileTranscription, ttsSynthesis\n  --since <ISO-8601>       Einschließliche Untergrenze, z. B. 2026-10-01T00:00:00Z\n  --until <ISO-8601>       Einschließliche Obergrenze\n  --search <Text>          Transkript, Dateiname oder Korrekturbelege durchsuchen\n  --session <UUID>         list/corrections auf eine Sitzung begrenzen\n  --corrections-only       Nur Sitzungen mit Korrektureinträgen auflisten\n  --limit <N>              1-200 Einträge pro Seite, Standard 50\n  --cursor <TOKEN>         Mit nextCursor und denselben Filtern fortsetzen\n  --format json           Optional; Verlaufsabfragen liefern immer JSON\n  JSON: {schemaVersion, sessions, lines, corrections, nextCursor?}.\n  list liefert Zusammenfassungen; show liefert seitenweise Textzeilen, dann Korrekturen.\n  corrections liefert Belege absteigend nach Korrekturzeit. list nutzt die Sitzungszeit.\n  Daten sind UTC ISO-8601. nextCursor bis zum Fehlen folgen; es gilt auch ein Byte-Limit.\n  Textänderungen während show machen den Cursor ungültig; die Abfrage neu starten.\n  Arten: phrase (AI Cut-Wortpaare), dictation (vollständiger Text vor/nach der Korrektur).\n  Status: applied, reverted, superseded. applied bedeutet damals angewendet, keine Freigabe.\n  Keine Lesezeichen, Audiopfade, Aufnahmen oder Wortzeitinformationen werden ausgegeben.\n  Aufbewahrung: Diktat 24 Stunden, Dateitranskription 30 Tage. Alte Daten erhalten keine erfundenen Korrekturen.\n  KI-Ablauf: history corrections und dictionary list abfragen; Begriffe analysieren; dictionary add/import.\n  Korrekte Begriffe hinzufügen, keine Fehlformen, Grammatikumschreibungen oder ganzen Sätze.\n  Verlaufsabfragen bleiben während CLI-Transkription oder Spracherzeugung verfügbar.\n"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

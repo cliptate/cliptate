@@ -20,6 +20,7 @@ public enum CLICommand: Sendable {
   case transcribe(CLITranscribeOptions)
   case tts(CLITTSOptions)
   case dictionary(action: String, values: [String])
+  case history(CLIHistoryQuery)
 
   public static func parse(_ arguments: [String]) throws -> Self {
     guard let command = arguments.first else { return .help }
@@ -28,6 +29,7 @@ public enum CLICommand: Sendable {
       return .help
     }
     if command == "tts" { return .tts(try CLITTSOptions.parse(Array(arguments.dropFirst()))) }
+    if command == "history" { return .history(try parseHistory(Array(arguments.dropFirst()))) }
     if command == "dictionary" {
       guard arguments.count >= 2 else { throw invalid(command) }
       let action = arguments[1]
@@ -90,6 +92,50 @@ public enum CLICommand: Sendable {
         ))
     }
     return .transcribe(options)
+  }
+
+  private static func parseHistory(_ arguments: [String]) throws -> CLIHistoryQuery {
+    guard let action = arguments.first.flatMap(CLIHistoryQuery.Action.init(rawValue:)) else {
+      throw CLIHistoryQuery.invalidArguments()
+    }
+    var query = CLIHistoryQuery(action: action)
+    var index = 1
+    if action == .show {
+      guard index < arguments.count else { throw CLIHistoryQuery.invalidArguments() }
+      query.sessionID = arguments[index]
+      index += 1
+    }
+    var seen = Set<String>()
+    while index < arguments.count {
+      let option = arguments[index]
+      index += 1
+      guard seen.insert(option).inserted else { throw CLIHistoryQuery.invalidArguments() }
+      func value() throws -> String {
+        guard index < arguments.count, !arguments[index].isEmpty,
+          !arguments[index].hasPrefix("--") else { throw CLIHistoryQuery.invalidArguments() }
+        defer { index += 1 }
+        return arguments[index]
+      }
+      switch option {
+      case "--source": query.source = try value()
+      case "--since": query.since = try value()
+      case "--until": query.until = try value()
+      case "--search": query.search = try value()
+      case "--session":
+        guard action != .show else { throw CLIHistoryQuery.invalidArguments() }
+        query.sessionID = try value()
+      case "--limit":
+        guard let limit = Int(try value()) else { throw CLIHistoryQuery.invalidArguments() }
+        query.limit = limit
+      case "--cursor": query.cursor = try value()
+      case "--corrections-only": query.correctionsOnly = true
+      case "--format":
+        guard try value() == "json" else { throw CLIHistoryQuery.invalidArguments() }
+      default: throw CLIHistoryQuery.invalidArguments()
+      }
+    }
+    try query.validate()
+    return query
   }
 
   public static func importEntries(_ data: Data, json: Bool = false) throws -> [String] {

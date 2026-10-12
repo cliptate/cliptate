@@ -5,6 +5,7 @@ struct FileTranscriptionHistorySessionFactory {
     existingSessionID: UUID? = nil,
     url: URL,
     segments: [Segment],
+    originalSegments: [Segment]? = nil,
     lastTranslatedLanguage: Language? = nil,
     processedTranslations: [String: SegmentTranslation]? = nil,
     removedSegmentIDs: Set<SegmentIdentifier>? = nil,
@@ -44,6 +45,7 @@ struct FileTranscriptionHistorySessionFactory {
       sourceFileName: url.lastPathComponent,
       sourceURLBookmark: bookmark,
       aiCutSegments: segments,
+      aiCutOriginalSegments: originalSegments,
       aiCutLastTranslatedLanguage: lastTranslatedLanguage,
       aiCutProcessedTranslations: processedTranslations,
       aiCutRemovedSegmentIDs: removedSegmentIDs
