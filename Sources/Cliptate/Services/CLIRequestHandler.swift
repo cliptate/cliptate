@@ -4,6 +4,16 @@ import Foundation
   import CliptateCLIKit
 #endif
 
+struct CLISpeechRequest: Sendable {
+  let text: String
+  let model: MLXTTSModelDefinition
+  let voice: String?
+  let language: String
+  let referenceAudioURL: URL?
+  let referenceText: String?
+  let variantPreference: TTSVariantPreference
+}
+
 @MainActor
 final class CLIRequestHandler {
   private let config: AppConfiguration
@@ -11,6 +21,7 @@ final class CLIRequestHandler {
   private let transcribe:
     @Sendable (BatchTranscriptionRequest, @escaping @Sendable (String) -> Void) async throws ->
       BatchTranscriptionOutput
+  private let synthesize: @Sendable (CLISpeechRequest) async throws -> Data
   private let ensureModel:
     @Sendable (ModelVariant, Bool, @escaping @Sendable (String) -> Void) async throws -> Void
 
@@ -27,6 +38,21 @@ final class CLIRequestHandler {
           modelProgressHandler: { progress($0.currentStep) },
           progressHandler: { progress($0.statusMessage) })
       },
+    synthesize: @escaping @Sendable (CLISpeechRequest) async throws -> Data = { request in
+      let cache = ModelCacheManager.shared
+      _ = try await cache.ensureTTSModel(engine: .qwen3TTS, modelID: request.model.huggingFaceRepo)
+      do {
+        let audio = try await TTSSessionRuntime.shared.synthesize(
+          text: request.text, modelDefinition: request.model, voiceDescription: request.voice,
+          referenceAudioURL: request.referenceAudioURL, referenceText: request.referenceText,
+          language: request.language, variantPreference: request.variantPreference)
+        await cache.releaseTTSModel(engine: .qwen3TTS, modelID: request.model.huggingFaceRepo)
+        return audio
+      } catch {
+        await cache.releaseTTSModel(engine: .qwen3TTS, modelID: request.model.huggingFaceRepo)
+        throw error
+      }
+    },
     ensureModel:
       @escaping @Sendable (ModelVariant, Bool, @escaping @Sendable (String) -> Void) async throws ->
       Void = { model, download, progress in
@@ -46,6 +72,7 @@ final class CLIRequestHandler {
     self.persist = persist
     self.transcribe = transcribe
     self.ensureModel = ensureModel
+    self.synthesize = synthesize
   }
 
   func execute(_ request: CLIRequest, progress: @escaping @Sendable (String) -> Void = { _ in })
@@ -68,6 +95,7 @@ final class CLIRequestHandler {
         throw error
       }
       return CLIEvent(.result, entries: config.voiceToTextCustomDictionary)
+    case .tts: return try await synthesizeSpeech(request, progress: progress)
     case .transcribe:
       let model: ModelVariant
       if let name = request.model {
@@ -141,4 +169,117 @@ final class CLIRequestHandler {
       return CLIEvent(.result, transcript: result)
     }
   }
+
+  private func synthesizeSpeech(
+    _ request: CLIRequest, progress: @escaping @Sendable (String) -> Void
+  )
+    async throws -> CLIEvent
+  {
+    guard let parameters = request.tts, let outputBookmark = request.outputBookmark else {
+      throw CLIChannel.protocolError()
+    }
+    let text = try CLITTSOptions.validatedText(Data(parameters.text.utf8))
+    let name = request.model ?? config.ttsMLXModelId
+    guard
+      let model = MLXTTSModelDefinition.availableModels.first(where: {
+        $0.id == name || $0.huggingFaceRepo == name || $0.modelVariant.rawValue == name
+      })
+    else {
+      throw CLIError(String(format: String(localized: "Unsupported TTS model: %@."), name))
+    }
+    let language = request.language ?? config.ttsLanguage
+    // Qwen checkpoints index codec languages by full names, while app settings use ISO codes.
+    let languages = [
+      "auto": "auto", "en": "english", "zh": "chinese", "ja": "japanese",
+      "ko": "korean", "de": "german", "fr": "french", "ru": "russian",
+      "pt": "portuguese", "es": "spanish", "it": "italian",
+    ]
+    guard let inferenceLanguage = languages[language] else {
+      throw CLIError(String(format: String(localized: "Unsupported language code: %@."), language))
+    }
+    let variant: TTSVariantPreference
+    if let raw = parameters.variant {
+      guard let value = TTSVariantPreference(rawValue: raw) else {
+        throw CLIChannel.protocolError()
+      }
+      variant = value
+    } else {
+      variant = config.ttsVariantPreference
+    }
+    let cloning = request.bookmark != nil
+    let voice: String?
+    if cloning {
+      guard model.supportsVoiceClone, parameters.voice == nil, parameters.emotion == nil,
+        let referenceText = parameters.referenceText,
+        !referenceText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      else {
+        throw invalidTTSVoice()
+      }
+      voice = nil
+    } else {
+      guard parameters.referenceText == nil else { throw invalidTTSVoice() }
+      switch model.family {
+      case .voiceDesign:
+        guard parameters.emotion == nil else { throw invalidTTSVoice() }
+        voice = parameters.voice ?? config.ttsVoiceDescription
+        guard !(voice?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true) else {
+          throw invalidTTSVoice()
+        }
+      case .customVoice:
+        let speaker = parameters.voice ?? config.ttsPresetSpeaker
+        guard speaker.isEmpty || TTSPresetSpeaker.all.contains(where: { $0.name == speaker }) else {
+          throw invalidTTSVoice()
+        }
+        voice = MLXTTSModelDefinition.customVoiceString(
+          speaker: speaker, emotionPrompt: parameters.emotion ?? config.ttsEmotionPrompt)
+      case .base:
+        guard parameters.voice == nil, parameters.emotion == nil else { throw invalidTTSVoice() }
+        voice = nil
+      }
+    }
+    // Resolve and verify file access before model loading. CLI output stays private until success.
+    let output = try resolve(outputBookmark)
+    let outputAccess = output.startAccessingSecurityScopedResource()
+    defer { if outputAccess { output.stopAccessingSecurityScopedResource() } }
+    let target = try FileHandle(forWritingTo: output)
+    try target.close()
+    let reference = try request.bookmark.map(resolve)
+    let referenceAccess = reference?.startAccessingSecurityScopedResource() ?? false
+    defer { if referenceAccess { reference?.stopAccessingSecurityScopedResource() } }
+    if let reference {
+      guard reference.resolvingSymlinksInPath() != output.resolvingSymlinksInPath() else {
+        throw invalidTTSVoice()
+      }
+      let source = try FileHandle(forReadingFrom: reference)
+      try source.close()
+    }
+    let synthesis = CLISpeechRequest(
+      text: text, model: model, voice: voice, language: inferenceLanguage,
+      referenceAudioURL: reference, referenceText: parameters.referenceText,
+      variantPreference: variant)
+    try await ensureModel(model.modelVariant, request.download, progress)
+    try Task.checkCancellation()
+    progress(String(localized: "Generating speech…"))
+    let audio = try await synthesize(synthesis)
+    try Task.checkCancellation()
+    try audio.write(to: output, options: .atomic)
+    return CLIEvent(
+      .result, audio: CLIAudioResult(file: output.path, model: model.id, bytes: audio.count))
+  }
+
+  private func invalidTTSVoice() -> CLIError {
+    CLIError(
+      String(
+        localized:
+          "Voice options do not match the TTS model. Use a CustomVoice speaker, a VoiceDesign description, or Base reference audio with its transcript."
+      ))
+  }
+
+  private func resolve(_ bookmark: Data) throws -> URL {
+    var stale = false
+    return try URL(
+      resolvingBookmarkData: bookmark, options: [.withoutUI], relativeTo: nil,
+      bookmarkDataIsStale: &stale)
+  }
+
 }

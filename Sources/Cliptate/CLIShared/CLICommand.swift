@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 
 public enum CLIFormat: String, Sendable, CaseIterable { case text, json, srt, vtt, markdown }
@@ -17,6 +18,7 @@ public struct CLITranscribeOptions: Sendable {
 public enum CLICommand: Sendable {
   case help, version
   case transcribe(CLITranscribeOptions)
+  case tts(CLITTSOptions)
   case dictionary(action: String, values: [String])
 
   public static func parse(_ arguments: [String]) throws -> Self {
@@ -25,6 +27,7 @@ public enum CLICommand: Sendable {
     if arguments == ["--help"] || arguments == ["-h"] || arguments == [command, "--help"] {
       return .help
     }
+    if command == "tts" { return .tts(try CLITTSOptions.parse(Array(arguments.dropFirst()))) }
     if command == "dictionary" {
       guard arguments.count >= 2 else { throw invalid(command) }
       let action = arguments[1]
@@ -155,5 +158,151 @@ public enum CLIOutput {
     return String(
       format: "%02d:%02d:%02d%@%03d", milliseconds / 3_600_000,
       milliseconds / 60_000 % 60, milliseconds / 1000 % 60, separator, milliseconds % 1000)
+  }
+}
+
+public struct CLITTSOptions: Sendable {
+  public var text: String?
+  public var textFile: String?
+  public var output = ""
+  public var model: String?
+  public var language: String?
+  public var voice: String?
+  public var emotion: String?
+  public var referenceAudio: String?
+  public var referenceText: String?
+  public var variant: String?
+  public var overwrite = false
+  public var download = false
+  public var json = false
+
+  static func parse(_ arguments: [String]) throws -> Self {
+    var options = Self()
+    var index = 0
+    var seen = Set<String>()
+    func invalid() -> CLIError {
+      CLIError(
+        String(
+          localized: "Invalid TTS arguments. Run cliptate tts --help.",
+          bundle: CLILocalization.bundle))
+    }
+    while index < arguments.count {
+      var option = arguments[index]
+      index += 1
+      if option == "-o" { option = "--output" }
+      if option == "--tts-model" { option = "--model" }
+      guard seen.insert(option).inserted else { throw invalid() }
+      func value() throws -> String {
+        guard index < arguments.count, !arguments[index].isEmpty,
+          !arguments[index].hasPrefix("--")
+        else { throw invalid() }
+        let result = arguments[index]
+        index += 1
+        return result
+      }
+      switch option {
+      case "--text": options.text = try value()
+      case "--text-file": options.textFile = try value()
+      case "--output": options.output = try value()
+      case "--model": options.model = try value()
+      case "--language": options.language = try value()
+      case "--voice": options.voice = try value()
+      case "--emotion": options.emotion = try value()
+      case "--reference-audio": options.referenceAudio = try value()
+      case "--reference-text": options.referenceText = try value()
+      case "--variant":
+        let raw = try value()
+        guard ["automatic", "short", "extended"].contains(raw) else { throw invalid() }
+        options.variant = raw
+      case "--format":
+        guard try value() == "json" else { throw invalid() }
+        options.json = true
+      case "--overwrite": options.overwrite = true
+      case "--download": options.download = true
+      default: throw invalid()
+      }
+    }
+    guard (options.text != nil) != (options.textFile != nil),
+      !options.output.isEmpty, options.output != "-",
+      URL(fileURLWithPath: options.output).pathExtension.lowercased() == "wav",
+      (options.referenceText == nil) == (options.referenceAudio == nil),
+      options.referenceAudio == nil || (options.voice == nil && options.emotion == nil)
+    else { throw invalid() }
+    if let text = options.text { _ = try validatedText(Data(text.utf8)) }
+    if let referenceText = options.referenceText { _ = try validatedText(Data(referenceText.utf8)) }
+    return options
+  }
+
+  public static func validatedText(_ data: Data) throws -> String {
+    guard data.count <= 1_048_576, var text = String(data: data, encoding: .utf8) else {
+      throw CLIError(
+        String(
+          localized: "TTS input must be UTF-8 text no larger than 1 MiB.",
+          bundle: CLILocalization.bundle))
+    }
+    if text.hasPrefix("\u{FEFF}") { text.removeFirst() }
+    text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !text.isEmpty else {
+      throw CLIError(
+        String(localized: "Enter some text to synthesize.", bundle: CLILocalization.bundle))
+    }
+    return text
+  }
+}
+
+/// The app writes only a private staging file. The CLI publishes it after success,
+/// keeping audio out of the framed JSON transport and existing output intact on failure.
+public final class CLITTSOutput {
+  public let destination: URL
+  public let stagingURL: URL
+  private let directory: URL
+  private let overwrite: Bool
+
+  public init(destination: URL, inputs: [URL], overwrite: Bool) throws {
+    self.destination = destination.standardizedFileURL
+    self.overwrite = overwrite
+    let resolved = destination.resolvingSymlinksInPath().standardizedFileURL
+    guard !inputs.contains(where: { $0.resolvingSymlinksInPath().standardizedFileURL == resolved })
+    else {
+      throw CLIError(
+        String(
+          localized: "An output path cannot replace an input file.", bundle: CLILocalization.bundle)
+      )
+    }
+    if !overwrite && FileManager.default.fileExists(atPath: destination.path) {
+      throw CLIError(
+        String(
+          format: String(
+            localized: "Output already exists: %@. Use --overwrite to replace it.",
+            bundle: CLILocalization.bundle), destination.path))
+    }
+    directory = destination.deletingLastPathComponent().appendingPathComponent(
+      ".cliptate-tts-" + UUID().uuidString, isDirectory: true)
+    stagingURL = directory.appendingPathComponent("audio.wav")
+    try FileManager.default.createDirectory(
+      at: directory, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
+    do { try Data().write(to: stagingURL) } catch {
+      try? FileManager.default.removeItem(at: directory)
+      throw error
+    }
+  }
+
+  deinit { try? FileManager.default.removeItem(at: directory) }
+
+  public func publish(expectedBytes: Int) throws {
+    let handle = try FileHandle(forReadingFrom: stagingURL)
+    defer { try? handle.close() }
+    let header = try handle.read(upToCount: 12) ?? Data()
+    let size = try handle.seekToEnd()
+    guard expectedBytes > 44, size == UInt64(expectedBytes),
+      header.prefix(4) == Data("RIFF".utf8), header.suffix(4) == Data("WAVE".utf8)
+    else {
+      throw CLIChannel.protocolError()
+    }
+    // link() refuses an existing destination atomically. Both files are on the same volume.
+    let result =
+      overwrite
+      ? rename(stagingURL.path, destination.path) : link(stagingURL.path, destination.path)
+    guard result == 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
   }
 }

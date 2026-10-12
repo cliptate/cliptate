@@ -37,6 +37,27 @@ final class CLIRequestSessionTests: XCTestCase {
     XCTAssertEqual(response.entries, ["你好", "Café"])
   }
 
+  func testSpeechPayloadAndMetadataCrossAuthenticatedTransport() async throws {
+    let server = CLIRequestServer { request, progress in
+      XCTAssertEqual(request.operation, .tts)
+      XCTAssertEqual(request.tts?.text, "你好")
+      XCTAssertEqual(request.tts?.referenceText, "reference")
+      XCTAssertEqual(request.outputBookmark, Data([1, 2]))
+      progress("Generating")
+      return CLIEvent(
+        .result,
+        audio: CLIAudioResult(file: "/tmp/private.wav", model: "tts-model", bytes: 17_000_000))
+    }
+    let loopback = try await SessionLoopback(server: server)
+    defer { loopback.close() }
+    let response = try await loopback.client.execute(
+      CLIRequest(
+        operation: .tts, tts: CLITTSParameters(text: "你好", referenceText: "reference"),
+        outputBookmark: Data([1, 2])))
+    XCTAssertEqual(response.audio?.model, "tts-model")
+    XCTAssertEqual(response.audio?.bytes, 17_000_000)
+  }
+
   func testProgressIsDeliveredInOrderBeforeTerminalResult() async throws {
     let server = CLIRequestServer { _, progress in
       progress("Preparing model")
@@ -54,7 +75,7 @@ final class CLIRequestSessionTests: XCTestCase {
     XCTAssertEqual(response.entries, ["Finished"])
   }
 
-  func testBusyTranscriptionRejectsAnotherTranscriptionButAllowsDictionaryRequests() async throws {
+  func testBusySpeechRejectsTranscriptionButAllowsDictionaryRequests() async throws {
     let started = SessionGate()
     let release = SessionGate()
     let server = CLIRequestServer { request, _ in
@@ -70,7 +91,7 @@ final class CLIRequestSessionTests: XCTestCase {
       loopback.close()
     }
     let active = Task {
-      try await loopback.client.execute(CLIRequest(operation: .transcribe, model: "held"))
+      try await loopback.client.execute(CLIRequest(operation: .tts, model: "held"))
     }
     await started.wait()
 
@@ -79,11 +100,43 @@ final class CLIRequestSessionTests: XCTestCase {
       XCTFail("A second transcription must be rejected while the first is running")
     } catch let error as CLIError {
       XCTAssertEqual(
-        error.message, "Another CLI transcription is running. Try again when it finishes.")
+        error.message,
+        "Another CLI transcription or speech generation is running. Try again when it finishes.")
     }
     let dictionary = try await loopback.client.execute(CLIRequest(operation: .dictionaryList))
     XCTAssertEqual(dictionary.entries, ["Available"])
 
+    release.open()
+    _ = try await active.value
+  }
+
+  func testBusyTranscriptionRejectsSpeech() async throws {
+    let started = SessionGate()
+    let release = SessionGate()
+    let server = CLIRequestServer { request, _ in
+      if request.operation == .transcribe {
+        started.open()
+        await release.wait()
+      } else {
+        XCTFail("Speech must not be admitted during transcription")
+      }
+      return CLIEvent(.result)
+    }
+    let loopback = try await SessionLoopback(server: server)
+    defer {
+      release.open()
+      loopback.close()
+    }
+    let active = Task { try await loopback.client.execute(CLIRequest(operation: .transcribe)) }
+    await started.wait()
+    do {
+      _ = try await loopback.client.execute(CLIRequest(operation: .tts))
+      XCTFail("Expected busy failure")
+    } catch let error as CLIError {
+      XCTAssertEqual(
+        error.message,
+        "Another CLI transcription or speech generation is running. Try again when it finishes.")
+    }
     release.open()
     _ = try await active.value
   }
@@ -111,7 +164,7 @@ final class CLIRequestSessionTests: XCTestCase {
       loopback.close()
     }
     let active = Task {
-      try await loopback.client.execute(CLIRequest(operation: .transcribe, model: "held"))
+      try await loopback.client.execute(CLIRequest(operation: .tts, model: "held"))
     }
     await started.wait()
     active.cancel()
@@ -123,7 +176,8 @@ final class CLIRequestSessionTests: XCTestCase {
       XCTFail("Cancellation must not release admission while the old work is still exiting")
     } catch let error as CLIError {
       XCTAssertEqual(
-        error.message, "Another CLI transcription is running. Try again when it finishes.")
+        error.message,
+        "Another CLI transcription or speech generation is running. Try again when it finishes.")
     }
     release.open()
     await loopback.drain()

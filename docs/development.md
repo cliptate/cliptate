@@ -315,7 +315,7 @@ Direct builds copy missing configuration and history from the previous sandbox
 container once without removing originals or replacing current direct-build data.
 
 The direct app includes a signed native `cliptate` executable. See [CLI usage and
-installation](cli.md) for transcription and dictionary commands. The CLI shares
+installation](cli.md) for transcription, TTS, and dictionary commands. The CLI shares
 the running application's configuration and model runtime; SwiftPM's standalone
 CLI product connects to the app rather than linking the inference libraries.
 

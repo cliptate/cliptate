@@ -88,7 +88,7 @@ public struct CLIRequestClient {
 @MainActor
 public final class CLIRequestServer {
   private var endpoints: [String: (CLIEndpoint, Date)] = [:]
-  private var transcribing = false
+  private var generating = false
   private let now: @MainActor () -> Date
   private let sleep: @Sendable (Duration) async throws -> Void
   private let execute:
@@ -136,17 +136,19 @@ public final class CLIRequestServer {
         endpoints.removeValue(forKey: id) != nil, expiry > now()
       else { return }
       timeout.cancel()
-      if request.operation == .transcribe && transcribing {
+      let inference = request.operation == .transcribe || request.operation == .tts
+      if inference && generating {
         try await channel.send(
           CLIEvent(
             .failure,
             message: String(
-              localized: "Another CLI transcription is running. Try again when it finishes.",
+              localized:
+                "Another CLI transcription or speech generation is running. Try again when it finishes.",
               bundle: CLILocalization.bundle)))
         return
       }
-      if request.operation == .transcribe { transcribing = true }
-      defer { if request.operation == .transcribe { transcribing = false } }
+      if inference { generating = true }
+      defer { if inference { generating = false } }
       await run(request, on: channel)
     } catch {}
   }
@@ -179,7 +181,7 @@ public final class CLIRequestServer {
       sender.cancel()
     }
     await withTaskCancellationHandler {
-      // Keep transcription admission occupied until inference and its sender have exited.
+      // Keep inference admission occupied until inference and its sender have exited.
       await work.value
       await sender.value
       disconnect.cancel()

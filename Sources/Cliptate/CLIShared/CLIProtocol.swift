@@ -62,7 +62,7 @@ public struct CLIEndpoint: Sendable {
 }
 
 public enum CLIOperation: String, Codable, Sendable {
-  case transcribe, dictionaryList, dictionaryAdd, dictionaryRemove
+  case transcribe, tts, dictionaryList, dictionaryAdd, dictionaryRemove
 }
 
 public struct CLIRequest: Codable, Sendable {
@@ -74,11 +74,13 @@ public struct CLIRequest: Codable, Sendable {
   public var useDictionary: Bool
   public var download: Bool
   public var entries: [String]
+  public var tts: CLITTSParameters?
+  public var outputBookmark: Data?
 
   public init(
     operation: CLIOperation, bookmark: Data? = nil, model: String? = nil,
     language: String? = nil, useDictionary: Bool = true, download: Bool = false,
-    entries: [String] = []
+    entries: [String] = [], tts: CLITTSParameters? = nil, outputBookmark: Data? = nil
   ) {
     self.operation = operation
     self.bookmark = bookmark
@@ -87,6 +89,39 @@ public struct CLIRequest: Codable, Sendable {
     self.useDictionary = useDictionary
     self.download = download
     self.entries = entries
+    self.tts = tts
+    self.outputBookmark = outputBookmark
+  }
+}
+
+/// Optional payload keeps transcription and dictionary requests compatible with protocol 1.
+public struct CLITTSParameters: Codable, Sendable {
+  public var text: String
+  public var voice: String?
+  public var emotion: String?
+  public var referenceText: String?
+  public var variant: String?
+
+  public init(
+    text: String, voice: String? = nil, emotion: String? = nil,
+    referenceText: String? = nil, variant: String? = nil
+  ) {
+    self.text = text
+    self.voice = voice
+    self.emotion = emotion
+    self.referenceText = referenceText
+    self.variant = variant
+  }
+}
+
+public struct CLIAudioResult: Codable, Sendable {
+  public var file: String
+  public let model: String
+  public let bytes: Int
+  public init(file: String, model: String, bytes: Int) {
+    self.file = file
+    self.model = model
+    self.bytes = bytes
   }
 }
 
@@ -130,14 +165,16 @@ public struct CLIEvent: Codable, Sendable {
   public let message: String?
   public let transcript: CLIFileResult?
   public let entries: [String]?
+  public let audio: CLIAudioResult?
   public init(
     _ kind: Kind, token: String? = nil, message: String? = nil,
-    transcript: CLIFileResult? = nil, entries: [String]? = nil
+    transcript: CLIFileResult? = nil, entries: [String]? = nil, audio: CLIAudioResult? = nil
   ) {
     self.kind = kind
     self.token = token
     self.message = message
     self.transcript = transcript
     self.entries = entries
+    self.audio = audio
   }
 }

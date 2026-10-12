@@ -8,15 +8,16 @@ the CLI or start its listener.
 
 Run `cliptate --help` for the complete command reference, including input and output
 rules, the JSON structure, dictionary behavior, environment variables, exit codes,
-and examples. The same reference is available with `cliptate transcribe --help`
-and `cliptate dictionary --help`, without launching the app.
+and examples. The same reference is available with `cliptate transcribe --help`,
+`cliptate tts --help`, and `cliptate dictionary --help`, without launching the app.
 
 For AI agents and scripts, prefer `--format json`, capture stdout separately from
 stderr, and inspect both the exit status and each `files[].error`. Batch JSON is
 emitted after all inputs finish; exit status `1` may still include successful results,
 while setup failures can produce no JSON. After interruption, stdout JSON contains
-completed inputs and omits the cancelled input. Inputs must be local file paths;
-stdin input is not supported. Pass option values as separate arguments
+completed inputs and omits the cancelled input. Transcription inputs must be local file paths;
+transcription does not accept stdin (TTS accepts `--text-file -`). Pass option
+values as separate arguments
 (`--format json`, not `--format=json`).
 
 ## Install
@@ -76,7 +77,7 @@ Output files must not exist unless `--overwrite` is supplied. Input files cannot
 be overwritten, and colliding output basenames are rejected before transcription.
 The app uses its existing mono audio pipeline and includes speaker IDs when the
 configured pipeline produces them; there are no separate-channel or speaker-name
-flags in this version. Only one CLI transcription runs at a time in the app.
+flags in this version. Only one CLI transcription or speech-generation request runs at a time in the app.
 
 JSON example:
 
@@ -134,7 +135,7 @@ opens a launch URL in the selected app to register a one-use, 60-second credenti
 Both peers authenticate using separate HMAC-SHA256 proofs before exchanging a
 length-prefixed JSON request. Unauthenticated connections expire after five
 seconds; frames are limited to 16 MiB. Progress is sent before the terminal result
-or failure, and callbacks after completion are ignored. A cancelled transcription
+or failure, and callbacks after completion are ignored. Cancelled inference
 keeps its admission slot until its work exits. No filesystem paths or dictionary
 contents are placed in the launch URL. File access is passed using an implicit bookmark;
 the CLI itself reads dictionary imports and writes output files.
@@ -159,3 +160,57 @@ A standalone command defaults to the production installation. To choose developm
 ```bash
 CLIPTATE_APP="/path/to/Cliptate Dev.app" cliptate dictionary list
 ```
+
+## Generate speech
+
+```sh
+cliptate tts --text "你好，欢迎使用 Cliptate。" --language zh -o speech.wav --download
+cliptate tts --text-file narration.txt -o narration.wav --format json
+printf 'Hello world.' | cliptate tts --text-file - -o hello.wav
+cliptate tts --text "Hello!" -o hello.wav \
+  --model qwen3-tts-0.6b-customvoice-8bit --voice Ryan --emotion "cheerful" --download
+cliptate tts --text "A new sentence." -o cloned.wav \
+  --model qwen3-tts-0.6b-base-8bit \
+  --reference-audio reference.wav --reference-text "The words spoken in reference.wav."
+cliptate tts --text "Welcome." -o designed.wav \
+  --model qwen3-tts-1.7b-voicedesign-8bit --voice "A warm, calm narrator" --download
+```
+
+Choose exactly one text source: `--text`, `--text-file PATH`, or `--text-file -`
+for stdin. Text must be nonempty UTF-8 and no larger than 1 MiB; a leading UTF-8
+BOM is accepted. `-o`/`--output` is required and must name a `.wav` file in an
+existing directory. The output is mono float32 WAV at the model's native sample
+rate. Output files require `--overwrite` if they already exist. Text and reference
+audio inputs are protected from overwrite, including symlink aliases. Failed or
+cancelled synthesis preserves an existing output.
+
+The command snapshots the app's TTS model, language, variant, and applicable voice
+settings. Overrides apply only to this request. `--model` (alias `--tts-model`)
+accepts a TTS model ID, its `ModelVariant` identifier, or its Hugging Face repository.
+Missing models require `--download`. `--language` accepts `auto`, `en`, `zh`, `ja`,
+`ko`, `de`, `fr`, `ru`, `pt`, `es`, and `it`. `--variant` accepts `automatic`, `short`,
+and `extended`. These variants follow the existing synthesis runtime's generation
+policy; they do not guarantee a fixed audio duration.
+
+Voice parameters must match the selected model family:
+
+- **CustomVoice:** `--voice` selects a named speaker, and `--emotion` supplies an
+  optional emotion/style description. Speakers are `Vivian`, `Serena`, `Uncle_Fu`,
+  `Dylan`, `Eric`, `Ryan`, `Aiden`, `Ono_Anna`, and `Sohee`.
+- **VoiceDesign:** `--voice` supplies a natural-language voice description.
+- **Base:** `--reference-audio` and nonempty `--reference-text` together enable voice
+  cloning. Base without reference audio uses the model's default voice. Voice and
+  emotion flags cannot be combined with cloning.
+
+Saved GUI reference audio is not used implicitly. CLI synthesis does not create
+history entries or change saved settings. One CLI transcription or speech-generation
+request runs at a time; dictionary requests remain available. Ctrl+C/SIGTERM
+cancels the request cooperatively and returns `130`, including while waiting for
+stdin. The inference slot remains occupied until cancelled work exits.
+
+On success, stdout contains the absolute output path. With `--format json`, stdout
+contains `{ "file": "/absolute/speech.wav", "model": "tts-model-id", "bytes": 123456 }`.
+Progress and errors go to stderr. Exit codes match transcription. The app writes
+WAV into a private CLI staging directory passed by bookmark; the CLI publishes it
+atomically after success and removes staging files. Audio is not carried in JSON
+frames, so generated audio can exceed the transport's 16 MiB frame limit.

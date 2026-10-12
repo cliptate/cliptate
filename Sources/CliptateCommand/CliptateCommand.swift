@@ -42,6 +42,56 @@ struct CliptateCommand {
           as? String ?? "development"
         try stdout(Data("cliptate \(version) (protocol 1)\n".utf8))
         return 0
+      case .tts(let options):
+        let inputs = [options.textFile == "-" ? nil : options.textFile, options.referenceAudio]
+          .compactMap { $0 }.map(path)
+        let output = try CLITTSOutput(
+          destination: path(options.output), inputs: inputs, overwrite: options.overwrite)
+        let text: String
+        if let inline = options.text {
+          text = inline
+        } else if options.textFile == "-" {
+          text = try await readStdin()
+        } else {
+          guard let filename = options.textFile else { throw CLIChannel.protocolError() }
+          let url = path(filename)
+          guard try url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true else {
+            throw CocoaError(.fileReadUnsupportedScheme)
+          }
+          let file = try FileHandle(forReadingFrom: url)
+          defer { try? file.close() }
+          var data = Data()
+          while data.count <= 1_048_576 {
+            let chunk = try file.read(upToCount: min(16_384, 1_048_577 - data.count)) ?? Data()
+            if chunk.isEmpty { break }
+            data.append(chunk)
+          }
+          text = try CLITTSOptions.validatedText(data)
+        }
+        try Task.checkCancellation()
+        let reference = try options.referenceAudio.map {
+          let url = path($0)
+          let file = try FileHandle(forReadingFrom: url)
+          try file.close()
+          return try url.bookmarkData(
+            options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+        }
+        let bookmark = try output.stagingURL.bookmarkData(
+          options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+        let event = try await execute(
+          CLIRequest(
+            operation: .tts, bookmark: reference, model: options.model, language: options.language,
+            download: options.download,
+            tts: CLITTSParameters(
+              text: text, voice: options.voice, emotion: options.emotion,
+              referenceText: options.referenceText, variant: options.variant),
+            outputBookmark: bookmark))
+        guard var audio = event.audio else { throw CLIChannel.protocolError() }
+        try Task.checkCancellation()
+        try output.publish(expectedBytes: audio.bytes)
+        audio.file = output.destination.path
+        try stdout(options.json ? CLIOutput.encode(audio) : Data((audio.file + "\n").utf8))
+        return 0
       case .dictionary(let action, let values):
         let entries =
           action == "import"
@@ -121,6 +171,37 @@ struct CliptateCommand {
     }
   }
 
+  private static func readStdin() async throws -> String {
+    // poll() keeps piped input cancellable even when its producer has not closed stdout.
+    let reader = Task.detached {
+      var data = Data()
+      var bytes = [UInt8](repeating: 0, count: 16_384)
+      while true {
+        try Task.checkCancellation()
+        var descriptor = pollfd(fd: STDIN_FILENO, events: Int16(POLLIN), revents: 0)
+        let ready = poll(&descriptor, 1, 100)
+        if ready < 0 {
+          if errno == EINTR { continue }
+          throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
+        }
+        if ready == 0 { continue }
+        let count = read(STDIN_FILENO, &bytes, bytes.count)
+        if count < 0 {
+          if errno == EINTR { continue }
+          throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
+        }
+        if count == 0 { return try CLITTSOptions.validatedText(data) }
+        data.append(contentsOf: bytes.prefix(count))
+        if data.count > 1_048_576 { return try CLITTSOptions.validatedText(data) }
+      }
+    }
+    return try await withTaskCancellationHandler {
+      try await reader.value
+    } onCancel: {
+      reader.cancel()
+    }
+  }
+
   @MainActor private static func execute(_ request: CLIRequest) async throws -> CLIEvent {
     guard let app = applicationURL() else {
       throw CLIError(
@@ -135,7 +216,9 @@ struct CliptateCommand {
     ).execute(request, progress: { stderr($0) })
   }
 
-  @MainActor private static func launchApplication(_ app: URL, for endpoint: CLIEndpoint) async throws {
+  @MainActor private static func launchApplication(_ app: URL, for endpoint: CLIEndpoint)
+    async throws
+  {
     let configuration = NSWorkspace.OpenConfiguration()
     configuration.activates = false
     // Respect an explicitly selected development bundle instead of an older installation.
@@ -160,7 +243,8 @@ struct CliptateCommand {
     let app = executable.deletingLastPathComponent().deletingLastPathComponent()
       .deletingLastPathComponent()
     if app.pathExtension == "app" { return app }
-    return NSWorkspace.shared.urlForApplication(withBundleIdentifier: AppIdentity.production.rawValue)
+    return NSWorkspace.shared.urlForApplication(
+      withBundleIdentifier: AppIdentity.production.rawValue)
   }
 
   private static func path(_ value: String) -> URL {
@@ -233,7 +317,7 @@ struct CliptateCommand {
   private static let help = String(
     localized: "cli.help",
     defaultValue: """
-      Cliptate CLI - local audio/video transcription and recognition dictionary.
+      Cliptate CLI - local transcription, speech generation, and recognition dictionary.
 
       Requires the direct-download macOS app; starts it in the background if needed.
       Uses the app's model, language, segmentation, alignment, and dictionary settings.
@@ -242,6 +326,7 @@ struct CliptateCommand {
 
       USAGE
         cliptate transcribe <file...> [options]
+        cliptate tts (--text TEXT | --text-file PATH | --text-file -) -o OUTPUT.wav [options]
         cliptate dictionary list | export
         cliptate dictionary add <word...>
         cliptate dictionary remove <word...>
@@ -260,17 +345,39 @@ struct CliptateCommand {
             --download             Allow downloading missing ASR, VAD, and alignment models
             --                     Treat all remaining arguments as file paths
 
+      TTS OPTIONS
+        --text <text>              Text to synthesize (quote it as one argument)
+        --text-file <path|->       UTF-8 text file, or - to read stdin; maximum 1 MiB
+        -o, --output <file.wav>     Required WAV destination; parent directory must exist
+        --model <model ID>         TTS model ID or repository; default: app TTS setting
+        --tts-model <model ID>     Alias for --model
+        --language <code>          auto, en, zh, ja, ko, de, fr, ru, pt, es, it
+        --voice <voice>            CustomVoice speaker name or VoiceDesign description
+        --emotion <description>    CustomVoice emotion/style prompt
+        --reference-audio <path>   Base voice-cloning audio; requires --reference-text
+        --reference-text <text>    Transcript of reference audio
+        --variant <variant>        automatic, short, extended; default: app TTS setting
+        --download                Allow downloading the missing TTS model
+        --overwrite               Replace an existing output only after successful synthesis
+        --format json             Print {file, model, bytes} metadata instead of the output path
+        Text sources are exclusive. Output is mono float32 WAV at the model's native rate.
+        Voice flags must match the model family; overrides never change saved settings.
+        Reference audio is explicit; saved GUI reference audio is not used by CLI commands.
+        TTS does not create history entries. Progress/errors go to stderr.
+        One CLI transcription or TTS request runs at a time; dictionary requests remain available.
+        Example CustomVoice speakers: Vivian, Serena, Ryan, Aiden, Ono_Anna, Sohee.
+
       INPUT AND DEFAULTS
         Inputs are readable local audio/video file paths, e.g. WAV, MP3, or MP4.
         Relative paths use the current directory; quote paths and phrases with spaces.
-        No stdin input. Use -- before input paths starting with "-".
+        Transcription has no stdin input. Use -- before input paths starting with "-".
         Pass option values as separate arguments, e.g. --format json (not --format=json).
         Model IDs are raw identifiers, e.g. qwen3-asr-0.6b-8bit or parakeet-v3,
         not display names or Hugging Face repository paths.
         Language codes include auto (detect), en, zh, ja, ko, de, es, and fr;
         the selected model must support the requested language.
         Overrides do not change saved app settings. Missing models fail without --download.
-        Only one CLI transcription runs at a time in the app; batch inputs run sequentially.
+        Only one CLI transcription or TTS request runs at a time in the app; batch inputs run sequentially.
 
       OUTPUT AND JSON
         Results go to stdout; progress and errors go to stderr. Keep the streams separate.
@@ -319,6 +426,9 @@ struct CliptateCommand {
         cliptate transcribe recording.wav --model qwen3-asr-0.6b-8bit --language zh --download
         cliptate transcribe recording.wav --language auto --no-dictionary
         cliptate transcribe --format json -- -recording.wav
+        cliptate tts --text "你好，欢迎使用 Cliptate。" --language zh -o speech.wav --download
+        cliptate tts --text-file narration.txt -o narration.wav --format json
+        printf 'Hello world.' | cliptate tts --text-file - -o hello.wav
         cliptate dictionary add "Cliptate" "Ada Lovelace"
         cliptate dictionary import words.txt
         cliptate dictionary export > words.json
