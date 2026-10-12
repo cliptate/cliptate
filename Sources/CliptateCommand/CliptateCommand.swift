@@ -231,22 +231,95 @@ struct CliptateCommand {
   private static let help = String(
     localized: "cli.help",
     defaultValue: """
-      cliptate transcribe <file...> [options]
-      cliptate dictionary list | export
-      cliptate dictionary add <word...>
-      cliptate dictionary remove <word...>
-      cliptate dictionary import <file.txt|file.json>
+      Cliptate CLI - local audio/video transcription and recognition dictionary.
 
-      -f, --format text|json|srt|vtt|markdown  (default: text)
-      -o, --output <file>                      Save output (one input)
-          --output-dir <directory>             One file per input
-          --overwrite                          Overwrite output files
-          --model <model ID>                   Model for this run
-          --language <code>                    Language for this run
-          --no-dictionary                      Skip dictionary
-          --download                           Download missing models
-          --                                   Remaining arguments are paths
-          --version | --help
+      Requires the direct-download macOS app; starts it in the background if needed.
+      Uses the app's model, language, segmentation, alignment, and dictionary settings.
+      Transcription does not create projects or transcript-history entries.
+      For AI agents and scripts, use --format json and inspect both exit status and files[].error.
+
+      USAGE
+        cliptate transcribe <file...> [options]
+        cliptate dictionary list | export
+        cliptate dictionary add <word...>
+        cliptate dictionary remove <word...>
+        cliptate dictionary import <file.txt|file.json>
+        cliptate --help | -h
+        cliptate --version
+
+      TRANSCRIBE OPTIONS
+        -f, --format <format>       text (default), json, srt, vtt, markdown
+        -o, --output <file>         Save one input's result; cannot combine with --output-dir
+            --output-dir <dir>     Create directory and save one result file per input
+            --overwrite            Allow replacing existing output files (never input files)
+            --model <model ID>     Override ASR model for this run; default: app setting
+            --language <code>      Override language for this run; default: app setting
+            --no-dictionary        Skip the app's recognition dictionary for this run
+            --download             Allow downloading missing ASR, VAD, and alignment models
+            --                     Treat all remaining arguments as file paths
+
+      INPUT AND DEFAULTS
+        Inputs are readable local audio/video file paths, e.g. WAV, MP3, or MP4.
+        Relative paths use the current directory; quote paths and phrases with spaces.
+        No stdin input. Use -- before input paths starting with "-".
+        Pass option values as separate arguments, e.g. --format json (not --format=json).
+        Model IDs are raw identifiers, e.g. qwen3-asr-0.6b-8bit or parakeet-v3,
+        not display names or Hugging Face repository paths.
+        Language codes include auto (detect), en, zh, ja, ko, de, es, and fr;
+        the selected model must support the requested language.
+        Overrides do not change saved app settings. Missing models fail without --download.
+        Only one CLI transcription runs at a time in the app; batch inputs run sequentially.
+
+      OUTPUT AND JSON
+        Results go to stdout; progress and errors go to stderr. Keep the streams separate.
+        With --output or --output-dir, results are written to files instead of stdout.
+        --output-dir uses <input-basename>.txt|json|srt|vtt|md, according to --format.
+        Existing outputs require --overwrite; duplicate output basenames are rejected.
+        Multiple SRT/VTT inputs require --output-dir. Batch text/Markdown include file headings.
+        JSON always wraps results in a files array, including single-input and saved JSON:
+        {"files":[{"file":"/path/to/a.wav","model":"model-id","duration":1.42,
+          "segments":[{"id":"segment-id","text":"Hello.","start":0,"end":1.42,"speakerId":0}]},
+          {"file":"/path/to/missing.wav","segments":[],"error":"File not found"}]}
+        file: absolute input path; segments: array of id, text, start, end, optional speakerId.
+        start, end, and optional duration are seconds; speakerId is zero-based when available.
+        model, duration, speakerId, and error are omitted when unavailable.
+        Failed inputs have empty segments and error; remaining inputs still run.
+        Batch JSON on stdout is emitted after all inputs finish. Exit 1 can still contain
+        successful results; inspect every files entry. Setup failures may produce no JSON.
+        Ctrl+C/SIGTERM stops later inputs; completed output remains available. Interrupted
+        stdout JSON contains completed inputs, not an entry for the cancelled input.
+        Transcription has no fixed timeout; initial app connection retries for up to 30 seconds.
+
+      DICTIONARY
+        list/export: print the current JSON string array.
+        add/remove: accept one or more words/phrases as separate arguments.
+        import: append UTF-8 lines or a JSON string array; does not replace existing entries.
+        Entries are trimmed, blanks dropped, and duplicates compared ignoring case/diacritics.
+        Mutations persist app settings and return the full updated JSON string array.
+        Do not blindly retry a mutation after a lost connection; read dictionary list first.
+
+      ENVIRONMENT
+        CLIPTATE_APP=/path/to/Cliptate.app selects the app bundle.
+        Otherwise the embedded helper uses its app; a standalone CLI finds the installed app.
+        App Store builds do not provide the CLI service.
+
+      EXIT STATUS
+        0  Success
+        1  Execution/file failure (a batch may have partial results)
+        2  Invalid command or arguments
+        130  Interrupted (Ctrl+C or SIGTERM)
+
+      EXAMPLES
+        cliptate transcribe "interview.mp4" --format json
+        cliptate transcribe a.wav b.mp4 --format json > transcripts.json
+        cliptate transcribe interview.wav --format srt --output interview.srt
+        cliptate transcribe a.wav b.mp4 --format vtt --output-dir subtitles
+        cliptate transcribe recording.wav --model qwen3-asr-0.6b-8bit --language zh --download
+        cliptate transcribe recording.wav --language auto --no-dictionary
+        cliptate transcribe --format json -- -recording.wav
+        cliptate dictionary add "Cliptate" "Ada Lovelace"
+        cliptate dictionary import words.txt
+        cliptate dictionary export > words.json
 
       """, bundle: CLILocalization.bundle)
 }

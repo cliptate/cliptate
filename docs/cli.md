@@ -6,6 +6,19 @@ language, segmentation, alignment, and custom dictionary. Transcriptions do not
 create projects or transcript-history entries. App Store builds do not include
 the CLI or start its listener.
 
+Run `cliptate --help` for the complete command reference, including input and output
+rules, the JSON structure, dictionary behavior, environment variables, exit codes,
+and examples. The same reference is available with `cliptate transcribe --help`
+and `cliptate dictionary --help`, without launching the app.
+
+For AI agents and scripts, prefer `--format json`, capture stdout separately from
+stderr, and inspect both the exit status and each `files[].error`. Batch JSON is
+emitted after all inputs finish; exit status `1` may still include successful results,
+while setup failures can produce no JSON. After interruption, stdout JSON contains
+completed inputs and omits the cancelled input. Inputs must be local file paths;
+stdin input is not supported. Pass option values as separate arguments
+(`--format json`, not `--format=json`).
+
 ## Install
 
 Open Settings → Command Line and copy the installation command into Terminal.
