@@ -5,7 +5,7 @@
 
   <p>
     <a href="https://github.com/cliptate/cliptate/releases"><img alt="GitHub Releases에서 다운로드" src="https://img.shields.io/badge/GitHub%20Releases-다운로드-0066cc?logo=github&logoColor=white&style=flat-square" /></a>
-    <img alt="macOS 15+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
+    <img alt="macOS 15+" src="https://img.shields.io/badge/macOS-15%2B-000000?logo=apple&logoColor=white&style=flat-square" />
     <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-MLX-ff6900?style=flat-square" />
     <img alt="Swift" src="https://img.shields.io/badge/Swift-6.2-f05138?logo=swift&logoColor=white&style=flat-square" />
     <img alt="로컬 음성 처리" src="https://img.shields.io/badge/처리방식-로컬%20음성-22c55e?style=flat-square" />
@@ -29,134 +29,108 @@
 
 ---
 
-Cliptate는 전사, 받아쓰기, 편집, 음성 합성을 통합한 네이티브 macOS 앱입니다. 음성 모델은 Mac에서 실행되며 온라인 AI 교정 및 번역 서비스는 선택적으로 설정할 수 있습니다.
+Cliptate는 음성을 편집 가능한 텍스트, 자막, 러프 컷으로 바꾸는 네이티브 macOS 앱입니다. Apple Silicon Mac에서 모델을 실행하여 녹음 전사, 다른 앱으로 받아쓰기, 무음 구간 제거, 음성 합성을 할 수 있습니다.
+
+**GitHub 다운로드 버전은 무료입니다.** 모든 모델과 Pro 기능을 구독이나 구매 없이 사용할 수 있습니다. 선택적 온라인 AI 기능은 직접 설정한 서비스를 사용합니다.
 
 ![Cliptate 홈 화면](../assets/screenshots/home.ko.jpg)
 
----
+[시작하기](#시작하기) · [기능](#기능) · [명령줄](#명령줄) · [개인정보와 모델](#개인정보와-모델) · [소스 빌드](#소스에서-빌드)
+
+## 시작하기
+
+### 다운로드 및 설치
+
+1. [GitHub Releases](https://github.com/cliptate/cliptate/releases/latest)에서 `Cliptate.dmg`를 다운로드합니다. 매일 생성되는 빌드는 [Nightly 사전 릴리스](https://github.com/cliptate/cliptate/releases/tag/nightly)에서 받을 수 있습니다.
+2. DMG를 열고 **Cliptate.app**을 **응용 프로그램** 폴더로 드래그한 뒤 실행합니다.
+3. **모델(Models)** 페이지에서 첫 전사 또는 음성 합성에 필요한 모델을 다운로드합니다.
+
+릴리스 패키지는 Developer ID 서명과 Apple 공증을 거치며 SHA-256 체크섬 파일도 제공합니다. [설치 및 검증 가이드](development.md#dmg-packages-and-ci-downloads)를 참고하세요. 직접 다운로드 버전은 [앱 내 업데이트](updates.md)를 지원합니다.
+
+### 시스템 요구 사항
+
+| 요구 사항 | 설명 |
+| --- | --- |
+| Mac | Apple Silicon(M1 이상) |
+| 시스템 | macOS 15 Sequoia 이상 |
+| 저장 공간과 메모리 | 선택한 모델에 따라 다릅니다. 모델 페이지에서 크기를 확인하세요 |
+| 네트워크 | 최초 모델 다운로드 및 선택적 온라인 서비스에 필요 |
+
+### 첫 작업
+
+- **녹음 또는 영상:** **AI Cut**에서 파일을 가져오고 전사 모델과 언어를 선택합니다. 텍스트와 무음 구간 편집을 검토한 뒤 내보냅니다.
+- **실시간 받아쓰기:** **Voice To Text**에서 모델과 단축키를 설정하고 마이크 접근을 허용합니다. 직접 다운로드 버전은 손쉬운 사용 권한으로 다른 앱에 텍스트를 입력하며, 클립보드 붙여넣기도 사용할 수 있습니다.
+- **음성 합성:** TTS 모델을 선택하고 텍스트를 입력한 뒤, 해당 모델이 지원하는 프리셋 음성, 참조 오디오 또는 음성 설명을 지정합니다.
+
+## 기능
+
+| 작업 | 가능한 기능 |
+| --- | --- |
+| **오프라인 전사** | Parakeet, Qwen3 ASR, FireRed, Cohere 모델로 오디오와 영상을 일괄 전사합니다. 언어와 하드웨어에 맞는 엔진을 선택하세요. |
+| **음성 받아쓰기** | 스트리밍 전사, 사용자 정의 사전, 설정 가능한 받아쓰기 단축키. |
+| **AI Cut** | 음성 활동 감지(VAD)로 무음 구간을 감지하고, 구간을 검토하여 러프 컷을 내보냅니다. |
+| **화자 표시** | 지원하는 전사 파이프라인에서 Sortformer로 화자를 구분합니다. Silero VAD는 음성을 감지하지만 화자를 식별하지 않습니다. |
+| **음성 합성** | Qwen3 TTS로 프리셋 음성, 음성 복제, 감정·스타일 지정, 음성 디자인을 사용합니다. 설정 항목은 모델에 따라 다릅니다. |
+| **교정과 번역** | 선택적 온라인 AI 서비스로 텍스트 교정과 키워드 강조를 수행하고, Apple 번역으로 지원하는 언어 쌍의 자막을 번역합니다. |
+| **명령줄** | 스크립트나 AI 에이전트에서 파일 전사, WAV 음성 생성, 사용자 정의 사전 관리를 수행합니다. |
+
+## 내보내기
+
+| 출력 | 형식과 용도 |
+| --- | --- |
+| 편집 타임라인 | Final Cut Pro용 **FCPXML** |
+| 자막과 전사문 | 앱에서 **SRT**, 스타일이 있는 **ASS**, 타임스탬프가 있는 **TXT** |
+| 영상 | **MP4**, **MOV**, **M4V** 및 선택적 자막 삽입 |
+| 오디오 | **M4A**, **WAV** |
+| CLI 전사 | **Text**, **JSON**, **Markdown**, **SRT**, **VTT** |
+
+자막과 렌더링한 미디어는 각 편집기의 형식 지원에 따라 DaVinci Resolve, Adobe Premiere Pro 등에서 사용할 수 있습니다. FCPXML은 Final Cut Pro 타임라인용입니다.
+
+## 명령줄
+
+직접 다운로드 버전에는 CLI가 포함됩니다. 앱을 응용 프로그램 폴더로 옮긴 뒤 **설정 → 명령줄(Settings → Command Line)**에서 복사한 설치 명령을 터미널에서 실행하세요. [CLI 가이드](cli.md)에 따라 `~/.local/bin`을 셸의 `PATH`에 추가합니다.
+
+```bash
+cliptate transcribe interview.mp4 --format srt --output interview.srt
+cliptate transcribe recording.wav --format json --download
+cliptate tts --text "Cliptate에 오신 것을 환영합니다." --output speech.wav --download
+cliptate dictionary add "Cliptate" "MLX"
+```
+
+CLI는 앱에서 선택한 모델과 설정을 사용하며, 필요하면 앱을 백그라운드에서 실행합니다. `--download`는 없는 모델의 다운로드를 허용합니다. CLI 전사는 로컬 파일을 입력받으며 프로젝트나 기록을 생성하지 않습니다. 일괄 출력, 모델 지정, 스크립트 사용 방법은 `cliptate --help` 또는 [전체 명령 참조](cli.md)를 확인하세요.
+
+## 개인정보와 모델
+
+- **로컬 음성 처리:** 전사, VAD, 화자 분리, TTS 추론은 Mac에서 실행됩니다. 다운로드한 음성 모델은 오프라인에서 사용할 수 있습니다.
+- **선택적 온라인 AI:** 교정과 키워드 추출은 설정한 서비스에 텍스트를 전송합니다. 오프라인 음성 작업에서는 이 기능을 꺼 주세요.
+- **번역:** Apple 번역에 필요한 언어 리소스를 다운로드해야 할 수 있습니다. 사용 가능 여부는 언어 쌍에 따라 다릅니다.
+- **모델 저장:** 가중치는 별도로 다운로드합니다. 직접 다운로드 버전은 `~/.cache/huggingface/hub` 캐시를 재사용할 수 있습니다. [캐시 설명](development.md#shared-model-cache)을 참고하세요.
+- **라이선스:** 앱은 [MIT 라이선스](../LICENSE)를 따릅니다. 모델 가중치와 의존성에는 각각의 라이선스가 적용됩니다. [타사 라이선스](../THIRD_PARTY_NOTICES.md)를 확인하세요.
 
 ## 소스에서 빌드
 
-전체 앱은 [MIT 라이선스](../LICENSE)로 공개됩니다.
-Apple Silicon, macOS 15+, Xcode 26+ 및 Swift 6.2+가 필요합니다.
+Apple Silicon, macOS 15+, **Xcode 26+(Swift 6.2+)**가 필요합니다. Xcode 테스트 타깃은 macOS 15.5+가 필요합니다.
 
 ```bash
 git clone https://github.com/cliptate/cliptate.git
 cd cliptate
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+export CLIPTATE_APP_STORE=NO
+swift build
 swift test
 ./scripts/run.sh
 ```
 
-[개발 가이드](development.md), [아키텍처](architecture/README.md),
-[기여 가이드](../CONTRIBUTING.md), [타사 라이선스](../THIRD_PARTY_NOTICES.md)를 참조하세요.
-모델은 별도로 다운로드하며 구독 서비스는 로컬 설정으로 선택적으로 구성합니다.
+SwiftPM은 라이브러리와 CLI를 빌드하고 단위 테스트를 실행합니다. `./scripts/run.sh`는 Xcode 앱 **Cliptate Dev.app**을 빌드하고 실행하며, 개발용 설정과 데이터를 별도로 사용합니다. 실행 없이 빌드하려면 `./scripts/build-and-run.sh build`를 사용하세요.
 
+`CLIPTATE_APP_STORE=NO`는 CLI와 손쉬운 사용 기반 받아쓰기를 포함하는 무료 직접 배포 채널을 선택합니다. 기본 소스 빌드는 App Store 기능 제한과 구독 동작을 유지하며, 결제에는 별도의 로컬 설정이 필요합니다. 서명, 모델 캐시, 배포 설정은 [개발 가이드](development.md)를 참고하세요.
 
-## 기능
+## 기여 및 도움말
 
-### 🎙 음성 받아쓰기 — 말하는 대로 입력
+버그와 기능 요청은 [GitHub Issues](https://github.com/cliptate/cliptate/issues)에 등록하세요. macOS 버전, 앱 버전, 선택한 모델, 재현 단계를 포함하고 개인 녹음이나 인증 정보는 공개하지 마세요.
 
-실시간 스트리밍 음성-텍스트 변환을 입력기처럼 사용할 수 있습니다. 글로벌 키보드 단축키로 어느 앱에서든 호출하면 말하는 즉시 편집 가능한 텍스트가 생성됩니다.
-
-- 최소 지연의 스트리밍 실시간 전사
-- 다중 화자 자동 식별 및 레이블링
-- 전문 용어 정확도 향상을 위한 사용자 정의 어휘 사전
-- 어디서든 호출하거나 일시 중지할 수 있는 글로벌 단축키
-
-### 📝 오프라인 전사
-
-오디오·비디오 파일을 완전히 온디바이스에서 일괄 전사합니다. 여러 ASR 엔진(Parakeet, Qwen3, FireRed ASR)과 Apple Silicon 최적화 MLX 추론으로 서버에 오디오를 전송하지 않고도 정확한 자막을 생성합니다.
-
-### ✂️ 스마트 침묵 제거
-
-VAD 기반 무음 감지로 팟캐스트, 인터뷰, 강의 녹음의 불필요한 침묵을 자동으로 식별하고 일괄 제거합니다. 러프 컷이 납품 가능한 상태에 훨씬 빠르게 도달합니다.
-
-### 👥 화자 분리
-
-녹음에서 여러 화자를 자동으로 식별하고 레이블을 붙입니다. Sortformer와 Silero VAD 모델이 온디바이스에서 실행되어 인터뷰, 패널, 회의록에 화자 정보가 포함된 구조화된 전사문을 생성합니다.
-
-### 🔊 TTS 음성 합성 — 네 가지 모드
-
-| 모드 | 설명 |
-|---|---|
-| **프리셋 음성** | 내장 다국어 음성 라이브러리, 즉시 사용 가능 |
-| **음성 클론** | 참조 오디오를 업로드하여 화자의 음색과 리듬 재현 |
-| **감정 제어** | 텍스트 프롬프트로 지정된 화자의 감정과 스타일 조정 |
-| **음성 디자인** | 텍스트로 음성 특성을 기술하여 완전히 독창적인 페르소나 합성 |
-
-모든 TTS 추론은 MLX를 통해 온디바이스에서 실행됩니다. 오디오 데이터는 클라우드로 전송되지 않습니다.
-
-### 🌐 AI 교정 및 번역
-
-문맥 기반 전사문 교정 후 온디바이스 또는 Apple 번역을 통한 다국어 출력. 도구 전환 없이 글로벌 시청자를 위한 콘텐츠를 제작할 수 있습니다.
-
-### ⭐ 하이라이트 감지
-
-녹음에서 가장 중요한 문장과 주목할 만한 순간을 자동으로 찾아 타임라인에 표시합니다. 편집 및 게시 작업이 더 빠르게 진행됩니다.
-
----
-
-## 내보내기 형식
-
-Cliptate는 이미 사용 중인 툴로 직접 내보냅니다:
-
-| 형식 | 용도 |
-|---|---|
-| **FCPXML** | Final Cut Pro 타임라인 프로젝트 교환 |
-| **SRT** | 범용 자막 배포 |
-| **ASS** | 위치 및 스타일 정보가 포함된 자막 |
-| **VTT** | 브라우저 및 스트리밍 플랫폼용 웹 자막 |
-
-**Final Cut Pro**, **DaVinci Resolve**, **Adobe Premiere Pro** 호환.
-
----
-
-## 개인정보 보호 및 보안
-
-- **로컬 음성 추론** — ASR, VAD, 화자 구분 및 TTS는 Mac에서 실행됩니다.
-- **선택적 온라인 서비스** — AI 교정 및 번역은 설정한 엔드포인트와 API 키를 사용합니다.
-- **오프라인 추론** — 모델 다운로드 후 사용할 수 있습니다. 다운로드, 구독 및 온라인 서비스에는 네트워크가 필요합니다.
-- 민감한 콘텐츠에는 로컬 서비스를 선택하세요.
-
----
-
-## 시스템 요구 사항
-
-| | |
-|---|---|
-| **플랫폼** | macOS 15 Sequoia 이상 |
-| **아키텍처** | Apple Silicon(M1 이상) |
-| **저장 공간** | 모델 선택에 따라 다름 (전체 모델 세트: 2–8 GB) |
-
----
-
-## 기술 스택
-
-SwiftUI / AppKit, AVFoundation, MLX Audio, Hugging Face, RevenueCat / StoreKit을 사용합니다.
-
----
-
-## 활용 사례
-
-**팟캐스터 및 인터뷰어** — 침묵 제거, 자막 생성, 게시 가능한 구간 표시를 앱 내에서 완결.
-
-**Vlog 및 숏폼 크리에이터** — 말하는 장면 편집을 더 부드럽게 만들고, 페이싱과 표현에 집중.
-
-**강의 제작자 및 회의 기록자** — 음성 받아쓰기나 일괄 전사로 수 시간의 녹음을 검색·번역·납품 가능한 텍스트 자산으로 변환.
-
-**다국어 콘텐츠 팀** — 음성 클론, 전사문 번역, 더빙 버전 생성을 Mac 한 대로 완성.
-
----
-
-## 링크
-
-- **웹사이트:** [cliptate.github.io](https://cliptate.github.io)
-- **다운로드:** [Cliptate 다운로드](https://github.com/cliptate/cliptate/releases)
-- **문의 및 피드백:** [GitHub Issues](https://github.com/cliptate/cliptate/issues)
-
----
-
-<div align="center">
-  <sub>개인정보 보호, 속도, 전문적인 출력을 중시하는 크리에이터를 위해 만들었습니다.</sub>
-</div>
+- [기여 가이드](../CONTRIBUTING.md) — 개발 절차, 검증, 커밋 규칙
+- [아키텍처](architecture/README.md) — 코드 구조와 런타임 경계
+- [릴리스 노트](release-notes/README.md#version-archive) — 버전 기록
+- [보안 정책](../SECURITY.md) — 취약점 보고
+- [웹사이트](https://cliptate.github.io) — 제품 소개

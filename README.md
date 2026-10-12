@@ -6,7 +6,7 @@
 
   <p>
     <a href="https://github.com/cliptate/cliptate/releases"><img alt="Download from GitHub Releases" src="https://img.shields.io/badge/GitHub%20Releases-Download-0066cc?logo=github&logoColor=white&style=flat-square" /></a>
-    <img alt="macOS 15+" src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white&style=flat-square" />
+    <img alt="macOS 15+" src="https://img.shields.io/badge/macOS-15%2B-000000?logo=apple&logoColor=white&style=flat-square" />
     <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-MLX-ff6900?style=flat-square" />
     <img alt="Swift" src="https://img.shields.io/badge/Swift-6.2-f05138?logo=swift&logoColor=white&style=flat-square" />
     <img alt="On-Device Speech" src="https://img.shields.io/badge/Processing-Local%20Speech-22c55e?style=flat-square" />
@@ -30,145 +30,108 @@
 
 ---
 
-Cliptate is a native macOS application that brings transcription, dictation, editing, and speech synthesis into one workflow. Speech models run on your Mac; optional online AI correction and translation providers can be configured separately.
+Cliptate is a native macOS app for turning speech into editable text, subtitles, and rough cuts. Transcribe recordings, dictate into other apps, trim pauses, and generate speech with models running on your Apple Silicon Mac.
+
+**GitHub downloads are free:** all models and Pro features are unlocked, with no subscription or purchase required. Optional online AI services use your own provider configuration.
 
 ![Cliptate home screen](assets/screenshots/home.en.jpg)
 
----
+[Get started](#get-started) · [Features](#features) · [CLI](#command-line) · [Privacy](#privacy-and-models) · [Build from source](#build-from-source)
+
+## Get started
+
+### Download and install
+
+1. Download `Cliptate.dmg` from [GitHub Releases](https://github.com/cliptate/cliptate/releases/latest). For daily builds, use the [Nightly prerelease](https://github.com/cliptate/cliptate/releases/tag/nightly).
+2. Open the DMG, drag **Cliptate.app** into **Applications**, and launch it.
+3. Open **Models** and download the models you need before your first transcription or speech synthesis session.
+
+Release packages use Developer ID signing and Apple notarization. Each download includes a SHA-256 checksum file; see the [installation and verification guide](docs/development.md#dmg-packages-and-ci-downloads). Direct-download builds support [in-app updates](docs/updates.md).
+
+### Requirements
+
+| Requirement | Details |
+| --- | --- |
+| Mac | Apple Silicon (M1 or later) |
+| System | macOS 15 Sequoia or later |
+| Storage and memory | Depend on the selected models; check their sizes in Models |
+| Network | Needed for initial model downloads and optional online services |
+
+### Your first workflow
+
+- **Recorded audio or video:** open **AI Cut**, import files, select a transcription model and language, then review the transcript and pause cuts before exporting.
+- **Live dictation:** open **Voice To Text**, choose a model, configure a shortcut, and grant microphone access. Direct builds use Accessibility permission to deliver text into other apps; clipboard paste is the fallback.
+- **Speech synthesis:** select a TTS model, enter text, and choose a preset voice, reference audio, or voice description supported by that model.
+
+## Features
+
+| Workflow | What you can do |
+| --- | --- |
+| **Offline transcription** | Batch-transcribe audio and video with Parakeet, Qwen3 ASR, FireRed, or Cohere models; choose an engine suited to your language and hardware. |
+| **Voice dictation** | Stream speech to text, use a custom vocabulary dictionary, and invoke dictation with a configurable shortcut. |
+| **AI Cut** | Detect pauses with voice activity detection (VAD), review segments, and export a rough cut. |
+| **Speaker labels** | Use Sortformer diarization to distinguish speakers in supported transcription pipelines. Silero VAD detects speech without identifying speakers. |
+| **Speech synthesis** | Use Qwen3 TTS for preset voices, voice cloning, emotion/style prompts, and voice design. Available controls depend on the selected model. |
+| **Correction and translation** | Use an optional online AI provider for transcript correction and keyword emphasis; translate subtitles with Apple Translation for supported language pairs. |
+| **Command line** | Transcribe files, generate WAV speech, and manage custom vocabulary from scripts or AI agents. |
+
+## Export
+
+| Output | Formats and use |
+| --- | --- |
+| Editing timeline | **FCPXML** for Final Cut Pro |
+| Subtitles and transcripts | **SRT**, styled **ASS**, and timestamped **TXT** from the app |
+| Video | **MP4**, **MOV**, **M4V**, with optional burned-in subtitles |
+| Audio | **M4A**, **WAV** |
+| CLI transcription | **Text**, **JSON**, **Markdown**, **SRT**, **VTT** |
+
+Use subtitles and rendered media in editors such as DaVinci Resolve or Adobe Premiere Pro, subject to each editor's format support. FCPXML is the Final Cut Pro timeline workflow.
+
+## Command line
+
+The CLI is included in direct-download builds. Move the app to Applications first, then open **Settings → Command Line** and run the copied installation command in Terminal. Add `~/.local/bin` to your shell's `PATH` as described in the [CLI guide](docs/cli.md).
+
+```bash
+cliptate transcribe interview.mp4 --format srt --output interview.srt
+cliptate transcribe recording.wav --format json --download
+cliptate tts --text "Hello from Cliptate." --output speech.wav --download
+cliptate dictionary add "Cliptate" "MLX"
+```
+
+The CLI uses the app's selected models and configuration, launching the app in the background when needed. `--download` allows missing models to be downloaded. CLI transcription accepts local files and does not create projects or history entries. Run `cliptate --help` or read the [full command reference](docs/cli.md) for batch output, model overrides, and scripting behavior.
+
+## Privacy and models
+
+- **Local speech processing:** transcription, VAD, speaker diarization, and TTS inference run on your Mac. Downloaded speech models can be used offline.
+- **Optional online AI:** correction and keyword extraction send text to the provider you configure. Keep these features disabled for an offline speech workflow.
+- **Translation:** Apple Translation uses language resources that may need downloading; availability depends on the language pair.
+- **Model storage:** weights are downloaded separately. Direct builds can reuse the Hugging Face cache at `~/.cache/huggingface/hub`; see [cache details](docs/development.md#shared-model-cache).
+- **Licensing:** the application is [MIT licensed](LICENSE). Model weights and dependencies retain their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## Build from source
 
-DMGs and SHA-256 checksums are available from
-[GitHub Releases](https://github.com/cliptate/cliptate/releases), including the daily Nightly build.
-CI packages require Developer ID signing and Apple notarization; see the
-[installation guide](docs/development.md#dmg-packages-and-ci-downloads).
-
-Direct-download builds are fully free, with all models and Pro features unlocked
-and no subscription or purchase required. App Store builds retain subscription billing.
-
-The complete application is open source under the [MIT license](LICENSE).
-Builds require Apple Silicon, macOS 15+, and Xcode 26+ (Swift 6.2+).
+Requires Apple Silicon, macOS 15+, and **Xcode 26+ with Swift 6.2+**. The Xcode test target requires macOS 15.5+.
 
 ```bash
 git clone https://github.com/cliptate/cliptate.git
 cd cliptate
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 export CLIPTATE_APP_STORE=NO
+swift build
 swift test
 ./scripts/run.sh
 ```
 
-Source code is in `Sources/Cliptate`, tests in `Tests`, the Xcode project at the
-repository root, and tooling in `scripts`. See [development](docs/development.md),
-[architecture](docs/architecture/README.md), [contributing](CONTRIBUTING.md),
-and [third-party notices](THIRD_PARTY_NOTICES.md).
-App Store source builds use optional local billing configuration; model weights are downloaded separately.
+SwiftPM builds the library and CLI and runs unit tests. `./scripts/run.sh` builds and launches the actual Xcode application as **Cliptate Dev.app** with separate development settings and data. To build the app without launching it, use `./scripts/build-and-run.sh build`.
 
+`CLIPTATE_APP_STORE=NO` selects the free direct-distribution channel, including the CLI and Accessibility-backed dictation. Default source builds retain App Store capability restrictions and subscription behavior; billing requires your own local configuration. See the [development guide](docs/development.md) for signing, model caches, and distribution setup.
 
-## Features
+## Contribute and get help
 
-### 🎙 Voice Dictation — Speak to Type
+Bug reports and feature requests belong in [GitHub Issues](https://github.com/cliptate/cliptate/issues). Include your macOS version, app version, selected model, and reproduction steps; avoid posting private recordings or credentials.
 
-Real-time streaming speech-to-text that works like an input method. Invoke it from any context with a global keyboard shortcut and get editable text as you speak.
-
-- Streaming transcription with minimal latency
-- Automatic multi-speaker diarization and labeling
-- Custom vocabulary dictionary for domain-specific accuracy
-- Global keyboard shortcut to invoke or pause anywhere
-
-### 📝 Offline Transcription
-
-Batch-transcribe audio and video files entirely on-device. Supports multiple ASR engines (Parakeet, Qwen3, FireRed ASR) and Apple Silicon-optimized MLX inference for fast, accurate captions without sending audio to any server.
-
-### ✂️ Smart Pause Trimming
-
-VAD-powered silence detection automatically identifies and removes dead air across podcasts, interviews, and course recordings. Rough cuts arrive closer to delivery-ready with minimal manual scrubbing.
-
-### 👥 Speaker Diarization
-
-Automatically identify and label multiple speakers across a recording. Sortformer and Silero VAD models run on-device to produce structured, speaker-attributed transcripts for interviews, panels, and meetings.
-
-### 🔊 TTS Voice Synthesis — Four Modes
-
-| Mode | Description |
-|---|---|
-| **Preset** | Built-in multilingual voices, ready instantly |
-| **Clone** | Upload reference audio to reproduce a speaker's timbre and cadence |
-| **Emotion Control** | Steer emotion and speaking style on a named speaker via text prompts |
-| **Voice Design** | Describe a voice in text to synthesize an entirely original persona |
-
-All TTS inference runs on-device via MLX. No audio is sent to the cloud.
-
-### 🌐 AI Correction & Translation
-
-Context-aware transcript correction followed by on-device or Apple Translation-powered multilingual output. Produce subtitles and scripts in multiple languages without switching tools.
-
-### ⭐ Highlight Detection
-
-Automatically surface the strongest moments and key sentences from a recording and mark them on the timeline — so publishing edits move faster.
-
----
-
-## Export Formats
-
-Cliptate exports directly into the tools you already use:
-
-| Format | Use |
-|---|---|
-| **FCPXML** | Final Cut Pro timeline project exchange |
-| **SRT** | Universal subtitle delivery |
-| **ASS** | Styled subtitles with positioning and formatting |
-| **VTT** | Web captions for browsers and streaming platforms |
-
-Compatible with **Final Cut Pro**, **DaVinci Resolve**, and **Adobe Premiere Pro**.
-
----
-
-## Privacy & Security
-
-- **Local speech inference** — ASR, VAD, diarization, and TTS run on your Mac
-- **Optional providers** — online AI correction/translation uses the endpoint and API key you configure
-- **Offline local models** — cache weights before use; model downloads, billing, and optional online providers need network access
-- Choose local providers when processing sensitive content
-
----
-
-## Requirements
-
-| | |
-|---|---|
-| **Platform** | macOS 15 Sequoia or later |
-| **Architecture** | Apple Silicon (M1 and later) |
-| **Storage** | Varies by model selection (2–8 GB for full model set) |
-
----
-
-## Tech Stack
-
-Cliptate uses SwiftUI and AppKit for its native macOS UI, AVFoundation for media, MLX Audio for local inference, Hugging Face for model downloads, and RevenueCat/StoreKit for optional subscriptions.
-
----
-
-## Use Cases
-
-**Podcasters & Interviewers** — Trim silence, generate captions, and flag publishable moments without leaving the app.
-
-**Vloggers & Short-form Creators** — Smooth out talking-head recordings and keep focus on pacing instead of manual cuts.
-
-**Course Creators & Meeting Recorders** — Turn hours of live or recorded audio into searchable, translatable text assets via dictation or batch transcription.
-
-**Multilingual Content Teams** — Clone a voice, translate the transcript, and produce dubbed alternate-language versions — all on one Mac.
-
----
-
-## Links
-
-- **Website:** [cliptate.github.io](https://cliptate.github.io)
-- **Download:** [Download Cliptate](https://github.com/cliptate/cliptate/releases)
-- **Issues & Feedback:** [GitHub Issues](https://github.com/cliptate/cliptate/issues)
-
----
-
-<div align="center">
-  <sub>Built for creators who care about privacy, speed, and professional output.</sub>
-</div>
+- [Contributing](CONTRIBUTING.md) — workflow, validation, and commit conventions
+- [Architecture](docs/architecture/README.md) — code structure and runtime boundaries
+- [Release notes](docs/release-notes/README.md#version-archive) — version history
+- [Security policy](SECURITY.md) — reporting vulnerabilities
+- [Website](https://cliptate.github.io) — product overview
