@@ -258,6 +258,14 @@ public enum ModelAccessLevel: String, Codable, Sendable {
 
 /// Model variants for different transcription engines
 public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable {
+  // Multilingual Whisper models; Turbo is the recommended balance of speed and size.
+  case whisperTiny = "whisper-tiny"
+  case whisperBase = "whisper-base"
+  case whisperSmall = "whisper-small"
+  case whisperMedium = "whisper-medium"
+  case whisperLargeV3 = "whisper-large-v3"
+  case whisperLargeV3Turbo = "whisper-large-v3-turbo"
+
   // Parakeet models
   case parakeetV2 = "parakeet-v2"
   case parakeetV3 = "parakeet-v3"
@@ -347,6 +355,12 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
 
   public var displayName: String {
     switch self {
+    case .whisperTiny: return String(localized: "Whisper Tiny")
+    case .whisperBase: return String(localized: "Whisper Base")
+    case .whisperSmall: return String(localized: "Whisper Small")
+    case .whisperMedium: return String(localized: "Whisper Medium")
+    case .whisperLargeV3: return String(localized: "Whisper Large v3")
+    case .whisperLargeV3Turbo: return String(localized: "Whisper Large v3 Turbo")
     case .parakeetV2: return "Parakeet v2"
     case .parakeetV3: return "Parakeet v3"
     case .qwen3ASR: return "Qwen3 ASR 0.6B (8bit)"
@@ -395,6 +409,7 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
   }
 
   public var provider: TranscriberType {
+    if isWhisperModel { return .whisper }
     if isParakeetModel { return .parakeet }
     if isFireRedASRModel { return .fireRed }
     if isCohereTranscribeModel { return .cohere }
@@ -406,6 +421,8 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
 
   public var summary: String {
     switch self {
+    case .whisperTiny, .whisperBase, .whisperSmall, .whisperMedium, .whisperLargeV3, .whisperLargeV3Turbo:
+      return String(localized: "Multilingual Whisper transcription on Apple Silicon. Select a language; precise word timing uses forced alignment.")
     case .parakeetV2:
       return String(localized: "English-only model optimized for voice activity detection.", comment: "Parakeet v2 model summary")
     case .parakeetV3:
@@ -442,6 +459,14 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
       return String(localized: "MLX-based TTS (0.6B) VoiceDesign model — create voices from text descriptions.", comment: "Qwen3 TTS 0.6B VoiceDesign model summary")
     case .qwen3TTS17BVoiceDesign4bit, .qwen3TTS17BVoiceDesign8bit, .qwen3TTS17BVoiceDesignBf16:
       return String(localized: "MLX-based TTS (1.7B) VoiceDesign model — create voices from text descriptions, higher quality.", comment: "Qwen3 TTS 1.7B VoiceDesign model summary")
+    }
+  }
+
+  var isWhisperModel: Bool {
+    switch self {
+    case .whisperTiny, .whisperBase, .whisperSmall, .whisperMedium, .whisperLargeV3, .whisperLargeV3Turbo:
+      return true
+    default: return false
     }
   }
 
@@ -536,6 +561,12 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
   /// Model file size in MB (approximate)
   public var fileSize: Int {
     switch self {
+    case .whisperTiny: return 150
+    case .whisperBase: return 280
+    case .whisperSmall: return 930
+    case .whisperMedium: return 2920
+    case .whisperLargeV3: return 2950
+    case .whisperLargeV3Turbo: return 1550
     case .parakeetV2: return 800
     case .parakeetV3: return 900
     case .qwen3ASR: return 400
@@ -597,6 +628,12 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
   /// Relative speed score (0-10 scale) for UI display
   public var speedScore: Double {
     switch self {
+    case .whisperTiny: return 9.0
+    case .whisperBase: return 8.5
+    case .whisperSmall: return 7.5
+    case .whisperMedium: return 6.0
+    case .whisperLargeV3: return 5.0
+    case .whisperLargeV3Turbo: return 8.0
     case .parakeetV2: return 8.8
     case .parakeetV3: return 9.0
     case .qwen3ASR06B4bit: return 9.2
@@ -645,6 +682,12 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
   /// Relative accuracy score (0-10 scale) for UI display
   public var accuracyScore: Double {
     switch self {
+    case .whisperTiny: return 7.0
+    case .whisperBase: return 7.5
+    case .whisperSmall: return 8.2
+    case .whisperMedium: return 8.8
+    case .whisperLargeV3: return 9.5
+    case .whisperLargeV3Turbo: return 9.2
     case .parakeetV2: return 8.8
     case .parakeetV3: return 9.0
     case .qwen3ASR06B4bit: return 8.5
@@ -693,6 +736,10 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
   /// Supported languages for this specific model
   public var supportedLanguages: [Language] {
     switch self {
+    case _ where isWhisperModel:
+      // The pinned upstream adapter does not implement language detection.
+      // Yoruba is not part of Whisper's language-token vocabulary.
+      return Language.allCases.filter { $0 != .auto && $0 != .yoruba }
     case .parakeetV2:
       return [.english]
     case .parakeetV3:
@@ -728,6 +775,8 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
 
   public var languageSummary: String {
     switch self {
+    case _ where isWhisperModel:
+      return String(localized: "Multilingual · select a language")
     case .parakeetV2:
       return String(localized: "English only", comment: "Language support indicator: model only supports English")
     case .parakeetV3:
@@ -751,6 +800,8 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
 
   public var featureHighlights: [String] {
     switch self {
+    case _ where isWhisperModel:
+      return [String(localized: "MLX optimized"), String(localized: "Multilingual · select a language")]
     case .parakeetV2:
       return ["Voice Activity Detection", "Real-time optimized", "English tuning"]
     case .parakeetV3:
@@ -857,12 +908,8 @@ public enum TranscriberType: String, CaseIterable, Identifiable, Codable, Sendab
   public var id: String { rawValue }
 
   /// Whether this engine should appear in user-facing pickers.
-  /// Whisper is retained for backward compatibility with persisted configs but hidden from UI.
   public var isSelectableByUser: Bool {
-    switch self {
-    case .whisper: return false
-    default: return true
-    }
+    true
   }
 
   /// All engine cases that should appear in user-facing pickers.
@@ -897,7 +944,7 @@ public enum TranscriberType: String, CaseIterable, Identifiable, Codable, Sendab
   public var supportedModels: [ModelVariant] {
     switch self {
     case .whisper:
-      return [.parakeetV3]  // Whisper removed; redirect to Parakeet for saved configs
+      return [.whisperLargeV3Turbo, .whisperTiny, .whisperBase, .whisperSmall, .whisperMedium, .whisperLargeV3]
     case .parakeet: return [.parakeetV2, .parakeetV3]
     case .qwen3:
       return ModelVariant.allCases.filter { $0.isQwen3ASRModel && !$0.isHiddenFromSelection }
@@ -911,7 +958,8 @@ public enum TranscriberType: String, CaseIterable, Identifiable, Codable, Sendab
   // Deprecated: Use ModelVariant.supportedLanguages instead
   public var supportedLanguages: [Language] {
     switch self {
-    case .whisper, .parakeet: return Language.allCases
+    case .whisper: return ModelVariant.whisperLargeV3Turbo.supportedLanguages
+    case .parakeet: return Language.allCases
     case .qwen3: return Language.allCases
     case .fireRed: return [.auto, .chinese, .english]
     case .cohere:
@@ -926,8 +974,8 @@ public enum TranscriberType: String, CaseIterable, Identifiable, Codable, Sendab
   public func createTranscriber(model: ModelVariant = .parakeetV3) -> Transcriber {
     switch self {
     case .whisper:
-      let parakeetModel = model.isParakeetModel ? model : .parakeetV3
-      return MLXParakeetTranscriber(model: parakeetModel)
+      let whisperModel = model.isWhisperModel ? model : .whisperLargeV3Turbo
+      return MLXWhisperTranscriber(model: whisperModel)
     case .parakeet:
       let parakeetModel = model.isParakeetModel ? model : .parakeetV2
       return MLXParakeetTranscriber(model: parakeetModel)

@@ -180,6 +180,116 @@ struct VoiceTranscriberStopReasonTests {
     transcriber.testResetAfterQwen3StreamAssertions()
   }
 
+  @Test("AI dictation delivers only the final AI text, including after reopening Voice To Text", arguments: [false, true])
+  func aiDictationDeliversOnlyAfterPostProcessing(reopenView: Bool) async {
+    let transcriber = VoiceTranscriber.shared
+    let shortcuts = VoiceShortcutState.shared
+    transcriber.testPrepareForQwen3StreamAssertions()
+    let previousAutoType = transcriber.autoTypeEnabled
+    let session = TranscriptSession()
+    defer {
+      TranscriptHistoryStore.shared.remove(id: session.id)
+      shortcuts.cancelSession()
+      transcriber.deliverTranscriptsDirectly = true
+      transcriber.autoTypeEnabled = previousAutoType
+      transcriber.testResetAfterQwen3StreamAssertions()
+    }
+    shortcuts.activateMode(.dictation)
+    // ContentView suppresses raw delivery when activating an AI-enhanced shortcut.
+    transcriber.deliverTranscriptsDirectly = false
+    transcriber.testSetSession(session)
+    transcriber.testHandleQwen3StreamUpdate("raw spoken words")
+
+    // Replay the real view appearance setup during this recording.
+    if reopenView {
+      VoiceToTextView(transcriber: transcriber).configureTranscriptDeliveryOnAppear()
+    }
+    transcriber.autoTypeEnabled = false
+    shortcuts.requestEndSession()
+    await transcriber.stop()
+    let beforeAI = Mirror(reflecting: transcriber).children.first { $0.label == "deliveredText" }?.value as? String
+    #expect(beforeAI == "", "Raw transcription must not be delivered while AI enhancement is pending")
+
+    transcriber.deliverAssistantOutput("AI corrected words")
+    let afterAI = Mirror(reflecting: transcriber).children.first { $0.label == "deliveredText" }?.value as? String
+    #expect(afterAI == "AI corrected words")
+  }
+
+  @Test("Batch finalization retains this recording's delivery policy when defaults change", arguments: [false, true])
+  func batchFinalizationKeepsSessionDeliveryPolicy(allowRawDelivery: Bool) {
+    let transcriber = VoiceTranscriber.shared
+    transcriber.testPrepareForQwen3StreamAssertions()
+    let previousAutoType = transcriber.autoTypeEnabled
+    let session = TranscriptSession()
+    defer {
+      TranscriptHistoryStore.shared.remove(id: session.id)
+      transcriber.deliverTranscriptsDirectly = true
+      transcriber.autoTypeEnabled = previousAutoType
+      transcriber.testResetAfterQwen3StreamAssertions()
+    }
+    transcriber.autoTypeEnabled = false
+    transcriber.testSetSession(session)
+    transcriber.deliverTranscriptsDirectly = allowRawDelivery
+    transcriber.testCaptureTranscriptDeliveryForSession()
+    // Navigation/finish observers or a new shortcut can change the future default.
+    transcriber.deliverTranscriptsDirectly = !allowRawDelivery
+    let batch = BatchTranscriptionOutput(
+      result: TranscriptionResult(
+        segments: [Segment(startTime: 0, endTime: 1, text: "raw batch words")],
+        totalDuration: 1, processingTime: 0, modelUsed: ModelVariant.whisperTiny.rawValue
+      ), speakerAnnotationApplied: false, sourceURLBookmark: nil
+    )
+    transcriber.testApplyDictationBatchOutput(batch)
+    let beforeAI = Mirror(reflecting: transcriber).children.first { $0.label == "deliveredText" }?.value as? String
+    #expect(beforeAI == (allowRawDelivery ? "raw batch words" : ""))
+    if !allowRawDelivery {
+      transcriber.deliverAssistantOutput("AI corrected words")
+    }
+    // A repeated completion must also leave the chosen final output intact.
+    transcriber.testDeliverFinalSessionOutput()
+    let afterAI = Mirror(reflecting: transcriber).children.first { $0.label == "deliveredText" }?.value as? String
+    #expect(afterAI == (allowRawDelivery ? "raw batch words" : "AI corrected words"))
+  }
+
+  @Test("Leaving Voice To Text preserves pending AI delivery until final transcription arrives")
+  func navigationKeepsPendingAIOutput() {
+    let transcriber = VoiceTranscriber.shared
+    let shortcuts = VoiceShortcutState.shared
+    transcriber.testPrepareForQwen3StreamAssertions()
+    let previousAutoType = transcriber.autoTypeEnabled
+    let session = TranscriptSession()
+    defer {
+      TranscriptHistoryStore.shared.remove(id: session.id)
+      shortcuts.cancelSession()
+      transcriber.deliverTranscriptsDirectly = true
+      transcriber.autoTypeEnabled = previousAutoType
+      transcriber.testResetAfterQwen3StreamAssertions()
+    }
+    shortcuts.activateMode(.dictation)
+    transcriber.deliverTranscriptsDirectly = false
+    VoiceToTextView(transcriber: transcriber).finishShortcutSessionOnDisappear()
+    #expect(shortcuts.pendingEndMode == .dictation)
+    #expect(transcriber.deliverTranscriptsDirectly == false)
+    // Startup/finalization continues after SwiftUI runs the navigation callbacks.
+    transcriber.testCaptureTranscriptDeliveryForSession()
+    transcriber.autoTypeEnabled = false
+    transcriber.testSetSession(session)
+    transcriber.testApplyDictationBatchOutput(BatchTranscriptionOutput(
+      result: TranscriptionResult(
+        segments: [Segment(startTime: 0, endTime: 1, text: "raw batch words")],
+        totalDuration: 1, processingTime: 0, modelUsed: ModelVariant.whisperTiny.rawValue
+      ), speakerAnnotationApplied: false, sourceURLBookmark: nil
+    ))
+    shortcuts.absorbSessionTextOnce(sessionID: session.id, text: transcriber.session?.combinedText ?? "")
+    shortcuts.finalizeEndSession()
+    #expect(shortcuts.consumePendingResult()?.transcript == "raw batch words")
+    let beforeAI = Mirror(reflecting: transcriber).children.first { $0.label == "deliveredText" }?.value as? String
+    #expect(beforeAI == "")
+    transcriber.deliverAssistantOutput("AI corrected words")
+    let afterAI = Mirror(reflecting: transcriber).children.first { $0.label == "deliveredText" }?.value as? String
+    #expect(afterAI == "AI corrected words")
+  }
+
   @Test("VoiceTranscriber uses accuracy-first endpointing for live dictation")
   func voiceTranscriberUsesAccuracyFirstEndpointing() {
     let transcriber = VoiceTranscriber.shared

@@ -98,9 +98,9 @@ struct ModelVariantAccessLevelTests {
 
 @Suite("TranscriberType user-selectability")
 struct TranscriberTypeSelectabilityTests {
-    @Test("Whisper is not selectable by user")
-    func whisperNotSelectable() {
-        #expect(TranscriberType.whisper.isSelectableByUser == false)
+    @Test("Whisper is selectable by user")
+    func whisperSelectable() {
+        #expect(TranscriberType.whisper.isSelectableByUser)
     }
 
     @Test("Parakeet, Qwen3, FireRed are selectable")
@@ -110,10 +110,10 @@ struct TranscriberTypeSelectabilityTests {
         #expect(TranscriberType.fireRed.isSelectableByUser == true)
     }
 
-    @Test("selectableCases excludes whisper")
+    @Test("selectableCases includes Whisper")
     func selectableCasesFiltered() {
         let selectable = TranscriberType.selectableCases
-        #expect(!selectable.contains(.whisper))
+        #expect(selectable.contains(.whisper))
         #expect(selectable.contains(.parakeet))
         #expect(selectable.contains(.qwen3))
         #expect(selectable.contains(.fireRed))

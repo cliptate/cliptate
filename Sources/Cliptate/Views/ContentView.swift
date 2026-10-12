@@ -688,9 +688,10 @@ extension ContentView {
   }
 
   private func restoreTranscriptDelivery() {
-    if VoiceShortcutState.shared.activeMode == nil {
-      VoiceTranscriber.shared.deliverTranscriptsDirectly = true
-    }
+    let shortcut = VoiceShortcutState.shared
+    guard shortcut.activeMode == nil, shortcut.pendingEndMode == nil,
+      shortcut.pendingResult == nil else { return }
+    VoiceTranscriber.shared.deliverTranscriptsDirectly = true
   }
 }
 

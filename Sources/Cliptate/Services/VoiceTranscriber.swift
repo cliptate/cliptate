@@ -58,6 +58,8 @@ public final class VoiceTranscriber: ObservableObject {
   @Published public private(set) var isRetranscribing: Bool = false
   /// Status message shown during re-transcription (e.g. "Transcribing…").
   @Published public private(set) var retranscriptionStatus: String?
+  /// Default for the next recording. An active session retains its own choice
+  /// while view lifecycle and finish observers restore defaults for future runs.
   public var deliverTranscriptsDirectly: Bool = true
   @Published private(set) var inputIssue: VoiceInputIssue?
   @Published private(set) var inputDeviceName: String?
@@ -75,6 +77,7 @@ public final class VoiceTranscriber: ObservableObject {
   private var currentLanguage: Language = .english
   private var currentVADModel: ModelVariant = .sileroVAD
   private var currentDictionaryEntries: [String] = []
+  private var sessionAllowsRawDelivery: Bool?
   private var activeASRLease: ASRModelLease?
   private var deliveredText: String = ""
   private var lastTranscriptText: String = ""
@@ -152,6 +155,7 @@ public final class VoiceTranscriber: ObservableObject {
       return
     }
 
+    captureTranscriptDeliveryForSession()
     inputIssue = nil
     inputDeviceName = Self.defaultInputDeviceName()
     micIndicator.updateInputWarning(nil)
@@ -223,6 +227,14 @@ public final class VoiceTranscriber: ObservableObject {
       statusMessage = "Failed to start transcription"
       logger.error("🎙️ Failed to start transcription: \(error.localizedDescription)")
     }
+  }
+
+  private func captureTranscriptDeliveryForSession() {
+    sessionAllowsRawDelivery = deliverTranscriptsDirectly
+  }
+
+  private var shouldDeliverRawTranscript: Bool {
+    sessionAllowsRawDelivery ?? deliverTranscriptsDirectly
   }
 
   /// Stops streaming audio and finalizes the session if one is active.
@@ -478,7 +490,7 @@ public final class VoiceTranscriber: ObservableObject {
     let combinedText = updatedSession.combinedText
     liveText = combinedText
 
-    if deliverTranscriptsDirectly {
+    if shouldDeliverRawTranscript {
       deliverTranscriptionOutput(collapseWhitespace(combinedText))
     }
 
@@ -517,6 +529,7 @@ public final class VoiceTranscriber: ObservableObject {
     statusMessage = "Ready"
     lastTranscriptText = ""
     deliveredText = ""
+    sessionAllowsRawDelivery = nil
     currentRecordingURL = nil
     isRetranscribing = false
     retranscriptionStatus = nil
@@ -973,7 +986,7 @@ extension VoiceTranscriber {
       lastTranscriptText = biased
     }
 
-    if allowAutoDelivery && deliverTranscriptsDirectly {
+    if allowAutoDelivery && shouldDeliverRawTranscript {
       deliverTranscriptionOutput(biased)
     }
   }
@@ -1045,7 +1058,7 @@ extension VoiceTranscriber {
     guard let combined = session?.combinedText else { return }
     let finalText = collapseWhitespace(combined)
     guard !finalText.isEmpty else { return }
-    guard deliverTranscriptsDirectly else { return }
+    guard shouldDeliverRawTranscript else { return }
     deliverTranscriptionOutput(finalText)
   }
 
@@ -1100,6 +1113,7 @@ extension VoiceTranscriber {
       liveText = ""
       statusMessage = ""
       deliveredText = ""
+      sessionAllowsRawDelivery = nil
       lastTranscriptText = ""
       lastSpeechDetection = nil
     }
@@ -1126,6 +1140,14 @@ extension VoiceTranscriber {
 
     func testDeliverFinalSessionOutput() {
       deliverFinalSessionOutput()
+    }
+
+    func testCaptureTranscriptDeliveryForSession() {
+      captureTranscriptDeliveryForSession()
+    }
+
+    func testApplyDictationBatchOutput(_ output: BatchTranscriptionOutput) {
+      _ = applyDictationBatchOutput(output, recordingURL: nil)
     }
 
     var testStreamingChunkDuration: Double {
@@ -1201,6 +1223,7 @@ extension VoiceTranscriber {
       liveText = ""
       statusMessage = ""
       deliveredText = ""
+      sessionAllowsRawDelivery = nil
       lastTranscriptText = ""
       lastSpeechDetection = nil
       state = .idle

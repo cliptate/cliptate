@@ -1009,6 +1009,7 @@ public enum CliptateCLI {
   }
 
   private static func transcriberType(for model: ModelVariant) -> TranscriberType {
+    if model.isWhisperModel { return .whisper }
     if model.isQwen3ASRModel { return .qwen3 }
     if model.isFireRedASRModel { return .fireRed }
     if model.isCohereTranscribeModel { return .cohere }

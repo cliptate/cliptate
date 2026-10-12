@@ -42,10 +42,21 @@ class BuildChannelTests(unittest.TestCase):
                            env=environment, capture_output=True, check=True)
             return arguments_file.read_text().splitlines()
 
-    def test_default_preserves_project_app_store_conditions(self):
+    def test_default_debug_uses_direct_channel(self):
         arguments = self.build_arguments()
-        self.assertFalse(any(arg.startswith("CLIPTATE_CHANNEL_CONDITIONS=")
-                             for arg in arguments))
+        self.assertIn("CLIPTATE_CHANNEL_CONDITIONS=", arguments)
+        self.assertIn("CLIPTATE_ENABLE_APP_SANDBOX=NO", arguments)
+        self.assertIn("CLIPTATE_CLI_URL_SCHEME=cliptate-dev-cli", arguments)
+        self.assertIn("CLIPTATE_CODE_SIGN_ENTITLEMENTS=" + str(
+            ROOT / "Sources/Cliptate/Cliptate-Direct.entitlements"), arguments)
+
+    def test_explicit_app_store_debug_overrides_direct_defaults(self):
+        arguments = self.build_arguments("YES")
+        self.assertIn("CLIPTATE_CHANNEL_CONDITIONS=APP_STORE", arguments)
+        self.assertIn("CLIPTATE_ENABLE_APP_SANDBOX=YES", arguments)
+        self.assertIn("CLIPTATE_CLI_URL_SCHEME=cliptate-dev-cli-disabled", arguments)
+        self.assertIn("CLIPTATE_CODE_SIGN_ENTITLEMENTS=" + str(
+            ROOT / "Sources/Cliptate/Cliptate.entitlements"), arguments)
 
     def test_debug_selects_dev_scheme_and_passes_detected_identity_to_nested_signing(self):
         arguments = self.build_arguments(automatic_signing=True)
@@ -59,6 +70,7 @@ class BuildChannelTests(unittest.TestCase):
         arguments = self.build_arguments(configuration="Release")
         self.assertIn("Cliptate", arguments)
         self.assertNotIn("Cliptate Dev", arguments)
+        self.assertFalse(any(arg.startswith("CLIPTATE_CHANNEL_CONDITIONS=") for arg in arguments))
 
     def test_direct_debug_retains_debug_and_removes_app_store(self):
         arguments = self.build_arguments("NO")
@@ -74,8 +86,8 @@ class BuildChannelTests(unittest.TestCase):
         direct_path = ROOT / "Sources/Cliptate/Cliptate-Direct.entitlements"
         self.assertIn("CLIPTATE_CODE_SIGN_ENTITLEMENTS=" + str(direct_path),
                       self.build_arguments("NO", "Release"))
-        self.assertFalse(any(arg.startswith("CLIPTATE_CODE_SIGN_ENTITLEMENTS=")
-                             for arg in self.build_arguments()))
+        self.assertNotIn("CLIPTATE_CODE_SIGN_ENTITLEMENTS=" + str(direct_path),
+                         self.build_arguments("YES"))
         self.assertFalse(any(arg.startswith("CODE_SIGN_ENTITLEMENTS=")
                              for arg in self.build_arguments("NO", "Release")))
         direct = plistlib.loads(direct_path.read_bytes())
@@ -86,8 +98,7 @@ class BuildChannelTests(unittest.TestCase):
         self.assertIn("CLIPTATE_ENABLE_APP_SANDBOX=NO", self.build_arguments("NO"))
         self.assertIn("CLIPTATE_CLI_URL_SCHEME=cliptate-dev-cli", self.build_arguments("NO"))
         self.assertIn("CLIPTATE_CLI_URL_SCHEME=cliptate-cli", self.build_arguments("NO", "Release"))
-        self.assertFalse(any(arg.startswith("CLIPTATE_ENABLE_APP_SANDBOX=")
-                             for arg in self.build_arguments()))
+        self.assertIn("CLIPTATE_ENABLE_APP_SANDBOX=YES", self.build_arguments("YES"))
 
     def test_local_release_can_load_ad_hoc_signed_frameworks(self):
         self.assertIn("ENABLE_HARDENED_RUNTIME=NO",

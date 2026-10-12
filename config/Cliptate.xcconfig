@@ -6,13 +6,16 @@ CLIPTATE_BUNDLE_IDENTIFIER[config=Debug] = com.cliptate.dev
 CLIPTATE_PRODUCT_NAME = Cliptate
 CLIPTATE_PRODUCT_NAME[config=Debug] = Cliptate Dev
 CLIPTATE_DEVELOPMENT_TEAM =
-// App Store-safe by default; direct builds override this setting with an empty value.
+// Release defaults to App Store; Debug (Cliptate Dev) defaults to direct distribution.
 CLIPTATE_CHANNEL_CONDITIONS = APP_STORE
+CLIPTATE_CHANNEL_CONDITIONS[config=Debug] =
 CLIPTATE_ENABLE_APP_SANDBOX = YES
+CLIPTATE_ENABLE_APP_SANDBOX[config=Debug] = NO
 CLIPTATE_CODE_SIGN_ENTITLEMENTS = $(SRCROOT)/Sources/Cliptate/Cliptate.entitlements
-// Inert by default; direct builds opt into the CLI launch URL.
+CLIPTATE_CODE_SIGN_ENTITLEMENTS[config=Debug] = $(SRCROOT)/Sources/Cliptate/Cliptate-Direct.entitlements
+// App Store builds disable the CLI launch URL; Dev enables its independent URL.
 CLIPTATE_CLI_URL_SCHEME = cliptate-cli-disabled
-CLIPTATE_CLI_URL_SCHEME[config=Debug] = cliptate-dev-cli-disabled
+CLIPTATE_CLI_URL_SCHEME[config=Debug] = cliptate-dev-cli
 CLIPTATE_DIRECT_CLI_URL_SCHEME = cliptate-cli
 CLIPTATE_DIRECT_CLI_URL_SCHEME[config=Debug] = cliptate-dev-cli
 // Direct-download updates are independent of the APP_STORE capability flag.

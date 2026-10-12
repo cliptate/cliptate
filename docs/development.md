@@ -58,14 +58,22 @@ Runtime; this works for public source builds, but development consent can reset
 after rebuilding. See Apple's
 [code-signing requirements explanation](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements).
 
-To run the free direct-distribution development variant:
+Debug (Cliptate Dev) defaults to the free direct-distribution channel, without
+App Sandbox and with Accessibility-backed capabilities and the embedded CLI:
 
 ```bash
-CLIPTATE_APP_STORE=NO ./scripts/run.sh
+./scripts/run.sh
+```
+
+To test the App Store channel using the same independent development identity:
+
+```bash
+CLIPTATE_APP_STORE=YES ./scripts/run.sh
 ```
 
 The `APP_STORE` capability gate remains independent of development identity.
-Without that option, development retains the App Store-safe capability behavior.
+Release keeps its App Store default; `CLIPTATE_APP_STORE=NO` explicitly selects
+the free direct-distribution channel for either configuration.
 
 Before `run`, `--debug`, `--logs`, and `--verify`, the script checks identity
 compatibility against installed Cliptate and Cliptate Dev bundles in `/Applications`
@@ -201,6 +209,41 @@ Repository identity must match the selected model: `mlx-community/Qwen3-0.6B-4bi
 is a text model, while transcription uses repositories such as
 `mlx-community/Qwen3-ASR-0.6B-8bit`.
 
+### Whisper transcription
+
+The existing MLX Audio Swift 0.1.5 dependency supplies Whisper; no separate
+WhisperKit dependency is needed. The catalog exposes multilingual Tiny, Base,
+Small, Medium, Large v3, and Large v3 Turbo, with Turbo recommended when switching
+to Whisper. Existing ASR selections remain unchanged. Whisper uses the same
+`ModelRuntime`, cache lifecycle, VAD, batch alignment, and live dictation paths.
+
+Models download from `openai/whisper-*` into the shared Hugging Face cache. Only
+`model.safetensors` and JSON/text assets are requested, avoiding duplicate weights
+for other frameworks and the optional Large v3 FP32 shards. Readiness requires
+local tokenizer and generation configuration files as well as weights. Models
+are downloaded on demand and are never bundled with the app.
+
+The pinned upstream implementation provides whole-window text with a fixed
+30-second window and no word timestamps. Enable forced alignment for precise
+editing/subtitle timing. Although the upstream README describes automatic language
+detection, its current implementation does not perform a language-detection pass;
+Cliptate therefore requires an explicit supported language for Whisper. Legacy
+Whisper selections that pointed to Parakeet restore to Turbo; unsupported language
+selections normalize to English. Custom vocabulary is applied by the shared
+post-processor rather than passed to Whisper as a decoding prompt. Cancellation
+is checked between windows; an active synchronous decode must finish first.
+
+The optional real-model regression downloads Tiny and transcribes a synthesized
+English fixture. Keep its audio and model files outside the checkout:
+
+```bash
+say -v Samantha -o /tmp/cliptate-whisper-smoke.aiff \
+  'The quick brown fox jumps over the lazy dog.'
+RUN_WHISPER_MODEL_TESTS=1 WHISPER_TEST_AUDIO_PATH=/tmp/cliptate-whisper-smoke.aiff \
+  WHISPER_TEST_METALLIB_PATH="$(swift build --show-bin-path)/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib" \
+  swift test --filter MLXWhisperTranscriberTests.realModelSmoke
+```
+
 ## Default folder access
 
 Sandboxed builds declare read/write access to Downloads, Movies, Music, and
@@ -308,9 +351,10 @@ without a subscription, purchase, or RevenueCat SDK key. These builds do not
 initialize billing, show upgrade promotions, or present paywalls. GitHub Release
 and Nightly packages explicitly select this channel.
 
-Default Xcode and SwiftPM builds retain `APP_STORE` and the existing subscription
-policy. Public source builds contain no RevenueCat SDK key, so App Store billing
-stays unconfigured until you provide one.
+Default Xcode and SwiftPM Debug builds select the free direct channel. Release
+builds retain `APP_STORE` and the existing subscription policy. Public source
+builds contain no RevenueCat SDK key, so App Store billing stays unconfigured
+until you provide one.
 
 To build and test the free direct-distribution channel with either entry point:
 
@@ -322,11 +366,11 @@ CLIPTATE_APP_STORE=NO ./scripts/build-and-run.sh build
 
 The option removes `APP_STORE`, disables App Sandbox, and enables the existing Accessibility-backed
 capabilities described in [ADR 0001](adr/0001-accessibility-gate-for-app-store.md).
-For an App Store build, omit the option (or set it to `YES`). When building directly
-in Xcode, set `CLIPTATE_CHANNEL_CONDITIONS =` in `config/Local.xcconfig` to select
-the free channel, along with `CLIPTATE_ENABLE_APP_SANDBOX = NO` and
-`CLIPTATE_CLI_URL_SCHEME = $(CLIPTATE_DIRECT_CLI_URL_SCHEME)` and the same
-`CLIPTATE_CLI_URL_SCHEME[config=Debug]` assignment. Default App Store builds remain sandboxed.
+For an App Store build, set it to `YES` (or omit it for Release). Explicit `YES`
+also restores the App Store entitlements, App Sandbox, and disabled CLI URL in
+Debug. When building directly in Xcode, Debug already selects the direct channel;
+see `config/Local.xcconfig.example` for per-configuration channel overrides.
+App Store builds remain sandboxed.
 Direct builds copy missing configuration and history from the previous sandbox
 container once without removing originals or replacing current direct-build data.
 
@@ -352,8 +396,9 @@ but no billing configuration. The existing production bundle identifier
 is retained to avoid breaking app data and product integration; forks intended for
 distribution should choose their own identifier and product IDs.
 
-Both build entry points retain the `APP_STORE` compilation condition. Consult
-[ADR 0001](adr/0001-accessibility-gate-for-app-store.md) before changing that condition.
+Both build entry points preserve the `APP_STORE` capability gate and support
+explicit channel selection. Consult [ADR 0001](adr/0001-accessibility-gate-for-app-store.md)
+before changing the gate.
 
 ## Repository layout
 

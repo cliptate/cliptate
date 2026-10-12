@@ -196,8 +196,7 @@ struct VoiceToTextView: View {
     .onAppear {
       refreshSelectedModelStatus()
       requestWarmupForSelectedModel(reason: .viewAppeared)
-      transcriber.deliverTranscriptsDirectly = true
-      transcriber.autoTypeEnabled = true
+      configureTranscriptDeliveryOnAppear()
       // Check microphone permission status and show alert if needed
       if transcriber.microphoneStatus == .denied || transcriber.microphoneStatus == .restricted {
         showingPermissionAlert = true
@@ -228,8 +227,7 @@ struct VoiceToTextView: View {
       historyErrorSessionID = nil
       historyErrorMessage = nil
       lastAssistantSourceText = ""
-      VoiceShortcutState.shared.endSession()
-      transcriber.deliverTranscriptsDirectly = true
+      finishShortcutSessionOnDisappear()
     }
     .onChange(of: transcriber.session?.combinedText ?? "") { _, newValue in
       if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -1155,6 +1153,19 @@ struct VoiceToTextView: View {
     }
   }
 
+  func configureTranscriptDeliveryOnAppear() {
+    // A shortcut may already be awaiting AI enhancement when this view mounts.
+    // Its delivery choice belongs to the session that activated it.
+    transcriber.autoTypeEnabled = true
+  }
+
+  func finishShortcutSessionOnDisappear() {
+    // Navigation can run before the asynchronous stop supplies final text.
+    // Let ContentView finish the pending shortcut after transcription completes.
+    VoiceShortcutState.shared.requestEndSession()
+    restoreTranscriptDeliveryIfNeeded()
+  }
+
   private func updateUsageStatsFromCurrentSessionIfNeeded() {
     guard let session = transcriber.session else { return }
     guard session.id != lastCountedSessionID else { return }
@@ -1437,9 +1448,10 @@ struct VoiceToTextView: View {
   }
 
   private func restoreTranscriptDeliveryIfNeeded() {
-    if VoiceShortcutState.shared.activeMode == nil {
-      transcriber.deliverTranscriptsDirectly = true
-    }
+    let shortcut = VoiceShortcutState.shared
+    guard shortcut.activeMode == nil, shortcut.pendingEndMode == nil,
+      shortcut.pendingResult == nil, !isPostProcessing else { return }
+    transcriber.deliverTranscriptsDirectly = true
   }
 
   private func revealRecording(for session: TranscriptSession) {

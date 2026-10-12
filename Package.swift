@@ -2,8 +2,14 @@
 import PackageDescription
 import Foundation
 
-// Keep the default App Store-safe; explicitly opt out for direct distribution.
-let appStoreBuild = ProcessInfo.processInfo.environment["CLIPTATE_APP_STORE"] != "NO"
+// Match Xcode: Dev/Debug defaults to direct distribution, Release to App Store.
+// An explicit override selects the same channel for either configuration.
+let channelSwiftSettings: [SwiftSetting]
+switch ProcessInfo.processInfo.environment["CLIPTATE_APP_STORE"] {
+case "YES": channelSwiftSettings = [.define("APP_STORE")]
+case "NO": channelSwiftSettings = []
+default: channelSwiftSettings = [.define("APP_STORE", .when(configuration: .release))]
+}
 
 let package = Package(
     name: "Cliptate",
@@ -68,7 +74,7 @@ let package = Package(
                 .process("Assets.xcassets"),
                 .process("Localizable.xcstrings")
             ],
-            swiftSettings: appStoreBuild ? [.define("APP_STORE")] : []
+            swiftSettings: channelSwiftSettings
         ),
         .testTarget(
             name: "CliptateTests",

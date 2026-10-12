@@ -114,7 +114,7 @@ actor ModelDownloadManager {
   /// Synchronous model-directory lookup; safe to call from non-async contexts.
   nonisolated func getModelDirectorySync(for model: ModelVariant) -> URL? {
     let candidates = artifactDirectories(for: model)
-    if let valid = candidates.first(where: { Self.hasValidArtifacts(at: $0, fileManager: .default) }) {
+    if let valid = candidates.first(where: { Self.hasValidArtifacts(at: $0, fileManager: .default, model: model) }) {
       return valid
     }
     let storageCandidates = storageDirectories(for: model)
@@ -134,7 +134,7 @@ actor ModelDownloadManager {
 
     let task = Task {
       switch Self.downloadBackend(for: model) {
-      case .resolver, .qwen3ASR, .qwen3Aligner, .fireRedASR, .cohereASR, .sortformerVAD, .sileroVAD:
+      case .whisperASR, .resolver, .qwen3ASR, .qwen3Aligner, .fireRedASR, .cohereASR, .sortformerVAD, .sileroVAD:
         try await self.downloadMLXAudioModel(model, progressHandler: progressHandler)
       case .unsupported:
         await progressHandler(ModelDownloadProgress(currentStep: "Unsupported model type", progress: 0.0))
@@ -170,6 +170,9 @@ actor ModelDownloadManager {
   nonisolated static func downloadBackend(for model: ModelVariant) -> ModelDownloadBackend {
     model.downloadBackend
   }
+
+  // Fetch one canonical checkpoint, avoiding duplicate framework and FP32 weights.
+  nonisolated static let whisperDownloadPatterns = ["model.safetensors", "*.json", "*.txt"]
 
   // MARK: - MLX Audio (ASR / Aligner / VAD)
 
@@ -210,6 +213,16 @@ actor ModelDownloadManager {
         let activeDownloadTask: Task<Void, Error> = Task {
           try Task.checkCancellation()
           switch Self.downloadBackend(for: model) {
+          case .whisperASR:
+            let repoID = Repo.ID(rawValue: model.huggingFaceRepoId)!
+            let directory = try await HubClient(cache: HubCache(cacheDirectory: self.cacheRootProvider()))
+              .downloadSnapshot(
+                of: repoID, kind: .model, revision: "main",
+                matching: Self.whisperDownloadPatterns
+              )
+            guard Self.hasValidArtifacts(at: directory, fileManager: self.fileManager, model: model) else {
+              throw ModelPreparationError.modelNotDownloaded(model)
+            }
           case .qwen3Aligner:
             _ = try await Qwen3ForcedAlignerModel.fromPretrained(model.huggingFaceRepoId)
           case .fireRedASR:
@@ -355,22 +368,22 @@ actor ModelDownloadManager {
   private func accessibleModelDirectory(for model: ModelVariant) -> URL? {
     let paths = storagePaths(for: model)
     let snapshotCandidates = huggingFaceSnapshotDirectories(for: model)
-    if let snapshot = snapshotCandidates.first(where: { Self.hasValidArtifacts(at: $0, fileManager: fileManager) }) {
+    if let snapshot = snapshotCandidates.first(where: { Self.hasValidArtifacts(at: $0, fileManager: fileManager, model: model) }) {
       return snapshot
     }
 
     let cacheCandidates = paths.mlxAudioDirectories
     guard let primary = cacheCandidates.first else { return nil }
-    if Self.hasValidArtifacts(at: primary, fileManager: fileManager) {
+    if Self.hasValidArtifacts(at: primary, fileManager: fileManager, model: model) {
       return primary
     }
 
-    guard let legacy = cacheCandidates.dropFirst().first(where: { Self.hasValidArtifacts(at: $0, fileManager: fileManager) }) else {
+    guard let legacy = cacheCandidates.dropFirst().first(where: { Self.hasValidArtifacts(at: $0, fileManager: fileManager, model: model) }) else {
       return nil
     }
 
     restoreLegacyArtifactsIfNeeded(from: legacy, to: primary)
-    if Self.hasValidArtifacts(at: primary, fileManager: fileManager) {
+    if Self.hasValidArtifacts(at: primary, fileManager: fileManager, model: model) {
       return primary
     }
     return legacy
@@ -536,7 +549,7 @@ actor ModelDownloadManager {
     return Int(total / (1024 * 1024))
   }
 
-  private static func hasValidArtifacts(at dir: URL, fileManager: FileManager) -> Bool {
+  private static func hasValidArtifacts(at dir: URL, fileManager: FileManager, model: ModelVariant? = nil) -> Bool {
     guard fileManager.directoryExists(at: dir) else { return false }
     let configPath = dir.appendingPathComponent("config.json")
     guard fileManager.fileExists(atPath: configPath.path),
@@ -552,6 +565,16 @@ actor ModelDownloadManager {
       return size > 0
     } ?? false
     guard hasSafetensors else { return false }
+
+    if model?.isWhisperModel == true {
+      // A partial weights-only download must not advertise offline readiness or
+      // invoke upstream's implicit tokenizer fallback from a different repo.
+      for name in ["tokenizer.json", "tokenizer_config.json", "generation_config.json"] {
+        let url = dir.appendingPathComponent(name)
+        guard let data = try? Data(contentsOf: url), !data.isEmpty,
+              (try? JSONSerialization.jsonObject(with: data)) != nil else { return false }
+      }
+    }
 
     // BPE tokenizer models ship both merges.txt and vocab.json.  If only merges.txt
     // is present the download was interrupted before vocab.json arrived, which causes

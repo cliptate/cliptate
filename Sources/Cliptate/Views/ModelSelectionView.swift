@@ -364,6 +364,8 @@ struct ModelSelectionView: View {
 
   private var languageRestrictionNotice: String? {
     switch selectedModel {
+    case _ where selectedModel.isWhisperModel:
+      return String(localized: "Whisper requires a selected language. Enable forced alignment for precise word timestamps.")
     case .fireRedASR2:
       return NSLocalizedString(
         "Supports Mandarin, 20+ Chinese dialects and accents, English, mixed Chinese-English speech, and lyrics recognition.",

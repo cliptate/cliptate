@@ -20,9 +20,12 @@ if [[ "$CONFIGURATION" == Debug && -z "${CODE_SIGN_IDENTITY:-}" ]]; then
   read -r SIGNING_IDENTITY SIGNING_TEAM <<< "$DEVELOPMENT_SIGNING"
 fi
 SIGNING_FLAGS=(CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$SIGNING_TEAM")
-if [[ "${CLIPTATE_APP_STORE:-YES}" == NO ]]; then
-  # Explicitly select the free direct-distribution channel, including Accessibility support.
+if [[ "${CLIPTATE_APP_STORE:-}" == NO || ( -z "${CLIPTATE_APP_STORE:-}" && "$CONFIGURATION" == Debug ) ]]; then
+  # Dev defaults to the free direct channel, including Accessibility and the CLI.
   SIGNING_FLAGS+=(CLIPTATE_CHANNEL_CONDITIONS= CLIPTATE_ENABLE_APP_SANDBOX=NO CLIPTATE_CLI_URL_SCHEME="$CLI_URL_SCHEME" CLIPTATE_CODE_SIGN_ENTITLEMENTS="$ROOT_DIR/Sources/Cliptate/Cliptate-Direct.entitlements")
+elif [[ "${CLIPTATE_APP_STORE:-}" == YES ]]; then
+  # Override the Debug defaults when explicitly testing the App Store channel.
+  SIGNING_FLAGS+=(CLIPTATE_CHANNEL_CONDITIONS=APP_STORE CLIPTATE_ENABLE_APP_SANDBOX=YES CLIPTATE_CLI_URL_SCHEME="$CLI_URL_SCHEME-disabled" CLIPTATE_CODE_SIGN_ENTITLEMENTS="$ROOT_DIR/Sources/Cliptate/Cliptate.entitlements")
 fi
 for setting in CLIPTATE_SPARKLE_PUBLIC_KEY CLIPTATE_UPDATE_FEED_URL CLIPTATE_UPDATES_ENABLED CURRENT_PROJECT_VERSION; do
   if [[ -n "${!setting:-}" ]]; then

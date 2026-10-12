@@ -487,10 +487,8 @@ extension AppConfiguration {
   private func normalizeAfterTranscriberChange() {
     if transcriberType == .parakeet, !modelVariant.isParakeetModel {
       modelVariant = .parakeetV3
-    } else if transcriberType == .whisper,
-      !modelVariant.isParakeetModel
-    {
-      modelVariant = .parakeetV3
+    } else if transcriberType == .whisper, !modelVariant.isWhisperModel {
+      modelVariant = .whisperLargeV3Turbo
     } else if transcriberType == .qwen3, !modelVariant.isQwen3ASRModel {
       modelVariant = .qwen3ASR
     } else if transcriberType == .cohere, !modelVariant.isCohereTranscribeModel {
@@ -511,13 +509,18 @@ extension AppConfiguration {
     if !modelVariant.supportedLanguages.contains(language) {
       language = modelVariant.supportedLanguages.first ?? .english
     }
+    if modelVariant.isWhisperModel,
+      !modelVariant.supportedLanguages.contains(voiceToTextLanguage)
+    {
+      voiceToTextLanguage = .english
+    }
   }
 
   private func normalizeVoiceToTextAfterTranscriberChange() {
     if voiceToTextTranscriberType == .parakeet, !voiceToTextModelVariant.isParakeetModel {
       voiceToTextModelVariant = .parakeetV3
-    } else if voiceToTextTranscriberType == .whisper, !voiceToTextModelVariant.isParakeetModel {
-      voiceToTextModelVariant = .parakeetV3
+    } else if voiceToTextTranscriberType == .whisper, !voiceToTextModelVariant.isWhisperModel {
+      voiceToTextModelVariant = .whisperLargeV3Turbo
     } else if voiceToTextTranscriberType == .cohere,
       !voiceToTextModelVariant.isCohereTranscribeModel
     {
@@ -539,6 +542,9 @@ extension AppConfiguration {
   }
 
   func normalizeModelSelections() {
+    if transcriberType == .whisper {
+      normalizeAfterTranscriberChange()
+    }
     if vadModelVariant == .sortformerOffline {
       vadModelVariant = .sileroVAD
     }

@@ -4,6 +4,7 @@ import Darwin
 #endif
 
 enum ModelDownloadBackend: Equatable, Sendable {
+  case whisperASR
   case qwen3ASR
   case qwen3Aligner
   case fireRedASR
@@ -173,6 +174,7 @@ enum ModelStorageLayoutResolver {
 
 extension ModelVariant {
   var downloadBackend: ModelDownloadBackend {
+    if isWhisperModel { return .whisperASR }
     if isParakeetModel { return .resolver }
     if isQwen3ASRModel { return .qwen3ASR }
     if isFireRedASRModel { return .fireRedASR }
@@ -218,6 +220,12 @@ extension ModelVariant {
   /// Get the HuggingFace repository ID for this model variant.
   public var huggingFaceRepoId: String {
     switch self {
+    case .whisperTiny: return "openai/whisper-tiny"
+    case .whisperBase: return "openai/whisper-base"
+    case .whisperSmall: return "openai/whisper-small"
+    case .whisperMedium: return "openai/whisper-medium"
+    case .whisperLargeV3: return "openai/whisper-large-v3"
+    case .whisperLargeV3Turbo: return "openai/whisper-large-v3-turbo"
     case .qwen3ASR: return "mlx-community/Qwen3-ASR-0.6B-8bit"
     case .qwen3ASR06B4bit: return "mlx-community/Qwen3-ASR-0.6B-4bit"
     case .qwen3ASR06B5bit: return "mlx-community/Qwen3-ASR-0.6B-5bit"

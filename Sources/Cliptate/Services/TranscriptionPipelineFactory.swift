@@ -109,7 +109,13 @@ enum TranscriptionPipelineFactory {
 
     let engine: any StreamingASREngine
     switch type {
-    case .parakeet, .whisper:
+    case .whisper:
+      guard let whisper = transcriber as? MLXWhisperTranscriber else {
+        throw TranscriptionPipelineError.transcirberTypeMismatch(
+          expected: "MLXWhisperTranscriber", actual: String(describing: Swift.type(of: transcriber)))
+      }
+      engine = whisper
+    case .parakeet:
       guard let parakeet = transcriber as? MLXParakeetTranscriber else {
         throw TranscriptionPipelineError.transcirberTypeMismatch(
           expected: "MLXParakeetTranscriber", actual: String(describing: Swift.type(of: transcriber)))

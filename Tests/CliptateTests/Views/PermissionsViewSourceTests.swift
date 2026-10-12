@@ -85,14 +85,18 @@ struct PermissionsViewSourceTests {
     #expect(content.contains("requestAccessibility()") == false)
   }
 
-  @Test("default Xcode app configurations build App Store variant")
-  func defaultXcodeAppConfigurationsBuildAppStoreVariant() throws {
+  @Test("Xcode defaults Dev to direct distribution and Release to App Store")
+  func defaultXcodeBuildChannels() throws {
     let content = try xcodeProjectSource()
 
     #expect(content.contains(#"SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited) $(CLIPTATE_CHANNEL_CONDITIONS)";"#))
     #expect(content.contains(#"SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) $(CLIPTATE_CHANNEL_CONDITIONS)";"#))
     let configuration = try projectFileSource("config/Cliptate.xcconfig")
     #expect(configuration.contains("CLIPTATE_CHANNEL_CONDITIONS = APP_STORE"))
+    #expect(configuration.contains("CLIPTATE_CHANNEL_CONDITIONS[config=Debug] =\n"))
+    #expect(configuration.contains("CLIPTATE_ENABLE_APP_SANDBOX[config=Debug] = NO"))
+    #expect(configuration.contains("CLIPTATE_CODE_SIGN_ENTITLEMENTS[config=Debug] = $(SRCROOT)/Sources/Cliptate/Cliptate-Direct.entitlements"))
+    #expect(configuration.contains("CLIPTATE_CLI_URL_SCHEME[config=Debug] = cliptate-dev-cli\n"))
   }
 
   @Test("generated Xcode app Info.plist declares no non-exempt encryption")
@@ -104,11 +108,13 @@ struct PermissionsViewSourceTests {
     #expect(content.components(separatedBy: declaration).count - 1 == 2)
   }
 
-  @Test("default Swift package builds App Store variant")
-  func defaultSwiftPackageBuildsAppStoreVariant() throws {
+  @Test("Swift package defaults only Release to App Store and supports explicit overrides")
+  func defaultSwiftPackageBuildChannels() throws {
     let content = try packageManifestSource()
 
     #expect(content.contains(#".define("APP_STORE")"#))
+    #expect(content.contains(#".define("APP_STORE", .when(configuration: .release))"#))
+    #expect(content.contains(#"case "NO": channelSwiftSettings = []"#))
   }
 
   @Test("Swift package keeps macOS app entry point out of raw executable builds")

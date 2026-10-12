@@ -732,7 +732,10 @@ actor ModelCacheManager: ModelLanguageSupportQuerying {
     let shouldClearMLXCache: Bool
     switch resource {
     case .asr(let transcriber):
-      if let transcriber = transcriber as? MLXParakeetTranscriber {
+      if let transcriber = transcriber as? MLXWhisperTranscriber {
+        transcriber.unload()
+        shouldClearMLXCache = true
+      } else if let transcriber = transcriber as? MLXParakeetTranscriber {
         transcriber.unload()
         shouldClearMLXCache = true
       } else if let transcriber = transcriber as? Qwen3ASRTranscriber {

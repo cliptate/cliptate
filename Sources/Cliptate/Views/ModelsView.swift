@@ -30,6 +30,7 @@ struct ModelsView: View {
 
   enum ASRProvider: String, CaseIterable, Identifiable {
     case all
+    case whisper
     case parakeet
     case qwen3
     case fireRed
@@ -40,6 +41,7 @@ struct ModelsView: View {
     var displayName: String {
       switch self {
       case .all:      return String(localized: "All",      comment: "ASR provider filter: show all providers")
+      case .whisper: return String(localized: "Whisper")
       case .parakeet: return String(localized: "Parakeet", comment: "ASR provider name: Parakeet")
       case .qwen3:    return String(localized: "Qwen3",    comment: "ASR provider name: Qwen3 ASR")
       case .fireRed:
@@ -53,10 +55,13 @@ struct ModelsView: View {
   static func asrModels(for provider: ASRProvider) -> [ModelVariant] {
     switch provider {
     case .all:
-      TranscriberType.parakeet.supportedModels
+      TranscriberType.whisper.supportedModels
+        + TranscriberType.parakeet.supportedModels
         + TranscriberType.qwen3.supportedModels
         + TranscriberType.fireRed.supportedModels
         + TranscriberType.cohere.supportedModels
+    case .whisper:
+      TranscriberType.whisper.supportedModels
     case .parakeet:
       TranscriberType.parakeet.supportedModels
     case .qwen3:

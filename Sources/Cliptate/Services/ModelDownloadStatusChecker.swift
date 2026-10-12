@@ -7,9 +7,9 @@ actor ModelDownloadStatusChecker {
 
   private init() {}
  
-  /// 检查 WhisperKit 模型是否已下载
+  /// 检查 MLX Whisper 模型是否已下载
   func isWhisperModelDownloaded(_ model: ModelVariant) async -> Bool {
-    guard !model.isParakeetModel else { return false }
+    guard model.isWhisperModel else { return false }
     return await ModelDownloadManager.shared.isModelDownloaded(model)
   }
 

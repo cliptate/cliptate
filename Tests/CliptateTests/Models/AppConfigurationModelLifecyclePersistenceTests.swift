@@ -58,6 +58,44 @@ struct AppConfigurationModelLifecyclePersistenceTests {
     #expect(reloaded.voiceToTextModelVariant == reloaded.modelVariant)
   }
 
+  @Test("Whisper selection and explicit languages survive snapshot restoration")
+  func whisperSnapshotRoundTrip() throws {
+    let configuration = AppConfiguration.shared
+    let original = configuration.makeSnapshot()
+    defer { configuration.applySnapshot(original) }
+    var changed = original
+    changed.transcriberType = .whisper
+    changed.modelVariant = .whisperSmall
+    changed.language = .chinese
+    changed.voiceToTextLanguage = .japanese
+    let decoded = try JSONDecoder().decode(
+      AppConfiguration.Snapshot.self, from: JSONEncoder().encode(changed)
+    )
+    configuration.applySnapshot(decoded)
+    #expect(configuration.modelVariant == .whisperSmall)
+    #expect(configuration.activeVoiceToTextTranscriberType == .whisper)
+    #expect(configuration.activeVoiceToTextModelVariant == .whisperSmall)
+    #expect(configuration.language == .chinese)
+    #expect(configuration.voiceToTextLanguage == .japanese)
+  }
+
+  @Test("Legacy Whisper redirects restore to Turbo with supported languages")
+  func legacyWhisperSnapshot() {
+    let configuration = AppConfiguration.shared
+    let original = configuration.makeSnapshot()
+    defer { configuration.applySnapshot(original) }
+    var changed = original
+    changed.transcriberType = .whisper
+    changed.modelVariant = .parakeetV3
+    changed.language = .auto
+    changed.voiceToTextLanguage = .auto
+    configuration.applySnapshot(changed)
+    #expect(configuration.modelVariant == .whisperLargeV3Turbo)
+    #expect(configuration.activeVoiceToTextModelVariant == .whisperLargeV3Turbo)
+    #expect(configuration.language == .english)
+    #expect(configuration.voiceToTextLanguage == .english)
+  }
+
   @Test("saved sortformerOffline selection migrates to sileroVAD")
   func migratesOfflineVADSelection() throws {
     let original = AppConfiguration.shared.makeSnapshot()
