@@ -4,6 +4,7 @@ import os
 /// Owns one CLI request session, including launch, authenticated retries, and cleanup.
 @MainActor
 public struct CLIRequestClient {
+  private let identity: AppIdentity
   private let launch: @MainActor (CLIEndpoint) async throws -> Void
   private let makeChannel: @MainActor () -> CLIChannel
   private let now: @MainActor () -> ContinuousClock.Instant
@@ -11,12 +12,14 @@ public struct CLIRequestClient {
 
   public init(
     launch: @escaping @MainActor (CLIEndpoint) async throws -> Void,
-    makeChannel: @escaping @MainActor () -> CLIChannel = { CLIChannel() },
+    identity: AppIdentity = .current,
+    makeChannel: (@MainActor () -> CLIChannel)? = nil,
     now: @escaping @MainActor () -> ContinuousClock.Instant = { ContinuousClock.now },
     sleep: @escaping @MainActor (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
   ) {
     self.launch = launch
-    self.makeChannel = makeChannel
+    self.identity = identity
+    self.makeChannel = makeChannel ?? { CLIChannel(identity: identity) }
     self.now = now
     self.sleep = sleep
   }
@@ -24,7 +27,7 @@ public struct CLIRequestClient {
   public func execute(
     _ request: CLIRequest, progress: @MainActor (String) -> Void = { _ in }
   ) async throws -> CLIEvent {
-    let endpoint = CLIEndpoint()
+    let endpoint = CLIEndpoint(identity: identity)
     try await launch(endpoint)
     let deadline = now() + .seconds(30)
     var channel: CLIChannel?

@@ -1,5 +1,9 @@
 import Foundation
 
+#if canImport(CliptateCLIKit)
+  import CliptateCLIKit
+#endif
+
 /// Distribution configuration is separate from the APP_STORE accessibility capability gate.
 struct AppUpdateConfiguration {
   let isEnabled: Bool
@@ -10,7 +14,8 @@ struct AppUpdateConfiguration {
       ?? false
     let feed = (info["SUFeedURL"] as? String).flatMap(URL.init(string:))
     let key = (info["SUPublicEDKey"] as? String).flatMap { Data(base64Encoded: $0) }
-    isEnabled = enabled && !hasAppStoreReceipt
+    let identity = AppIdentity(bundleIdentifier: info["CFBundleIdentifier"] as? String)
+    isEnabled = enabled && !hasAppStoreReceipt && identity != .development
       && feed?.scheme == "https" && feed?.host?.isEmpty == false && key?.count == 32
   }
 

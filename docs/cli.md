@@ -145,3 +145,17 @@ Direct builds copy missing configuration, presets, and history from the previous
 sandbox container once, retain originals, and preserve existing direct-build data.
 The helper is a native Xcode target, signed before embedding, and covered by the
 existing app signature/notarization checks. The production app bundle ID is unchanged.
+
+## Development app
+
+Debug builds produce `Cliptate Dev.app` (`com.cliptate.dev`). Its embedded `cliptate`
+command connects to that app using `cliptate-dev-cli` and a development-only port
+range. Production and development can serve CLI requests at the same time.
+Development uses its own configuration and dictionary; it does not import the
+production dictionary automatically.
+
+A standalone command defaults to the production installation. To choose development:
+
+```bash
+CLIPTATE_APP="/path/to/Cliptate Dev.app" cliptate dictionary list
+```

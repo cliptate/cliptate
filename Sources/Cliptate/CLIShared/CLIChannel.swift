@@ -8,10 +8,10 @@ public final class CLIChannel: @unchecked Sendable {
   private let queue = DispatchQueue(label: "com.cliptate.cli.channel")
 
   public init(connection: NWConnection) { self.connection = connection }
-  public convenience init() {
+  public convenience init(identity: AppIdentity = .current) {
     self.init(
       connection: NWConnection(
-        host: "127.0.0.1", port: NWEndpoint.Port(rawValue: CLIEndpoint.port)!, using: .tcp))
+        host: "127.0.0.1", port: NWEndpoint.Port(rawValue: identity.cliPort())!, using: .tcp))
   }
 
   public func cancel() { connection.cancel() }

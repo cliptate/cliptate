@@ -1,6 +1,10 @@
 import Darwin
 import Foundation
 
+#if canImport(CliptateCLIKit)
+  import CliptateCLIKit
+#endif
+
 /// Copies legacy sandbox data once; never removes originals or replaces direct-build data.
 enum DirectAppDataMigration {
   static func run() throws {
@@ -12,13 +16,14 @@ enum DirectAppDataMigration {
       let legacyLibrary = home.appendingPathComponent(
         "Library/Containers/\(identifier)/Data/Library")
       let support = home.appendingPathComponent("Library/Application Support")
-      for name in ["Cliptate", "VoiceFlowPro"] {
+      let identity = AppIdentity(bundleIdentifier: identifier)
+      for name in identity.sandboxDataDirectoryNames {
         try copyMissingData(
           from: legacyLibrary.appendingPathComponent("Application Support/\(name)"),
           to: support.appendingPathComponent(name))
       }
       let preferences = legacyLibrary.appendingPathComponent("Preferences/\(identifier).plist")
-      let preferenceMarker = support.appendingPathComponent(".cliptate-sandbox-preferences-v1")
+      let preferenceMarker = support.appendingPathComponent(identity.sandboxPreferencesMigrationMarker)
       if FileManager.default.fileExists(atPath: preferences.path),
         !FileManager.default.fileExists(atPath: preferenceMarker.path),
         let stored = try PropertyListSerialization.propertyList(

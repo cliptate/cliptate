@@ -6,7 +6,7 @@
         <array>
             <dict>
                 <key>CFBundleURLName</key>
-                <string>com.cliptate.cli</string>
+                <string>$(PRODUCT_BUNDLE_IDENTIFIER).cli</string>
                 <key>CFBundleURLSchemes</key>
                 <array><string>$(CLIPTATE_CLI_URL_SCHEME)</string></array>
             </dict>

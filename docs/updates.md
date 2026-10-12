@@ -14,8 +14,8 @@ the integration does not enable automatic installation.
 
 ## Feeds and versions
 
-All direct-download builds, including Nightly and local source builds, use the
-latest stable feed: `https://github.com/cliptate/cliptate/releases/latest/download/appcast.xml`.
+All production direct-download builds, including Nightly and local Release builds,
+use the latest stable feed: `https://github.com/cliptate/cliptate/releases/latest/download/appcast.xml`.
 Nightly still builds `main` as a rolling prerelease, but checks for stable updates.
 It does not publish a separate update feed. Version tags identify stable source;
 the publication job explicitly marks the verified version release as Latest.
@@ -94,6 +94,10 @@ cryptographic archive verification is performed by Sparkle when installing.
 
 ## Local builds and App Store distribution
 
+Debug builds use the independent `com.cliptate.dev` identity and disable the
+production updater, even when a feed and key are configured. Use Release and
+compatible Developer ID signing for end-to-end production upgrade testing.
+
 Copy `config/Local.xcconfig.example` to the ignored `config/Local.xcconfig` and set
 `CLIPTATE_SPARKLE_PUBLIC_KEY` to the public key for your feed. Optionally set
 `CLIPTATE_UPDATE_FEED_URL` to your own HTTPS appcast. In xcconfig files, write the
@@ -111,8 +115,11 @@ The current Xcode target packages direct-download releases.
 
 To test a full update, install an older signed and notarized build in Applications,
 publish a newer signed build to the same feed, then choose **Check for Updates…**.
-Verify download, installation, relaunch, and the automatic-check preference after
-relaunch. Do not use a running application inside a read-only DMG for this test.
+Use a dedicated macOS test account. Grant microphone, Accessibility (direct
+builds), and screen-recording access to the old build before updating. Verify
+download, installation, relaunch, the automatic-check preference, retained
+configuration/history, and all three permissions after relaunch. Repeat a rebuild
+of the separately signed Dev app and verify that production consent is unaffected. Do not use a running application inside a read-only DMG for this test.
 An existing build without Sparkle must be upgraded manually once.
 
 Offline regression checks:

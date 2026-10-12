@@ -122,11 +122,6 @@ struct CliptateCommand {
   }
 
   @MainActor private static func execute(_ request: CLIRequest) async throws -> CLIEvent {
-    try await CLIRequestClient(launch: { try await launchApplication(for: $0) })
-      .execute(request, progress: { stderr($0) })
-  }
-
-  @MainActor private static func launchApplication(for endpoint: CLIEndpoint) async throws {
     guard let app = applicationURL() else {
       throw CLIError(
         String(
@@ -134,6 +129,13 @@ struct CliptateCommand {
             "Cliptate was not found. Install the direct-download app or set CLIPTATE_APP to its path.",
           bundle: CLILocalization.bundle))
     }
+    let identity = AppIdentity(bundleIdentifier: Bundle(url: app)?.bundleIdentifier)
+    return try await CLIRequestClient(
+      launch: { try await launchApplication(app, for: $0) }, identity: identity
+    ).execute(request, progress: { stderr($0) })
+  }
+
+  @MainActor private static func launchApplication(_ app: URL, for endpoint: CLIEndpoint) async throws {
     let configuration = NSWorkspace.OpenConfiguration()
     configuration.activates = false
     // Respect an explicitly selected development bundle instead of an older installation.
@@ -158,7 +160,7 @@ struct CliptateCommand {
     let app = executable.deletingLastPathComponent().deletingLastPathComponent()
       .deletingLastPathComponent()
     if app.pathExtension == "app" { return app }
-    return NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.voicepink.voicepinkpro")
+    return NSWorkspace.shared.urlForApplication(withBundleIdentifier: AppIdentity.production.rawValue)
   }
 
   private static func path(_ value: String) -> URL {

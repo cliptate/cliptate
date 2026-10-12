@@ -2,6 +2,10 @@ import Combine
 import Foundation
 import os.log
 
+#if canImport(CliptateCLIKit)
+import CliptateCLIKit
+#endif
+
 @MainActor
 final class AppConfigurationPersistence: ObservableObject {
     static let shared = AppConfigurationPersistence()
@@ -12,14 +16,14 @@ final class AppConfigurationPersistence: ObservableObject {
     private let logger = Logger(subsystem: "com.Cliptate", category: "AppConfiguration")
 
     private init() {
-        let support =
-            FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
-            .first ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
-        let directory = support.appendingPathComponent("Cliptate", isDirectory: true)
+        let identity = AppIdentity.current
+        let directory = identity.applicationSupportDirectory()
+        let support = directory.deletingLastPathComponent()
 
         // Migrate from legacy VoiceFlowPro directory if it exists
         let legacyDirectory = support.appendingPathComponent("VoiceFlowPro", isDirectory: true)
-        if FileManager.default.fileExists(atPath: legacyDirectory.path),
+        if identity == .production,
+           FileManager.default.fileExists(atPath: legacyDirectory.path),
            !FileManager.default.fileExists(atPath: directory.path)
         {
             do {

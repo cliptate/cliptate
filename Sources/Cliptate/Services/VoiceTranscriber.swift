@@ -3,6 +3,10 @@ import AppKit
 import CoreAudio
 import CoreGraphics
 import Foundation
+
+#if canImport(CliptateCLIKit)
+  import CliptateCLIKit
+#endif
 import os.log
 
 #if canImport(os.signpost)
@@ -807,10 +811,8 @@ public final class VoiceTranscriber: ObservableObject {
 
   private nonisolated static func recordingsDirectoryURL() throws -> URL {
     let manager = FileManager.default
-    let base =
-      manager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-      ?? manager.temporaryDirectory
-    let directory = base.appendingPathComponent("Cliptate/Recordings", isDirectory: true)
+    let directory = AppIdentity.current.applicationSupportDirectory(fileManager: manager)
+      .appendingPathComponent("Recordings", isDirectory: true)
     if !manager.fileExists(atPath: directory.path) {
       try manager.createDirectory(at: directory, withIntermediateDirectories: true)
     }

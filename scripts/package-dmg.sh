@@ -19,6 +19,11 @@ if [[ ! -f "$INFO_PLIST" ]]; then
   echo "Missing built application: $APP_BUNDLE. Run CONFIGURATION=Release ./scripts/build-and-run.sh build first." >&2
   exit 1
 fi
+BUNDLE_IDENTIFIER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$INFO_PLIST")"
+if [[ "$BUNDLE_IDENTIFIER" != com.voicepink.voicepinkpro ]]; then
+  echo 'Official DMG packaging requires the production app identity. Build CONFIGURATION=Release.' >&2
+  exit 1
+fi
 
 VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$INFO_PLIST")"
 BUILD_NUMBER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO_PLIST")"

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C11D00000000000000000001 /* AppIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = C11D00000000000000000002; };
 		C11F00000000000000000030 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = C11F00000000000000000031 /* Sparkle */; };
 		C11F00000000000000000008 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = C11F00000000000000000009 /* MLXLMCommon */; };
 		C11F00000000000000000005 /* MLX in Frameworks */ = {isa = PBXBuildFile; productRef = C11F00000000000000000006 /* MLX */; };
@@ -47,6 +48,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C11D00000000000000000002 /* AppIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/Cliptate/CLIShared/AppIdentity.swift; sourceTree = SOURCE_ROOT; };
 		C11F00000000000000000001 /* Cliptate.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = config/Cliptate.xcconfig; sourceTree = SOURCE_ROOT; };
 		294BB5AD2EBB707600214C43 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		29F2C4BE2E46DE8700B5995C /* Cliptate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cliptate.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -159,11 +161,12 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		C11C00000000000000000003 /* CLI command */ = {isa = PBXGroup; children = (C11C00000000000000000021, C11C0000000000000000000A, C11C0000000000000000000B, C11C0000000000000000000C, C11C0000000000000000000D, ); name = "CLI command"; sourceTree = "<group>"; };
+		C11C00000000000000000003 /* CLI command */ = {isa = PBXGroup; children = (C11D00000000000000000002,
+				C11C00000000000000000021, C11C0000000000000000000A, C11C0000000000000000000B, C11C0000000000000000000C, C11C0000000000000000000D, ); name = "CLI command"; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		C11C00000000000000000020 /* Embed CLI */ = {isa = PBXShellScriptBuildPhase; alwaysOutOfDate = 1; buildActionMask = 2147483647; files = (); inputPaths = ("$(BUILT_PRODUCTS_DIR)/cliptate", ); name = "Embed CLI (direct builds)"; outputPaths = ("$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers", "$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/cliptate", ); runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/sh; shellScript = "set -eu\nif [ \"$CLIPTATE_CLI_URL_SCHEME\" = cliptate-cli ]; then\n  mkdir -p \"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers\"\n  cp \"$BUILT_PRODUCTS_DIR/cliptate\" \"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers/cliptate\"\nelse\n  rm -f \"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers/cliptate\"\nfi\n"; };
+		C11C00000000000000000020 /* Embed CLI */ = {isa = PBXShellScriptBuildPhase; alwaysOutOfDate = 1; buildActionMask = 2147483647; files = (); inputPaths = ("$(BUILT_PRODUCTS_DIR)/cliptate", ); name = "Embed CLI (direct builds)"; outputPaths = ("$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers", "$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/cliptate", ); runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/sh; shellScript = "set -eu\nif [ \"$CLIPTATE_CLI_URL_SCHEME\" = cliptate-cli ] || [ \"$CLIPTATE_CLI_URL_SCHEME\" = cliptate-dev-cli ]; then\n  mkdir -p \"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers\"\n  cp \"$BUILT_PRODUCTS_DIR/cliptate\" \"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers/cliptate\"\nelse\n  rm -f \"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers/cliptate\"\nfi\n"; };
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXNativeTarget section */
@@ -356,7 +359,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C11C00000000000000000004 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (C11C00000000000000000022, C11C00000000000000000014, C11C00000000000000000015, C11C00000000000000000016, C11C00000000000000000017, ); runOnlyForDeploymentPostprocessing = 0; };
+		C11C00000000000000000004 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (C11D00000000000000000001, C11C00000000000000000022, C11C00000000000000000014, C11C00000000000000000015, C11C00000000000000000016, C11C00000000000000000017, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -505,9 +508,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "$(CLIPTATE_CODE_SIGN_ENTITLEMENTS)";
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CURRENT_PROJECT_VERSION = 24;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = "$(CLIPTATE_DEVELOPMENT_TEAM)";
 				ENABLE_APP_SANDBOX = "$(CLIPTATE_ENABLE_APP_SANDBOX)";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -515,7 +519,7 @@
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Cliptate;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(CLIPTATE_PRODUCT_NAME)";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Cliptate needs to automate actions in other apps for export workflows.";
@@ -536,8 +540,8 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.voicepink.voicepinkpro;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(CLIPTATE_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = "$(CLIPTATE_PRODUCT_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = macosx;
@@ -568,7 +572,7 @@
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Cliptate;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(CLIPTATE_PRODUCT_NAME)";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Cliptate needs to automate actions in other apps for export workflows.";
@@ -589,8 +593,8 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.voicepink.voicepinkpro;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(CLIPTATE_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = "$(CLIPTATE_PRODUCT_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = macosx;
@@ -620,7 +624,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cliptate.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Cliptate";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cliptate Dev.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Cliptate Dev";
 				XROS_DEPLOYMENT_TARGET = 2.5;
 			};
 			name = Debug;
@@ -695,7 +699,7 @@
 			};
 			name = Release;
 		};
-		C11C00000000000000000007 = {isa = XCBuildConfiguration; buildSettings = {ARCHS = arm64; CODE_SIGN_STYLE = Manual; ENABLE_HARDENED_RUNTIME = YES; MACOSX_DEPLOYMENT_TARGET = 15.0; PRODUCT_NAME = cliptate; PRODUCT_BUNDLE_IDENTIFIER = com.cliptate.cli; SDKROOT = macosx; SKIP_INSTALL = YES; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; }; name = Debug; };
+		C11C00000000000000000007 = {isa = XCBuildConfiguration; buildSettings = {ARCHS = arm64; CODE_SIGN_STYLE = Manual; ENABLE_HARDENED_RUNTIME = YES; MACOSX_DEPLOYMENT_TARGET = 15.0; PRODUCT_NAME = cliptate; PRODUCT_BUNDLE_IDENTIFIER = com.cliptate.dev.cli; SDKROOT = macosx; SKIP_INSTALL = YES; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; }; name = Debug; };
 		C11C00000000000000000008 = {isa = XCBuildConfiguration; buildSettings = {ARCHS = arm64; CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO; CODE_SIGN_STYLE = Manual; ENABLE_HARDENED_RUNTIME = YES; MACOSX_DEPLOYMENT_TARGET = 15.0; PRODUCT_NAME = cliptate; PRODUCT_BUNDLE_IDENTIFIER = com.cliptate.cli; SDKROOT = macosx; SKIP_INSTALL = YES; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; }; name = Release; };
 /* End XCBuildConfiguration section */
 

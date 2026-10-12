@@ -14,6 +14,12 @@ struct AppUpdateConfigurationTests {
     #expect(AppUpdateConfiguration(info: valid, hasAppStoreReceipt: false).isEnabled)
   }
 
+  @Test func developmentAppCannotUseTheProductionUpdater() {
+    var info = valid
+    info["CFBundleIdentifier"] = "com.cliptate.dev"
+    #expect(!AppUpdateConfiguration(info: info, hasAppStoreReceipt: false).isEnabled)
+  }
+
   @Test func storeAndExplicitlyDisabledBuildsNeverEnableUpdates() {
     #expect(!AppUpdateConfiguration(info: valid, hasAppStoreReceipt: true).isEnabled)
     var info = valid

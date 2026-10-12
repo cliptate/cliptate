@@ -1,13 +1,23 @@
 // Source builds need no billing credentials. Override locally to use your own app.
 CLIPTATE_REVENUECAT_API_KEY =
+// Debug is an independent app; Release preserves the installed production identity.
+CLIPTATE_BUNDLE_IDENTIFIER = com.voicepink.voicepinkpro
+CLIPTATE_BUNDLE_IDENTIFIER[config=Debug] = com.cliptate.dev
+CLIPTATE_PRODUCT_NAME = Cliptate
+CLIPTATE_PRODUCT_NAME[config=Debug] = Cliptate Dev
+CLIPTATE_DEVELOPMENT_TEAM =
 // App Store-safe by default; direct builds override this setting with an empty value.
 CLIPTATE_CHANNEL_CONDITIONS = APP_STORE
 CLIPTATE_ENABLE_APP_SANDBOX = YES
 CLIPTATE_CODE_SIGN_ENTITLEMENTS = $(SRCROOT)/Sources/Cliptate/Cliptate.entitlements
 // Inert by default; direct builds opt into the CLI launch URL.
 CLIPTATE_CLI_URL_SCHEME = cliptate-cli-disabled
+CLIPTATE_CLI_URL_SCHEME[config=Debug] = cliptate-dev-cli-disabled
+CLIPTATE_DIRECT_CLI_URL_SCHEME = cliptate-cli
+CLIPTATE_DIRECT_CLI_URL_SCHEME[config=Debug] = cliptate-dev-cli
 // Direct-download updates are independent of the APP_STORE capability flag.
 CLIPTATE_UPDATES_ENABLED = YES
+CLIPTATE_UPDATES_ENABLED[config=Debug] = NO
 // All direct-download builds, including Nightly, follow the latest stable release.
 CLIPTATE_UPDATE_FEED_URL = https:/$()/github.com/cliptate/cliptate/releases/latest/download/appcast.xml
 CLIPTATE_SPARKLE_PUBLIC_KEY =

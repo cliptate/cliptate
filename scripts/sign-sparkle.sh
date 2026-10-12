@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 APP_BUNDLE="${1:?Usage: sign-sparkle.sh Cliptate.app}"
-IDENTITY="${CODE_SIGN_IDENTITY:?Developer ID identity is required}"
+IDENTITY="${CODE_SIGN_IDENTITY:?Apple code-signing identity is required}"
 FRAMEWORK="$APP_BUNDLE/Contents/Frameworks/Sparkle.framework"
 test -d "$FRAMEWORK"
 # Xcode build (unlike archive/export) does not re-sign Sparkle's nested helpers.

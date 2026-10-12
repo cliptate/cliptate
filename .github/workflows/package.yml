@@ -80,6 +80,22 @@ jobs:
         run: ./scripts/build-and-run.sh build
       - name: Check dependency locks remain unchanged
         run: git diff --exit-code -- Package.resolved Cliptate.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+      - name: Verify privacy identity across updates
+        run: |
+          previous_dmg="$RUNNER_TEMP/cliptate-previous-stable.dmg"
+          status="$(curl --location --silent --show-error --retry 3 \
+            --proto '=https' --proto-redir '=https' --connect-timeout 15 --max-time 300 \
+            --output "$previous_dmg" --write-out '%{http_code}' \
+            https://github.com/cliptate/cliptate/releases/latest/download/Cliptate.dmg)"
+          if [[ "$status" == 404 ]]; then
+            echo 'No previous stable installer; skipping first-release identity comparison.'
+          elif [[ "$status" == 200 ]]; then
+            python3 scripts/verify-update-permission-identity.py "$previous_dmg" \
+              .build/xcode/Build/Products/Release/Cliptate.app
+          else
+            echo "Cannot retrieve previous stable installer (HTTP $status)." >&2
+            exit 1
+          fi
       - name: Package and verify DMG
         id: package
         env:

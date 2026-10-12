@@ -10,12 +10,15 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class BuildChannelTests(unittest.TestCase):
-    def build_arguments(self, channel=None, configuration="Debug"):
+    def build_arguments(self, channel=None, configuration="Debug", automatic_signing=False):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)
             for command, body in {
                 "xcrun": "exit 0\n",
-                "xcodebuild": 'printf "%s\\n" "$@" > "$CLIPTATE_TEST_ARGUMENTS"\n',
+                "xcodebuild": ('printf "%s\\n" "$@" > "$CLIPTATE_TEST_ARGUMENTS"\n'
+                               'mkdir -p "$DERIVED_DATA_PATH/Build/Products/Debug/Cliptate Dev.app/Contents/Frameworks/Sparkle.framework"\n'),
+                "security": 'echo \'1) BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB "Apple Development: Example (TEAM123456)"\'\n',
+                "codesign": 'printf "%s\\n" "$@" >> "$CLIPTATE_TEST_ARGUMENTS"\n',
             }.items():
                 executable = path / command
                 executable.write_text("#!/bin/bash\n" + body)
@@ -26,9 +29,13 @@ class BuildChannelTests(unittest.TestCase):
                 "PATH": str(path) + os.pathsep + environment["PATH"],
                 "CONFIGURATION": configuration,
                 "CODE_SIGN_IDENTITY": "-",
+                "DEVELOPMENT_TEAM": "",
+                "DERIVED_DATA_PATH": str(path / "derived"),
                 "CLIPTATE_TEST_ARGUMENTS": str(arguments_file),
             })
             environment.pop("CLIPTATE_APP_STORE", None)
+            if automatic_signing:
+                environment.pop("CODE_SIGN_IDENTITY", None)
             if channel is not None:
                 environment["CLIPTATE_APP_STORE"] = channel
             subprocess.run([str(ROOT / "scripts/build-and-run.sh"), "build"],
@@ -39,6 +46,19 @@ class BuildChannelTests(unittest.TestCase):
         arguments = self.build_arguments()
         self.assertFalse(any(arg.startswith("CLIPTATE_CHANNEL_CONDITIONS=")
                              for arg in arguments))
+
+    def test_debug_selects_dev_scheme_and_passes_detected_identity_to_nested_signing(self):
+        arguments = self.build_arguments(automatic_signing=True)
+        self.assertIn("Cliptate Dev", arguments)
+        self.assertIn("CODE_SIGN_IDENTITY=" + "B" * 40, arguments)
+        self.assertIn("DEVELOPMENT_TEAM=TEAM123456", arguments)
+        self.assertIn("--sign", arguments)
+        self.assertIn("B" * 40, arguments)
+
+    def test_release_keeps_the_production_scheme(self):
+        arguments = self.build_arguments(configuration="Release")
+        self.assertIn("Cliptate", arguments)
+        self.assertNotIn("Cliptate Dev", arguments)
 
     def test_direct_debug_retains_debug_and_removes_app_store(self):
         arguments = self.build_arguments("NO")
@@ -64,7 +84,8 @@ class BuildChannelTests(unittest.TestCase):
         self.assertTrue(store["com.apple.security.app-sandbox"])
         self.assertTrue(direct["com.apple.security.device.audio-input"])
         self.assertIn("CLIPTATE_ENABLE_APP_SANDBOX=NO", self.build_arguments("NO"))
-        self.assertIn("CLIPTATE_CLI_URL_SCHEME=cliptate-cli", self.build_arguments("NO"))
+        self.assertIn("CLIPTATE_CLI_URL_SCHEME=cliptate-dev-cli", self.build_arguments("NO"))
+        self.assertIn("CLIPTATE_CLI_URL_SCHEME=cliptate-cli", self.build_arguments("NO", "Release"))
         self.assertFalse(any(arg.startswith("CLIPTATE_ENABLE_APP_SANDBOX=")
                              for arg in self.build_arguments()))
 

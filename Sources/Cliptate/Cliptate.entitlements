@@ -15,6 +15,19 @@
 		<true />
 		<key>com.apple.security.files.user-selected.read-write</key>
 		<true />
+		<key>com.apple.security.files.downloads.read-write</key>
+		<true />
+		<key>com.apple.security.assets.movies.read-write</key>
+		<true />
+		<key>com.apple.security.assets.music.read-write</key>
+		<true />
+		<key>com.apple.security.assets.pictures.read-write</key>
+		<true />
+		<!-- Paths are relative to the user's real home; / includes its subdirectories. -->
+		<key>com.apple.security.temporary-exception.files.home-relative-path.read-write</key>
+		<array>
+			<string>/</string>
+		</array>
 		<key>com.apple.security.device.audio-input</key>
 		<true />
 	</dict>

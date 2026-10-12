@@ -22,10 +22,13 @@ final class CLIChannelTests: XCTestCase {
   func testFramingPreservesUnicodeAndCancellingPendingReadTerminatesIt() async throws {
     let listener = try NWListener(using: .tcp, on: .any)
     defer { listener.cancel() }
+    let incoming = AsyncStream<NWConnection>.makeStream()
+    defer { incoming.continuation.finish() }
+    listener.newConnectionHandler = { incoming.continuation.yield($0) }
     let peer = Task { () throws -> CLIChannel in
-      let connection = await withCheckedContinuation { continuation in
-        listener.newConnectionHandler = { continuation.resume(returning: $0) }
-      }
+      var connections = incoming.stream.makeAsyncIterator()
+      let received = await connections.next()
+      let connection = try XCTUnwrap(received)
       let channel = CLIChannel(connection: connection)
       try await channel.start()
       return channel

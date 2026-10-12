@@ -1,4 +1,8 @@
 import Foundation
+
+#if canImport(CliptateCLIKit)
+  import CliptateCLIKit
+#endif
 import SwiftUI
 
 // MARK: - ConfigPreset Models
@@ -404,7 +408,7 @@ final class ConfigPresetStore: ObservableObject, ConfigPresetStoreProtocol {
 
     #if os(macOS)
       if let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
-        let dir = appSupport.appendingPathComponent("Cliptate", isDirectory: true)
+        let dir = appSupport.appendingPathComponent(AppIdentity.current.dataDirectoryName, isDirectory: true)
         if !fm.fileExists(atPath: dir.path) {
           try fm.createDirectory(at: dir, withIntermediateDirectories: true)
         }
@@ -415,7 +419,10 @@ final class ConfigPresetStore: ObservableObject, ConfigPresetStoreProtocol {
     guard let docs = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
       throw ConfigPresetError.ioFailure("No writable directory")
     }
-    return docs.appendingPathComponent(fileName)
+    let directory = AppIdentity.current == .development
+      ? docs.appendingPathComponent(AppIdentity.current.dataDirectoryName, isDirectory: true) : docs
+    try fm.createDirectory(at: directory, withIntermediateDirectories: true)
+    return directory.appendingPathComponent(fileName)
   }
 
   // MARK: - Public API

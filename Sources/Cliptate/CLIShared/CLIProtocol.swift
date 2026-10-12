@@ -20,19 +20,21 @@ public enum CLILocalization {
 }
 
 public struct CLIEndpoint: Sendable {
-  public static var port: UInt16 { UInt16(49152 + getuid() % 16000) }
+  public static var port: UInt16 { AppIdentity.current.cliPort() }
+  private let identity: AppIdentity
   public let id: String
   public let secret: String
 
-  public init() {
+  public init(identity: AppIdentity = .current) {
+    self.identity = identity
     id = UUID().uuidString
     secret = SymmetricKey(size: .bits256).withUnsafeBytes { bytes in
       bytes.map { String(format: "%02x", $0) }.joined()
     }
   }
 
-  public init?(url: URL) {
-    guard url.scheme == "cliptate-cli", url.host == "connect",
+  public init?(url: URL, identity: AppIdentity = .current) {
+    guard url.scheme == identity.cliURLScheme, url.host == "connect",
       let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
       let items = components.queryItems, items.count == 2,
       let id = items.first(where: { $0.name == "id" })?.value, UUID(uuidString: id) != nil,
@@ -41,11 +43,12 @@ public struct CLIEndpoint: Sendable {
     else { return nil }
     self.id = id
     self.secret = secret
+    self.identity = identity
   }
 
   public var url: URL {
     var components = URLComponents()
-    components.scheme = "cliptate-cli"
+    components.scheme = identity.cliURLScheme
     components.host = "connect"
     components.queryItems = [.init(name: "id", value: id), .init(name: "secret", value: secret)]
     return components.url!

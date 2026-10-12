@@ -1,4 +1,8 @@
 import Foundation
+
+#if canImport(CliptateCLIKit)
+  import CliptateCLIKit
+#endif
 import os
 
 @MainActor
@@ -183,16 +187,7 @@ final class TranscriptHistoryStore: ObservableObject {
 
   private static func historyBaseDirectory() -> URL {
     let fileManager = FileManager.default
-    let directory: URL
-
-    if let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)
-      .first
-    {
-      directory = appSupport.appendingPathComponent("Cliptate", isDirectory: true)
-    } else {
-      directory = fileManager.temporaryDirectory.appendingPathComponent(
-        "Cliptate", isDirectory: true)
-    }
+    let directory = AppIdentity.current.applicationSupportDirectory(fileManager: fileManager)
 
     if !fileManager.fileExists(atPath: directory.path) {
       try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)

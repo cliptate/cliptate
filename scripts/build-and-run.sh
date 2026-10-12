@@ -4,13 +4,25 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODE="${1:-run}"
 CONFIGURATION="${CONFIGURATION:-Debug}"
 DERIVED_DATA_PATH="${DERIVED_DATA_PATH:-$ROOT_DIR/.build/xcode}"
-APP_BUNDLE="$DERIVED_DATA_PATH/Build/Products/$CONFIGURATION/Cliptate.app"
+APP_NAME=Cliptate
+SCHEME=Cliptate
+CLI_URL_SCHEME=cliptate-cli
+if [[ "$CONFIGURATION" == Debug ]]; then
+  APP_NAME="Cliptate Dev"
+  SCHEME="Cliptate Dev"
+  CLI_URL_SCHEME=cliptate-dev-cli
+fi
+APP_BUNDLE="$DERIVED_DATA_PATH/Build/Products/$CONFIGURATION/$APP_NAME.app"
 SIGNING_IDENTITY="${CODE_SIGN_IDENTITY:--}"
 SIGNING_TEAM="${DEVELOPMENT_TEAM:-}"
+if [[ "$CONFIGURATION" == Debug && -z "${CODE_SIGN_IDENTITY:-}" ]]; then
+  DEVELOPMENT_SIGNING="$(python3 "$ROOT_DIR/scripts/development-signing.py" "$SIGNING_TEAM")"
+  read -r SIGNING_IDENTITY SIGNING_TEAM <<< "$DEVELOPMENT_SIGNING"
+fi
 SIGNING_FLAGS=(CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$SIGNING_TEAM")
 if [[ "${CLIPTATE_APP_STORE:-YES}" == NO ]]; then
   # Explicitly select the free direct-distribution channel, including Accessibility support.
-  SIGNING_FLAGS+=(CLIPTATE_CHANNEL_CONDITIONS= CLIPTATE_ENABLE_APP_SANDBOX=NO CLIPTATE_CLI_URL_SCHEME=cliptate-cli CLIPTATE_CODE_SIGN_ENTITLEMENTS="$ROOT_DIR/Sources/Cliptate/Cliptate-Direct.entitlements")
+  SIGNING_FLAGS+=(CLIPTATE_CHANNEL_CONDITIONS= CLIPTATE_ENABLE_APP_SANDBOX=NO CLIPTATE_CLI_URL_SCHEME="$CLI_URL_SCHEME" CLIPTATE_CODE_SIGN_ENTITLEMENTS="$ROOT_DIR/Sources/Cliptate/Cliptate-Direct.entitlements")
 fi
 for setting in CLIPTATE_SPARKLE_PUBLIC_KEY CLIPTATE_UPDATE_FEED_URL CLIPTATE_UPDATES_ENABLED CURRENT_PROJECT_VERSION; do
   if [[ -n "${!setting:-}" ]]; then
@@ -35,26 +47,29 @@ if ! xcrun --find actool >/dev/null 2>&1; then
   echo "Select full Xcode with DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer." >&2
   exit 1
 fi
-# Source builds default to ad-hoc signing; CI supplies an imported Developer ID.
-xcodebuild -quiet -project "$ROOT_DIR/Cliptate.xcodeproj" -scheme Cliptate \
+# Debug prefers Apple Development signing; release CI supplies an imported Developer ID.
+xcodebuild -quiet -project "$ROOT_DIR/Cliptate.xcodeproj" -scheme "$SCHEME" \
   -configuration "$CONFIGURATION" -destination 'platform=macOS' \
   -derivedDataPath "$DERIVED_DATA_PATH" \
   -onlyUsePackageVersionsFromResolvedFile \
   "${SIGNING_FLAGS[@]}" build
 if [[ "$SIGNING_IDENTITY" != - ]]; then
-  "$ROOT_DIR/scripts/sign-sparkle.sh" "$APP_BUNDLE"
+  CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" "$ROOT_DIR/scripts/sign-sparkle.sh" "$APP_BUNDLE"
+fi
+if [[ "$MODE" != build ]]; then
+  python3 "$ROOT_DIR/scripts/verify-development-permission-identity.py" "$APP_BUNDLE"
 fi
 case "$MODE" in
   build) echo "$APP_BUNDLE" ;;
   run) open "$APP_BUNDLE" ;;
-  --debug) lldb -- "$APP_BUNDLE/Contents/MacOS/Cliptate" ;;
+  --debug) lldb -- "$APP_BUNDLE/Contents/MacOS/$APP_NAME" ;;
   --logs)
     open "$APP_BUNDLE"
-    /usr/bin/log stream --info --style compact --predicate 'process == "Cliptate"'
+    /usr/bin/log stream --info --style compact --predicate "process == \"$APP_NAME\""
     ;;
   --verify)
     open "$APP_BUNDLE"
     sleep 2
-    pgrep -x Cliptate >/dev/null
+    pgrep -x "$APP_NAME" >/dev/null
     ;;
 esac

@@ -28,8 +28,54 @@ swift test
 SwiftPM builds the library and runs unit tests. It deliberately excludes the `@main`
 app entry point. Use `Cliptate.xcodeproj` or the build script for the actual application
 bundle, resource compilation, sandbox entitlements, and MLX Metal integration.
-The script uses ad-hoc signing and a deterministic `.build/xcode` output directory;
-no paid developer account or original maintainer's signing team is required.
+Debug builds produce **Cliptate Dev.app** with bundle identifier `com.cliptate.dev`.
+The shared **Cliptate Dev** Xcode scheme runs, tests, profiles, and archives this
+Debug app. Release builds retain **Cliptate.app** and the production identifier
+`com.voicepink.voicepinkpro`; CI packaging always selects Release.
+
+### Preserve installed privacy permissions during development
+
+Development and production are separate applications, with separate macOS privacy
+consent and UserDefaults domains. Configuration, presets, transcript history, and
+recordings use `Application Support/Cliptate Dev` for development and the existing
+`Application Support/Cliptate` for production. Sandboxed builds keep these paths
+inside their respective containers. Development never migrates the production or
+legacy VoiceFlowPro data. Direct builds can intentionally share model weights in
+the Hugging Face cache.
+
+The development CLI uses its own `cliptate-dev-cli` URL scheme and a separate local
+port range. The embedded CLI selects its containing app; standalone CLI defaults
+to production. Set `CLIPTATE_APP` to a Dev app bundle to explicitly select it.
+Development disables the production updater, including if a local configuration
+accidentally supplies the production feed and signing key.
+
+The build script automatically selects a single available **Apple Development**
+identity, keeping development consent stable across rebuilds. If multiple identities
+are available, select one with `CODE_SIGN_IDENTITY` and `DEVELOPMENT_TEAM`. For IDE
+launches, set `CLIPTATE_DEVELOPMENT_TEAM` in the ignored `config/Local.xcconfig`.
+Without a certificate the script falls back to ad-hoc signing and disables Hardened
+Runtime; this works for public source builds, but development consent can reset
+after rebuilding. See Apple's
+[code-signing requirements explanation](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements).
+
+To run the free direct-distribution development variant:
+
+```bash
+CLIPTATE_APP_STORE=NO ./scripts/run.sh
+```
+
+The `APP_STORE` capability gate remains independent of development identity.
+Without that option, development retains the App Store-safe capability behavior.
+
+Before `run`, `--debug`, `--logs`, and `--verify`, the script checks identity
+compatibility against installed Cliptate and Cliptate Dev bundles in `/Applications`
+and `~/Applications`. Different bundle IDs can coexist. The same bundle ID must
+have compatible signing requirements in both directions. For another installation
+location, set `CLIPTATE_INSTALLED_APP` to that app bundle. `build` never launches.
+When deliberately testing permission resets, `CLIPTATE_ALLOW_PERMISSION_RESET=YES`
+bypasses the launch check. Official DMG packaging rejects development identity.
+Permissions already invalidated by an earlier identity change must be enabled
+again in System Settings; development does not copy production consent.
 
 ## DMG packages and CI downloads
 
@@ -109,7 +155,8 @@ and version releases without an appcast when invoked directly. The package
 workflow applies the stricter public-release requirements described above:
 notarized packages for both channels, plus a signed feed for stable releases.
 
-Local source builds default to ad-hoc signing. CI packages require the Developer ID
+Local Debug builds prefer Apple Development signing and fall back to ad-hoc signing.
+Local Release builds default to ad-hoc signing. CI packages require the Developer ID
 distribution setup below and fail before building if credentials are missing.
 Ad-hoc builds disable Hardened Runtime so embedded frameworks can load without a
 Team ID; Developer ID builds retain Hardened Runtime and timestamped signatures.
@@ -128,7 +175,7 @@ The `APP_STORE` accessibility capability flag remains unchanged.
 
 Direct-download builds use the account's real home directory for
 `~/.cache/huggingface/hub` and run without App Sandbox. App Store builds retain
-their existing sandbox container and entitlements. `HF_HUB_CACHE` and `HF_HOME` overrides
+their sandbox container. `HF_HUB_CACHE` and `HF_HOME` overrides
 continue to work when their target is accessible to the application.
 
 Models use the Python-compatible `models--<owner>--<repository>/snapshots/<revision>`
@@ -137,6 +184,20 @@ or copying the weights. Legacy MLX Audio cache directories remain readable.
 Repository identity must match the selected model: `mlx-community/Qwen3-0.6B-4bit`
 is a text model, while transcription uses repositories such as
 `mlx-community/Qwen3-ASR-0.6B-8bit`.
+
+## Default folder access
+
+Sandboxed builds declare read/write access to Downloads, Movies, Music, and
+Pictures, plus a home-relative file-access temporary exception for `/`, covering
+the account's home directory and its subdirectories, including Documents and
+Desktop. The slash is relative to the user's home, not the filesystem root.
+Direct-download builds already run without App Sandbox.
+
+These entitlements do not grant macOS privacy consent: protected folders may
+still require the user's permission when first accessed. Mac App Store submissions
+must justify the home-directory temporary exception to App Review. See Apple's
+[temporary exception documentation](https://developer.apple.com/library/archive/documentation/Miscellaneous/Reference/EntitlementKeyReference/Chapters/AppSandboxTemporaryExceptionEntitlements.html)
+and [Documents folder privacy policy](https://developer.apple.com/documentation/bundleresources/information-property-list/nsdocumentsfolderusagedescription).
 
 ## Apple signing and notarization
 
@@ -248,7 +309,8 @@ capabilities described in [ADR 0001](adr/0001-accessibility-gate-for-app-store.m
 For an App Store build, omit the option (or set it to `YES`). When building directly
 in Xcode, set `CLIPTATE_CHANNEL_CONDITIONS =` in `config/Local.xcconfig` to select
 the free channel, along with `CLIPTATE_ENABLE_APP_SANDBOX = NO` and
-`CLIPTATE_CLI_URL_SCHEME = cliptate-cli`. Default App Store builds remain sandboxed.
+`CLIPTATE_CLI_URL_SCHEME = $(CLIPTATE_DIRECT_CLI_URL_SCHEME)` and the same
+`CLIPTATE_CLI_URL_SCHEME[config=Debug]` assignment. Default App Store builds remain sandboxed.
 Direct builds copy missing configuration and history from the previous sandbox
 container once without removing originals or replacing current direct-build data.
 

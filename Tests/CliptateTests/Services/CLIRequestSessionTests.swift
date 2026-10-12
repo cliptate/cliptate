@@ -9,6 +9,20 @@ import XCTest
 
 @MainActor
 final class CLIRequestSessionTests: XCTestCase {
+  func testClientSelectsDevelopmentLaunchCredentialsForDevelopmentRequests() async throws {
+    let server = CLIRequestServer { _, _ in CLIEvent(.result, entries: ["Development only"]) }
+    let loopback = try await SessionLoopback(server: server)
+    defer { loopback.close() }
+    let client = CLIRequestClient(
+      launch: { endpoint in
+        XCTAssertNotNil(CLIEndpoint(url: endpoint.url, identity: .development))
+        XCTAssertNil(CLIEndpoint(url: endpoint.url, identity: .production))
+        server.register(endpoint)
+      }, identity: .development, makeChannel: loopback.makeChannel)
+    let response = try await client.execute(CLIRequest(operation: .dictionaryList))
+    XCTAssertEqual(response.entries, ["Development only"])
+  }
+
   func testAuthenticatedRequestReturnsResult() async throws {
     let server = CLIRequestServer { request, _ in
       XCTAssertEqual(request.operation, .dictionaryList)
