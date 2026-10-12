@@ -6,6 +6,14 @@ was informed by [VoiceInk's updater](https://github.com/Beingpax/VoiceInk/blob/m
 Cliptate uses Sparkle's standard scheduler and user consent prompt. Preferences
 are persisted by Sparkle rather than added to transcription configuration presets.
 
+The ready-to-install window shows Cliptate's icon and a green **Signature verified**
+badge. It appears only when Sparkle reports that installer preparation has finished,
+after validation, rather than when an update is first found or downloaded. Checking,
+release notes, downloading, and errors continue to use Sparkle's standard UI. The
+custom installation prompt uses Sparkle's public user-driver API. Choosing **Install on Quit**
+or closing this prompt leaves the prepared update scheduled for installation on quit,
+as Sparkle specifies; **Install and Relaunch** proceeds immediately.
+
 The app menu and the status item both offer **Check for Updates…**. The settings
 page offers automatic update checking. Missing distribution configuration disables
 the updater, and tests never start it. Sparkle normally asks about automatic checks

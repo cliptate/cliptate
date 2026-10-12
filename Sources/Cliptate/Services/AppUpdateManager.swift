@@ -3,7 +3,7 @@ import Combine
 import Foundation
 import Sparkle
 
-/// Owns one Sparkle controller for both the full app and its menu bar interface.
+/// Owns one Sparkle updater for both the full app and its menu bar interface.
 /// Sparkle persists its update preferences; they are not transcription presets.
 @MainActor
 final class AppUpdateManager: ObservableObject {
@@ -13,30 +13,35 @@ final class AppUpdateManager: ObservableObject {
   @Published private(set) var canCheckForUpdates = false
   @Published private(set) var automaticallyChecksForUpdates = false
   @Published private(set) var isCheckingFeed = false
-  private var controller: SPUStandardUpdaterController?
+  private var updater: SPUUpdater?
 
   private init() {
     isAvailable = AppUpdateConfiguration.current.isEnabled
   }
 
   func start() {
-    guard isAvailable, !RuntimeEnvironment.isRunningTests, controller == nil else { return }
-    let controller = SPUStandardUpdaterController(
-      startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil)
-    self.controller = controller
-    controller.updater.publisher(for: \.canCheckForUpdates)
+    guard isAvailable, !RuntimeEnvironment.isRunningTests, updater == nil else { return }
+    let updater = SPUUpdater(
+      hostBundle: .main, applicationBundle: .main,
+      userDriver: AppUpdateUserDriver(hostBundle: .main), delegate: nil)
+    self.updater = updater
+    updater.publisher(for: \.canCheckForUpdates)
       .assign(to: &$canCheckForUpdates)
-    controller.updater.publisher(for: \.automaticallyChecksForUpdates)
+    updater.publisher(for: \.automaticallyChecksForUpdates)
       .assign(to: &$automaticallyChecksForUpdates)
-    controller.startUpdater()
+    do {
+      try updater.start()
+    } catch {
+      NSAlert(error: error).runModal()
+    }
   }
 
   func checkForUpdates() {
-    guard canCheckForUpdates, !isCheckingFeed, let controller else { return }
+    guard canCheckForUpdates, !isCheckingFeed, let updater else { return }
     isCheckingFeed = true
     Task {
       defer { isCheckingFeed = false }
-      if let feed = controller.updater.feedURL,
+      if let feed = updater.feedURL,
         (try? await Self.isFeedMissing(feed)) == true
       {
         showUnpublishedFeedNotice()
@@ -44,7 +49,7 @@ final class AppUpdateManager: ObservableObject {
       }
       // Sparkle retains normal error reporting and signature verification for all other results.
       guard canCheckForUpdates else { return }
-      controller.checkForUpdates(nil)
+      updater.checkForUpdates()
     }
   }
 
@@ -78,6 +83,6 @@ final class AppUpdateManager: ObservableObject {
   }
 
   func setAutomaticallyChecksForUpdates(_ enabled: Bool) {
-    controller?.updater.automaticallyChecksForUpdates = enabled
+    updater?.automaticallyChecksForUpdates = enabled
   }
 }
