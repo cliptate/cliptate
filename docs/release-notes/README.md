@@ -1,6 +1,6 @@
 # Version release notes
 
-Each version release has a detailed document committed at
+Each version release has a concise, complete document committed at
 `docs/release-notes/<tag>.md` before its tag is created. For example, `v1.0`
 uses [v1.0.md](v1.0.md). Use the exact tag, including the `v` prefix. Tags containing
 slashes or Unicode use a URL-encoded filename (`preview/中文+1` becomes
@@ -13,50 +13,70 @@ installation and build information.
    initial release, describe the included product capabilities and distribution
    changes. Account for user-visible additions, fixes, compatibility changes,
    migration requirements, and known limitations in that range.
-2. Write the version document using the structure below. Explain what changes for
-   users, which workflows are affected, and any action they need to take. Link to
-   relevant usage guides, issues, or commits using absolute URLs so the links
-   also work on GitHub Release. Keep unreleased changes out of
-   historical version documents.
+2. Use the template below and the concise style of [v1.1](v1.1.md). Describe
+   user-visible results and required upgrade actions. Link to usage guides for
+   command syntax and technical details, using absolute URLs that work on GitHub.
+   Keep the summary around 150–300 words, excluding the commit list; expand it
+   when a compatibility change or migration needs explanation.
 3. Record the checks actually performed and any validation still outstanding.
    Describe signing/notarization as verified only when packaging confirms it;
    publication adds the package's actual signing status automatically.
-4. Run `python3 scripts/release-notes.py v1.1 --check` with the intended tag and
+4. Add commit titles and links in the collapsed commit section. Use the previous
+   tag through the intended source commit (`HEAD` before tagging, the version tag
+   after publication). Preserve the actual commit titles and hashes; historical
+   notes include only commits in that version's range. Include a compare link.
+5. Run `python3 scripts/release-notes.py v1.1 --check` with the intended tag and
    `python3 -m unittest discover -s Tests/Automation -v`. Review the notes alongside
    the version/build settings, then commit them before creating the version tag.
 
-The first line must be `# Cliptate <tag>`. All five sections below require content.
+The first line must be `# Cliptate <tag>`. The five summary sections below require content.
 Use explicit statements when no changes or limitations apply; replace every
 TODO/TBD placeholder before tagging. Automated checks verify this structure;
 review must verify completeness and accuracy against the release's changes.
+The commit section is included when a previous version exists. Replace the
+example version, date, commit entries, and text before using this template.
 
 ```markdown
-# Cliptate v1.1
+# Cliptate v1.2
 
 Release date: YYYY-MM-DD (Asia/Shanghai)
-Previous version: v1.0
+Previous version: [v1.1](https://github.com/cliptate/cliptate/releases/tag/v1.1)
 
 ## Highlights
 
-Explain the most useful changes and their effect on users.
+One sentence naming the main improvements.
 
 ## Changes
 
-Describe additions, improvements, and fixes with affected workflows and examples.
-Use subheadings when several areas changed.
+- **Feature:** Describe the user-visible result and link to its usage guide.
+- **Fix:** Describe the affected workflow and the corrected behavior.
+- **Improvement:** Describe the practical benefit.
 
 ## Upgrade notes
 
-State supported hardware/macOS, installation steps, data/cache compatibility,
-and any required migration or permission changes.
+- Requires Apple Silicon and macOS 15+. Update in the app or replace it using the DMG.
+- State data/cache compatibility and any required migration or permission action.
 
 ## Known limitations
 
-List remaining issues, workarounds, and relevant distribution restrictions.
+One short paragraph covering relevant limitations and workarounds, or an explicit
+statement that no new limitations apply.
 
 ## Validation
 
-Record completed checks and distinguish remaining manual or hardware checks.
+One short paragraph summarizing completed builds/tests and outstanding manual
+checks. Report signing and notarization as verified only after packaging succeeds.
+
+## Commits
+
+<details>
+<summary>Commits since v1.1</summary>
+
+- [SHORT_SHA](https://github.com/cliptate/cliptate/commit/FULL_SHA) Actual commit title
+
+[Full comparison](https://github.com/cliptate/cliptate/compare/v1.1...v1.2)
+
+</details>
 ```
 
 ## Publication

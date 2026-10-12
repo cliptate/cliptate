@@ -33,7 +33,7 @@ Preserve production bundle identifiers unless the task explicitly changes distri
 
 ## Context on demand
 
-- For version releases or release-note updates, follow `docs/release-notes/README.md` and commit the detailed version document before creating the tag.
+- For version releases or release-note updates, follow the concise template in `docs/release-notes/README.md` and commit the version document before creating the tag.
 - For issue work, read `docs/agents/issue-tracker.md`; issues belong to `cliptate/cliptate`.
 - For triage, read `docs/agents/triage-labels.md`.
 - For existing product requirements, read `docs/agents/legacy-requirements.md`.
