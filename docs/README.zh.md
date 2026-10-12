@@ -19,7 +19,7 @@
   </p>
 
   <p>
-    <a href="README.md">English</a> ·
+    <a href="../README.md">English</a> ·
     <a href="README.zh.md">中文</a> ·
     <a href="README.ja.md">日本語</a> ·
     <a href="README.ko.md">한국어</a> ·
@@ -31,7 +31,7 @@
 
 Cliptate 是一款原生 macOS 应用，将转写、听写、剪辑和语音合成整合到同一工作流。语音模型在 Mac 本地运行，也可以单独配置在线 AI 纠错和翻译服务。
 
-![Cliptate 首页](assets/screenshots/home.zh-Hans.jpg)
+![Cliptate 首页](../assets/screenshots/home.zh-Hans.jpg)
 
 ---
 
@@ -39,9 +39,9 @@ Cliptate 是一款原生 macOS 应用，将转写、听写、剪辑和语音合�
 
 也可从 [GitHub Releases](https://github.com/cliptate/cliptate/releases)
 下载正式版本或每日 Nightly 构建的 DMG 和 SHA-256 校验文件，无需登录 GitHub。
-发布构建使用 Developer ID 签名并经 Apple 公证，安装说明见[开发指南](docs/development.md#dmg-packages-and-ci-downloads)。
+发布构建使用 Developer ID 签名并经 Apple 公证，安装说明见[开发指南](development.md#dmg-packages-and-ci-downloads)。
 
-完整应用以 [MIT 许可证](LICENSE)开源。需要 Apple Silicon、macOS 15+、
+完整应用以 [MIT 许可证](../LICENSE)开源。需要 Apple Silicon、macOS 15+、
 Xcode 26+（Swift 6.2+）。
 
 ```bash
@@ -53,9 +53,9 @@ swift test
 ```
 
 应用源码位于 `Sources/Cliptate`，测试位于 `Tests`，Xcode 工程位于仓库根目录，
-工具脚本位于 `scripts`。参见[开发指南](docs/development.md)、
-[架构说明](docs/architecture/README.md)、[贡献指南](CONTRIBUTING.md)和
-[第三方许可](THIRD_PARTY_NOTICES.md)。
+工具脚本位于 `scripts`。参见[开发指南](development.md)、
+[架构说明](architecture/README.md)、[贡献指南](../CONTRIBUTING.md)和
+[第三方许可](../THIRD_PARTY_NOTICES.md)。
 源码构建可选择配置自己的订阅服务；模型权重单独下载，遵循各自许可证。
 
 

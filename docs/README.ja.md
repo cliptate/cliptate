@@ -19,7 +19,7 @@
   </p>
 
   <p>
-    <a href="README.md">English</a> ·
+    <a href="../README.md">English</a> ·
     <a href="README.zh.md">中文</a> ·
     <a href="README.ja.md">日本語</a> ·
     <a href="README.ko.md">한국어</a> ·
@@ -31,13 +31,13 @@
 
 Cliptate は、文字起こし、音声入力、編集、音声合成をまとめたネイティブ macOS アプリです。音声モデルは Mac 上で動作し、オンラインの AI 校正・翻訳サービスは任意で設定できます。
 
-![Cliptate のホーム画面](assets/screenshots/home.ja.jpg)
+![Cliptate のホーム画面](../assets/screenshots/home.ja.jpg)
 
 ---
 
 ## ソースからビルド
 
-アプリ全体を [MIT ライセンス](LICENSE)で公開しています。
+アプリ全体を [MIT ライセンス](../LICENSE)で公開しています。
 Apple Silicon、macOS 15+、Xcode 26+（Swift 6.2+）が必要です。
 
 ```bash
@@ -48,8 +48,8 @@ swift test
 ./scripts/run.sh
 ```
 
-[開発ガイド](docs/development.md)、[アーキテクチャ](docs/architecture/README.md)、
-[貢献ガイド](CONTRIBUTING.md)、[第三者ライセンス](THIRD_PARTY_NOTICES.md)を参照してください。
+[開発ガイド](development.md)、[アーキテクチャ](architecture/README.md)、
+[貢献ガイド](../CONTRIBUTING.md)、[第三者ライセンス](../THIRD_PARTY_NOTICES.md)を参照してください。
 モデルは個別にダウンロードします。課金サービスはローカル設定で任意に構成できます。
 
 

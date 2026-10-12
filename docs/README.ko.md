@@ -19,7 +19,7 @@
   </p>
 
   <p>
-    <a href="README.md">English</a> ·
+    <a href="../README.md">English</a> ·
     <a href="README.zh.md">中文</a> ·
     <a href="README.ja.md">日本語</a> ·
     <a href="README.ko.md">한국어</a> ·
@@ -31,13 +31,13 @@
 
 Cliptate는 전사, 받아쓰기, 편집, 음성 합성을 통합한 네이티브 macOS 앱입니다. 음성 모델은 Mac에서 실행되며 온라인 AI 교정 및 번역 서비스는 선택적으로 설정할 수 있습니다.
 
-![Cliptate 홈 화면](assets/screenshots/home.ko.jpg)
+![Cliptate 홈 화면](../assets/screenshots/home.ko.jpg)
 
 ---
 
 ## 소스에서 빌드
 
-전체 앱은 [MIT 라이선스](LICENSE)로 공개됩니다.
+전체 앱은 [MIT 라이선스](../LICENSE)로 공개됩니다.
 Apple Silicon, macOS 15+, Xcode 26+ 및 Swift 6.2+가 필요합니다.
 
 ```bash
@@ -48,8 +48,8 @@ swift test
 ./scripts/run.sh
 ```
 
-[개발 가이드](docs/development.md), [아키텍처](docs/architecture/README.md),
-[기여 가이드](CONTRIBUTING.md), [타사 라이선스](THIRD_PARTY_NOTICES.md)를 참조하세요.
+[개발 가이드](development.md), [아키텍처](architecture/README.md),
+[기여 가이드](../CONTRIBUTING.md), [타사 라이선스](../THIRD_PARTY_NOTICES.md)를 참조하세요.
 모델은 별도로 다운로드하며 구독 서비스는 로컬 설정으로 선택적으로 구성합니다.
 
 

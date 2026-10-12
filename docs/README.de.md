@@ -19,7 +19,7 @@
   </p>
 
   <p>
-    <a href="README.md">English</a> ·
+    <a href="../README.md">English</a> ·
     <a href="README.zh.md">中文</a> ·
     <a href="README.ja.md">日本語</a> ·
     <a href="README.ko.md">한국어</a> ·
@@ -31,13 +31,13 @@
 
 Cliptate ist eine native macOS-App für Transkription, Diktat, Schnitt und Sprachsynthese. Sprachmodelle laufen auf Ihrem Mac; optionale Online-Dienste für KI-Korrektur und Übersetzung lassen sich separat konfigurieren.
 
-![Cliptate-Startseite](assets/screenshots/home.de.jpg)
+![Cliptate-Startseite](../assets/screenshots/home.de.jpg)
 
 ---
 
 ## Aus dem Quellcode bauen
 
-Die vollständige Anwendung ist unter der [MIT-Lizenz](LICENSE) verfügbar.
+Die vollständige Anwendung ist unter der [MIT-Lizenz](../LICENSE) verfügbar.
 Erforderlich: Apple Silicon, macOS 15+, Xcode 26+ und Swift 6.2+.
 
 ```bash
@@ -48,8 +48,8 @@ swift test
 ./scripts/run.sh
 ```
 
-Siehe [Entwicklung](docs/development.md), [Architektur](docs/architecture/README.md),
-[Beiträge](CONTRIBUTING.md) und [Drittanbieter-Lizenzen](THIRD_PARTY_NOTICES.md).
+Siehe [Entwicklung](development.md), [Architektur](architecture/README.md),
+[Beiträge](../CONTRIBUTING.md) und [Drittanbieter-Lizenzen](../THIRD_PARTY_NOTICES.md).
 Modelle werden separat heruntergeladen; Abonnements lassen sich lokal konfigurieren.
 
 
