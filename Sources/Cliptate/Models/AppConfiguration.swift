@@ -87,6 +87,7 @@ final class AppConfiguration: ObservableObject {
     voiceToTextTranscriberType = defaults.voiceToTextTranscriberType
     voiceToTextModelVariant = defaults.voiceToTextModelVariant
     voiceToTextLanguage = defaults.voiceToTextLanguage
+    micIndicatorStyle = defaults.micIndicatorStyle
     voiceToTextDictationAIEnhanceEnabled = defaults.voiceToTextDictationAIEnhanceEnabled
     voiceToTextAssistantAIEnhanceEnabled = defaults.voiceToTextAssistantAIEnhanceEnabled
     voiceToTextAssistantIncludeClipboardContext =
@@ -206,6 +207,7 @@ final class AppConfiguration: ObservableObject {
     }
   }
   @Published var voiceToTextLanguage: Language = .english
+  @Published var micIndicatorStyle: MicIndicatorStyle
   @Published var voiceToTextDictationAIEnhanceEnabled: Bool
   @Published var voiceToTextAssistantAIEnhanceEnabled: Bool
   @Published var voiceToTextAssistantIncludeClipboardContext: Bool
@@ -567,6 +569,7 @@ extension AppConfiguration {
     var voiceToTextTranscriberType: TranscriberType
     var voiceToTextModelVariant: ModelVariant
     var voiceToTextLanguage: Language
+    var micIndicatorStyle: MicIndicatorStyle = .pulseBlue
     var voiceToTextDictationAIEnhanceEnabled: Bool = true
     var voiceToTextAssistantAIEnhanceEnabled: Bool = true
     var voiceToTextAssistantIncludeClipboardContext: Bool = true
@@ -652,6 +655,7 @@ extension AppConfiguration.Snapshot {
     voiceToTextTranscriberType = try c.decode(TranscriberType.self, forKey: .voiceToTextTranscriberType)
     voiceToTextModelVariant = try c.decode(ModelVariant.self, forKey: .voiceToTextModelVariant)
     voiceToTextLanguage = try c.decode(Language.self, forKey: .voiceToTextLanguage)
+    micIndicatorStyle = try c.decodeIfPresent(MicIndicatorStyle.self, forKey: .micIndicatorStyle) ?? .pulseBlue
     voiceToTextDictationAIEnhanceEnabled = try c.decodeIfPresent(Bool.self, forKey: .voiceToTextDictationAIEnhanceEnabled) ?? true
     voiceToTextAssistantAIEnhanceEnabled = try c.decodeIfPresent(Bool.self, forKey: .voiceToTextAssistantAIEnhanceEnabled) ?? true
     voiceToTextAssistantIncludeClipboardContext = try c.decodeIfPresent(Bool.self, forKey: .voiceToTextAssistantIncludeClipboardContext) ?? true
@@ -811,6 +815,7 @@ extension AppConfiguration {
       voiceToTextTranscriberType: voiceToTextTranscriberType,
       voiceToTextModelVariant: voiceToTextModelVariant,
       voiceToTextLanguage: voiceToTextLanguage,
+      micIndicatorStyle: micIndicatorStyle,
       voiceToTextDictationAIEnhanceEnabled: voiceToTextDictationAIEnhanceEnabled,
       voiceToTextAssistantAIEnhanceEnabled: voiceToTextAssistantAIEnhanceEnabled,
       voiceToTextAssistantIncludeClipboardContext: voiceToTextAssistantIncludeClipboardContext,
@@ -891,6 +896,7 @@ extension AppConfiguration {
     voiceToTextTranscriberType = snap.transcriberType
     voiceToTextModelVariant = snap.modelVariant
     voiceToTextLanguage = snap.voiceToTextLanguage
+    micIndicatorStyle = snap.micIndicatorStyle
     voiceToTextDictationAIEnhanceEnabled = snap.voiceToTextDictationAIEnhanceEnabled
     voiceToTextAssistantAIEnhanceEnabled = snap.voiceToTextAssistantAIEnhanceEnabled
     voiceToTextAssistantIncludeClipboardContext =

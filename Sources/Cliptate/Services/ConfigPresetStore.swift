@@ -53,6 +53,7 @@ struct ConfigPreset: Identifiable, Codable, Equatable {
       case ttsEngine
       case ttsVariantPreference
       case ttsSpeakingRate
+      case micIndicatorStyle
       case voiceToTextCustomDictionary
     }
 
@@ -99,6 +100,7 @@ struct ConfigPreset: Identifiable, Codable, Equatable {
     var aiDefaultCorrectionPrompt: String
     var aiDefaultEnhancePrompt: String
     var aiProviderModels: [AIProvider: String]
+    var micIndicatorStyle: MicIndicatorStyle
     var voiceToTextCustomDictionary: [String]
 
     init(
@@ -145,6 +147,7 @@ struct ConfigPreset: Identifiable, Codable, Equatable {
       aiDefaultCorrectionPrompt: String = "",
       aiDefaultEnhancePrompt: String = "",
       aiProviderModels: [AIProvider: String] = AIProvider.defaultModelMap,
+      micIndicatorStyle: MicIndicatorStyle = .pulseBlue,
       voiceToTextCustomDictionary: [String] = []
     ) {
       self.transcriberType = transcriberType
@@ -190,6 +193,7 @@ struct ConfigPreset: Identifiable, Codable, Equatable {
       self.aiDefaultCorrectionPrompt = aiDefaultCorrectionPrompt
       self.aiDefaultEnhancePrompt = aiDefaultEnhancePrompt
       self.aiProviderModels = aiProviderModels
+      self.micIndicatorStyle = micIndicatorStyle
       self.voiceToTextCustomDictionary =
         AppConfiguration.normalizeDictionaryEntries(voiceToTextCustomDictionary)
     }
@@ -286,6 +290,7 @@ struct ConfigPreset: Identifiable, Codable, Equatable {
       aiProviderModels =
         try container.decodeIfPresent([AIProvider: String].self, forKey: .aiProviderModels)
         ?? AIProvider.defaultModelMap
+      micIndicatorStyle = try container.decodeIfPresent(MicIndicatorStyle.self, forKey: .micIndicatorStyle) ?? .pulseBlue
       voiceToTextCustomDictionary = AppConfiguration.normalizeDictionaryEntries(
         try container.decodeIfPresent([String].self, forKey: .voiceToTextCustomDictionary)
           ?? []
@@ -339,6 +344,7 @@ struct ConfigPreset: Identifiable, Codable, Equatable {
       try container.encode(aiDefaultCorrectionPrompt, forKey: .aiDefaultCorrectionPrompt)
       try container.encode(aiDefaultEnhancePrompt, forKey: .aiDefaultEnhancePrompt)
       try container.encode(aiProviderModels, forKey: .aiProviderModels)
+      try container.encode(micIndicatorStyle, forKey: .micIndicatorStyle)
       try container.encode(voiceToTextCustomDictionary, forKey: .voiceToTextCustomDictionary)
     }
   }
@@ -589,6 +595,7 @@ final class ConfigPresetStore: ObservableObject, ConfigPresetStoreProtocol {
       aiDefaultCorrectionPrompt: config.aiDefaultCorrectionPrompt,
       aiDefaultEnhancePrompt: config.aiDefaultEnhancePrompt,
       aiProviderModels: config.aiProviderModels,
+      micIndicatorStyle: config.micIndicatorStyle,
       voiceToTextCustomDictionary: config.voiceToTextCustomDictionary
     )
   }
@@ -636,6 +643,7 @@ final class ConfigPresetStore: ObservableObject, ConfigPresetStoreProtocol {
     config.aiDefaultCorrectionPrompt = payload.aiDefaultCorrectionPrompt
     config.aiDefaultEnhancePrompt = payload.aiDefaultEnhancePrompt
     config.aiProviderModels = payload.aiProviderModels
+    config.micIndicatorStyle = payload.micIndicatorStyle
     config.replaceDictionaryEntries(with: payload.voiceToTextCustomDictionary)
   }
 

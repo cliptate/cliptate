@@ -69,100 +69,6 @@ final class MicIndicatorOverlay {
         static let cornerTransparencyStyle: CornerTransparencyStyle = .roundedClip
         static let cornerCutoutRadius: CGFloat = panelCornerRadius + 6
 
-        // MARK: - Tech theme
-        enum TechStyle {
-            /// Electric cyan-blue — default neon pulse look
-            case pulseBlue
-            /// Phosphor green — matrix / terminal aesthetic
-            case matrixGreen
-            /// Deep space purple — void / holographic aesthetic
-            case voidPurple
-        }
-        static let techStyle: TechStyle = .pulseBlue
-
-        static var panelTopColor: Color {
-            switch techStyle {
-            // Near-black with a barely-perceptible cool tint — deep space feel
-            case .pulseBlue:   return Color(red: 0.03, green: 0.04, blue: 0.08, opacity: panelTopOpacity)
-            // Near-black with the faintest green cast
-            case .matrixGreen: return Color(red: 0.02, green: 0.05, blue: 0.02, opacity: panelTopOpacity)
-            // Near-black with a whisper of violet
-            case .voidPurple:  return Color(red: 0.05, green: 0.02, blue: 0.09, opacity: panelTopOpacity)
-            }
-        }
-
-        static var panelBottomColor: Color {
-            switch techStyle {
-            // Essentially pure black — makes glowing elements look like real phosphor/neon
-            case .pulseBlue:   return Color(red: 0.005, green: 0.005, blue: 0.012, opacity: panelBottomOpacity)
-            case .matrixGreen: return Color(red: 0.005, green: 0.008, blue: 0.003, opacity: panelBottomOpacity)
-            case .voidPurple:  return Color(red: 0.008, green: 0.003, blue: 0.015, opacity: panelBottomOpacity)
-            }
-        }
-
-        static var borderTopColor: Color {
-            switch techStyle {
-            case .pulseBlue:   return Color(red: 0.30, green: 0.88, blue: 1.00).opacity(0.68)
-            case .matrixGreen: return Color(red: 0.08, green: 1.00, blue: 0.38).opacity(0.60)
-            case .voidPurple:  return Color(red: 0.72, green: 0.22, blue: 1.00).opacity(0.65)
-            }
-        }
-
-        static var borderMidColor: Color {
-            switch techStyle {
-            case .pulseBlue:   return Color(red: 0.18, green: 0.52, blue: 1.00).opacity(0.26)
-            case .matrixGreen: return Color(red: 0.08, green: 0.62, blue: 0.28).opacity(0.24)
-            case .voidPurple:  return Color(red: 0.45, green: 0.12, blue: 0.82).opacity(0.26)
-            }
-        }
-
-        static var radialHighlightColor: Color {
-            switch techStyle {
-            // Stronger glow intensity to punch through the near-black surface
-            case .pulseBlue:   return Color(red: 0.22, green: 0.72, blue: 1.00).opacity(0.44)
-            case .matrixGreen: return Color(red: 0.10, green: 0.90, blue: 0.35).opacity(0.36)
-            case .voidPurple:  return Color(red: 0.68, green: 0.16, blue: 0.98).opacity(0.46)
-            }
-        }
-
-        static var waveformTopColor: Color {
-            switch techStyle {
-            case .pulseBlue:
-                return Color(red: waveformTopAccentRed, green: waveformTopAccentGreen, blue: waveformTopAccentBlue)
-            case .matrixGreen:
-                return Color(red: 0.18, green: 1.00, blue: 0.42)
-            case .voidPurple:
-                return Color(red: 0.80, green: 0.22, blue: 1.00)
-            }
-        }
-
-        static var waveformBottomColor: Color {
-            switch techStyle {
-            case .pulseBlue:
-                return Color(red: waveformBottomAccentRed, green: waveformBottomAccentGreen, blue: waveformBottomAccentBlue)
-            case .matrixGreen:
-                return Color(red: 0.06, green: 0.62, blue: 0.22)
-            case .voidPurple:
-                return Color(red: 0.32, green: 0.08, blue: 0.88)
-            }
-        }
-
-        static var timeTextColor: Color {
-            switch techStyle {
-            case .pulseBlue:   return Color(red: 0.68, green: 0.94, blue: 1.00)
-            case .matrixGreen: return Color(red: 0.40, green: 1.00, blue: 0.58)
-            case .voidPurple:  return Color(red: 0.82, green: 0.66, blue: 1.00)
-            }
-        }
-
-        static var cornerAccentColor: Color {
-            switch techStyle {
-            case .pulseBlue:   return Color(red: 0.30, green: 0.88, blue: 1.00).opacity(0.55)
-            case .matrixGreen: return Color(red: 0.12, green: 0.95, blue: 0.38).opacity(0.50)
-            case .voidPurple:  return Color(red: 0.70, green: 0.20, blue: 1.00).opacity(0.58)
-            }
-        }
-
         static let scanLineOpacity: Double = 0.032
         static let scanLineSpacing: CGFloat = 3.5
         static let cornerAccentLength: CGFloat = 12
@@ -198,14 +104,17 @@ final class MicIndicatorOverlay {
     /// When true, `updateTranscript` is a no-op — the transcript region will not expand.
     private var isTranscriptFrozen = false
 
-    init() {}
+    private let configuration: AppConfiguration
+
+    init(configuration: AppConfiguration? = nil) {
+        self.configuration = configuration ?? .shared
+    }
 
     func startTracking() {
         ensurePanel()
-        guard let panel else { return }
         dismissGeneration &+= 1
         if isActive, viewModel.recordingStartDate != nil {
-            panel.orderFrontRegardless()
+            panel?.orderFrontRegardless()
             return
         }
 
@@ -230,24 +139,7 @@ final class MicIndicatorOverlay {
         viewModel.recordingStartDate = Date()
         viewModel.levelHistory = []
         recalculatePanelHeight()
-        panel.orderFrontRegardless()
-
-        if let observer = windowMoveObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
-
-        windowMoveObserver = NotificationCenter.default.addObserver(
-            forName: NSWindow.didMoveNotification,
-            object: panel,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard let self = self else { return }
-                if !self.isUpdatingPosition {
-                    self.isManuallyPositioned = true
-                }
-            }
-        }
+        panel?.orderFrontRegardless()
 
         requestPositionUpdate(immediate: true)
         scheduleTimer()
@@ -280,6 +172,7 @@ final class MicIndicatorOverlay {
         viewModel.isOverlayActive = false
         viewModel.hasTranscript = false
         viewModel.hasEnteredProcessing = false
+        viewModel.inputWarning = nil
         viewModel.overlayStatus = .idle
         viewModel.recordingStartDate = nil
         viewModel.levelHistory = []
@@ -329,8 +222,10 @@ final class MicIndicatorOverlay {
         recalculatePanelHeight(immediatePositioning: true)
     }
 
-    /// Keep a failed dictation visible long enough to read, including when invoked from another app.
+    /// Briefly show a completed dictation failure, then close without a second dismissal delay.
     func showInputWarning(_ message: String) {
+        // Repeated idle/error notifications must not extend the same warning's lifetime.
+        if isActive, viewModel.recordingStartDate == nil, viewModel.inputWarning == message { return }
         startTracking()
         updateInputWarning(message)
         viewModel.overlayStatus = .idle
@@ -339,9 +234,9 @@ final class MicIndicatorOverlay {
         viewModel.hasEnteredProcessing = false
         dismissGeneration &+= 1
         let generation = dismissGeneration
-        DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             guard let self, self.dismissGeneration == generation else { return }
-            self.performDismiss()
+            self.stopTracking()
         }
     }
 
@@ -349,7 +244,6 @@ final class MicIndicatorOverlay {
     /// injection fell back to the clipboard so the user knows to paste manually.
     func flashCopiedToClipboard() {
         ensurePanel()
-        guard let panel else { return }
         isActive = true
         viewModel.isOverlayActive = true
         viewModel.hasEnteredProcessing = false
@@ -358,7 +252,7 @@ final class MicIndicatorOverlay {
         }
         viewModel.overlayStatus = .copiedToClipboard
         recalculatePanelHeight(immediatePositioning: true)
-        panel.orderFrontRegardless()
+        panel?.orderFrontRegardless()
 
         // Cancel any pending dismiss, then dismiss after the hint has been shown.
         dismissGeneration &+= 1
@@ -433,11 +327,28 @@ final class MicIndicatorOverlay {
         panel.isMovableByWindowBackground = true
         panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
         panel.contentView = TransparentHostingView(
-            rootView: MicIndicatorView(viewModel: viewModel, width: Constants.width)
+            rootView: ConfiguredMicIndicatorView(viewModel: viewModel, configuration: configuration)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         )
         panel.orderOut(nil)
         self.panel = panel
+        if let observer = windowMoveObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+
+        windowMoveObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didMoveNotification,
+            object: panel,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                if !self.isUpdatingPosition {
+                    self.isManuallyPositioned = true
+                }
+            }
+        }
+
     }
 
     private func tearDownPanel() {
@@ -484,6 +395,10 @@ final class MicIndicatorOverlay {
 
     private func scheduleTimer(interval: TimeInterval? = nil) {
         updateTimer?.invalidate()
+        guard isActive else {
+            updateTimer = nil
+            return
+        }
         let resolvedInterval = max(0.25, interval ?? desiredTimerInterval())
         currentTimerInterval = resolvedInterval
 
@@ -606,6 +521,8 @@ final class MicIndicatorOverlay {
     var testCurrentPanelHeight: CGFloat { viewModel.panelHeight }
     /// Test accessor: processing status keeps a reserved ellipsis slot.
     var testProcessingStatusUsesReservedEllipsisSlot: Bool { Constants.processingEllipsisTemplate == "..." }
+    var testPanelIsVisible: Bool { panel?.isVisible == true }
+    var testIndicatorStyle: MicIndicatorStyle { configuration.micIndicatorStyle }
     /// Test accessor for the leading waveform side slot width.
     var testWaveformLeadingSlotWidth: CGFloat { Constants.waveformSideSlotWidth }
     /// Test accessor for the trailing waveform side slot width.
@@ -739,17 +656,46 @@ private final class MicIndicatorViewModel: ObservableObject {
     static let maxLevelHistory = 30
 }
 
+private struct ConfiguredMicIndicatorView: View {
+    @ObservedObject var viewModel: MicIndicatorViewModel
+    @ObservedObject var configuration: AppConfiguration
+
+    var body: some View {
+        MicIndicatorView(viewModel: viewModel, width: MicIndicatorOverlay.Constants.width,
+                         style: configuration.micIndicatorStyle)
+    }
+}
+
+/// Renders the same surface and waveform as the overlay, without microphone or panel activity.
+struct MicIndicatorStylePreview: View {
+    static let size = CGSize(width: MicIndicatorOverlay.Constants.width, height: MicIndicatorOverlay.Constants.baseHeight)
+    let style: MicIndicatorStyle
+    @StateObject private var viewModel = MicIndicatorViewModel()
+
+    var body: some View {
+        MicIndicatorView(viewModel: viewModel, width: MicIndicatorOverlay.Constants.width,
+                         style: style, isPreview: true)
+            .frame(width: Self.size.width, height: Self.size.height)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+    }
+}
+
 private struct MicIndicatorView: View {
     @ObservedObject var viewModel: MicIndicatorViewModel
     let width: CGFloat
+    let style: MicIndicatorStyle
+    let isPreview: Bool
     @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
 
     private let fastInterval: TimeInterval = 1.0 / 30.0
     private let slowInterval: TimeInterval = 1.0 / 8.0
 
-    init(viewModel: MicIndicatorViewModel, width: CGFloat) {
+    init(viewModel: MicIndicatorViewModel, width: CGFloat, style: MicIndicatorStyle, isPreview: Bool = false) {
         self.viewModel = viewModel
         self.width = width
+        self.style = style
+        self.isPreview = isPreview
     }
 
     private var visualizerState: VisualizerState {
@@ -778,14 +724,16 @@ private struct MicIndicatorView: View {
     }
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: timelineInterval)) { timeline in
+        TimelineView(.animation(minimumInterval: timelineInterval, paused: isPreview || accessibilityReduceMotion || !viewModel.isOverlayActive)) { timeline in
             let transcriptViewportHeight = viewModel.transcriptViewportHeight
             let transcriptVisible = transcriptViewportHeight > 0
             let panelCornerRadius = MicIndicatorOverlay.Constants.panelCornerRadius
 
             ZStack(alignment: .top) {
                 panelSurface(cornerRadius: panelCornerRadius)
-                scanLineOverlay(cornerRadius: panelCornerRadius)
+                if style.usesTechDecoration {
+                    scanLineOverlay(cornerRadius: panelCornerRadius)
+                }
                 panelHighlights(cornerRadius: panelCornerRadius)
                 panelBorder(cornerRadius: panelCornerRadius)
                     .allowsHitTesting(false)
@@ -800,10 +748,11 @@ private struct MicIndicatorView: View {
                             .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(.yellow)
                             .multilineTextAlignment(.leading)
-                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityElement(children: .combine)
+                            .frame(minHeight: 44, alignment: .top)
                             .padding(.horizontal, 14)
                             .padding(.bottom, 8)
-                            .accessibilityElement(children: .combine)
                     }
 
                     if transcriptVisible {
@@ -841,8 +790,8 @@ private struct MicIndicatorView: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            MicIndicatorOverlay.Constants.panelTopColor,
-                            MicIndicatorOverlay.Constants.panelBottomColor
+                            style.panelTopColor,
+                            style.panelBottomColor
                         ],
                         startPoint: .top,
                         endPoint: .bottom
@@ -853,7 +802,7 @@ private struct MicIndicatorView: View {
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    Color(red: 0.63, green: 0.90, blue: 1.00)
+                                    style.waveformTopColor
                                         .opacity(MicIndicatorOverlay.Constants.panelHighlightOpacity),
                                     Color.clear
                                 ],
@@ -879,7 +828,7 @@ private struct MicIndicatorView: View {
                     LinearGradient(
                         colors: [
                             Color.white.opacity(0.13),
-                            Color(red: 0.47, green: 0.84, blue: 1.00).opacity(0.07),
+                            style.waveformTopColor.opacity(0.07),
                             Color.clear,
                             Color.black.opacity(0.18)
                         ],
@@ -892,7 +841,7 @@ private struct MicIndicatorView: View {
                 .fill(
                     RadialGradient(
                         colors: [
-                            MicIndicatorOverlay.Constants.radialHighlightColor,
+                            style.radialHighlightColor,
                             Color.clear
                         ],
                         center: .topLeading,
@@ -909,8 +858,8 @@ private struct MicIndicatorView: View {
             .strokeBorder(
                 LinearGradient(
                     colors: [
-                        MicIndicatorOverlay.Constants.borderTopColor,
-                        MicIndicatorOverlay.Constants.borderMidColor,
+                        style.borderTopColor,
+                        style.borderMidColor,
                         Color.white.opacity(0.06)
                     ],
                     startPoint: .topLeading,
@@ -962,7 +911,7 @@ private struct MicIndicatorView: View {
             let len = MicIndicatorOverlay.Constants.cornerAccentLength
             let thick = MicIndicatorOverlay.Constants.cornerAccentThickness
             let pad = MicIndicatorOverlay.Constants.cornerAccentPadding
-            let color = MicIndicatorOverlay.Constants.cornerAccentColor
+            let color = style.cornerAccentColor
             ZStack {
                 Path { p in
                     p.move(to: CGPoint(x: pad + len, y: pad))
@@ -1180,7 +1129,7 @@ private struct MicIndicatorView: View {
 
     @ViewBuilder
     private func trailingAccessory(visualizerState: VisualizerState, timelineDate: Date) -> some View {
-        if let start = viewModel.recordingStartDate {
+        if let start = viewModel.recordingStartDate ?? (isPreview ? Date() : nil) {
             Group {
                 if let processingLabel = viewModel.overlayStatus.processingLabel,
                    visualizerState == .transcribing || visualizerState == .aiEnhance
@@ -1198,9 +1147,9 @@ private struct MicIndicatorView: View {
                     .overlay(alignment: .bottomLeading) {
                         LinearGradient(
                             colors: [
-                                Color(red: 0.41, green: 0.88, blue: 1.00).opacity(0.0),
-                                Color(red: 0.41, green: 0.88, blue: 1.00).opacity(0.42),
-                                Color(red: 0.41, green: 0.88, blue: 1.00).opacity(0.0)
+                                style.waveformTopColor.opacity(0.0),
+                                style.waveformTopColor.opacity(0.42),
+                                style.waveformTopColor.opacity(0.0)
                             ],
                             startPoint: .leading,
                             endPoint: .trailing
@@ -1209,11 +1158,11 @@ private struct MicIndicatorView: View {
                         .offset(y: 6)
                     }
                 } else {
-                    TimelineView(.animation(minimumInterval: 1.0)) { timeline in
-                        let elapsed = Int(timeline.date.timeIntervalSince(start))
+                    TimelineView(.animation(minimumInterval: 1.0, paused: isPreview)) { timeline in
+                        let elapsed = isPreview ? 12 : Int(timeline.date.timeIntervalSince(start))
                         Text(formatDuration(elapsed))
                             .font(.system(size: 11, weight: .medium, design: .monospaced))
-                            .foregroundStyle(MicIndicatorOverlay.Constants.timeTextColor.opacity(0.90))
+                            .foregroundStyle(style.timeTextColor.opacity(0.90))
                             .shadow(color: Color.black.opacity(MicIndicatorOverlay.Constants.foregroundContrastShadowOpacity), radius: 1.4, x: 0, y: 1)
                     }
                 }
@@ -1233,7 +1182,7 @@ private struct MicIndicatorView: View {
             .overlay(alignment: .leading) {
                 Text(ellipsis)
                     .monospaced()
-                    .foregroundStyle(Color(red: 0.66, green: 0.94, blue: 1.00).opacity(0.96))
+                    .foregroundStyle(style.timeTextColor.opacity(0.96))
             }
     }
 
@@ -1246,7 +1195,7 @@ private struct MicIndicatorView: View {
                         LinearGradient(
                             colors: [
                                 Color.white.opacity(0.14),
-                                Color(red: 0.38, green: 0.80, blue: 1.00).opacity(0.24),
+                                style.waveformTopColor.opacity(0.24),
                                 Color.clear
                             ],
                             startPoint: .topLeading,
@@ -1284,26 +1233,26 @@ private struct MicIndicatorView: View {
 
         return HStack(alignment: .center, spacing: barSpacing) {
             ForEach(0..<barCount, id: \.self) { index in
-                let target = viewModel.level * weights[index]
-                let jitter = CGFloat.random(in: -jitterRange...jitterRange)
+                let target = (isPreview ? 0.62 : viewModel.level) * weights[index]
+                let jitter = isPreview || accessibilityReduceMotion ? 0 : CGFloat.random(in: -jitterRange...jitterRange)
                 let jitteredTarget = max(0, min(1, target + jitter))
 
-                let _ = updateSmoothedLevel(
+                let _ = isPreview || accessibilityReduceMotion ? false : updateSmoothedLevel(
                     at: index,
                     target: jitteredTarget,
                     attack: attackCoeff,
                     release: releaseCoeff
                 )
 
-                let smoothed = viewModel.smoothedBarLevels[index]
+                let smoothed = isPreview || accessibilityReduceMotion ? target : viewModel.smoothedBarLevels[index]
                 let barHeight = max(minBarHeight, minBarHeight + range * smoothed)
 
                 let gradient = LinearGradient(
                     colors: [
-                        MicIndicatorOverlay.Constants.waveformTopColor
+                        style.waveformTopColor
                             .opacity(MicIndicatorOverlay.Constants.waveformTopBaseOpacity
                                 + Double(smoothed) * MicIndicatorOverlay.Constants.waveformTopLevelOpacity),
-                        MicIndicatorOverlay.Constants.waveformBottomColor
+                        style.waveformBottomColor
                             .opacity(MicIndicatorOverlay.Constants.waveformBottomBaseOpacity
                                 + Double(smoothed) * MicIndicatorOverlay.Constants.waveformBottomLevelOpacity)
                     ],
@@ -1323,7 +1272,7 @@ private struct MicIndicatorView: View {
                         x: 0,
                         y: 0
                     )
-                    .animation(.easeOut(duration: 0.05), value: smoothed)
+                    .animation(accessibilityReduceMotion || isPreview ? nil : .easeOut(duration: 0.05), value: smoothed)
             }
         }
         .frame(maxHeight: .infinity, alignment: .center)

@@ -513,6 +513,33 @@ struct VoiceTranscriberStopReasonTests {
     transcriber.testResetAfterQwen3StreamAssertions()
   }
 
+  @Test("Completed microphone errors can be dismissed and clear the page feedback")
+  func dismissCompletedInputIssue() async {
+    let transcriber = VoiceTranscriber.shared
+    transcriber.testPrepareForQwen3StreamAssertions()
+    defer { transcriber.testResetAfterQwen3StreamAssertions() }
+    transcriber.testSetSession(TranscriptSession())
+    await transcriber.stop()
+    #expect(transcriber.canDismissInputIssue)
+    transcriber.dismissInputIssue()
+    #expect(transcriber.inputIssue == nil)
+    #expect(!transcriber.canDismissInputIssue)
+    #expect(transcriber.state == .idle)
+    #expect(!transcriber.testOverlayIsActive)
+  }
+
+  @Test("Acknowledging input feedback cannot stop a live dictation")
+  func dismissInputIssueWhileRecording() {
+    let transcriber = VoiceTranscriber.shared
+    transcriber.testPrepareForQwen3StreamAssertions()
+    defer { transcriber.testResetAfterQwen3StreamAssertions() }
+    transcriber.testCheckMicrophoneInput(at: Date().addingTimeInterval(4))
+    #expect(!transcriber.canDismissInputIssue)
+    transcriber.dismissInputIssue()
+    #expect(transcriber.inputIssue == .noInput)
+    #expect(transcriber.state == .running)
+  }
+
   @Test("Cancelling a recording does not report missing microphone input")
   func cancelledStopDoesNotReportInputIssue() async {
     let transcriber = VoiceTranscriber.shared

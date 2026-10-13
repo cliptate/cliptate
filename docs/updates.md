@@ -1,17 +1,27 @@
 # In-app updates
 
-Cliptate uses [Sparkle 2](https://sparkle-project.org/documentation/) and its native
-update window to check, download, verify, install, and relaunch. The integration
+Cliptate uses [Sparkle 2](https://sparkle-project.org/documentation/) to check,
+download, verify, install, and relaunch. The integration
 was informed by [VoiceInk's updater](https://github.com/Beingpax/VoiceInk/blob/main/VoiceInk/App/Updates/UpdaterViewModel.swift).
 Cliptate uses Sparkle's standard scheduler and user consent prompt. Preferences
 are persisted by Sparkle rather than added to transcription configuration presets.
 
+When an automatic check finds an update, a blue version button appears next to
+Settings in the sidebar. Clicking it opens a popover with the version, download
+size, publication date, and **Skip**, **Later**, and **Install and Relaunch** actions.
+Missing size or date metadata is omitted. Release notes open the appcast's release
+notes or information link in the browser. Clicking outside the popover leaves the
+reminder available; Skip and Later complete the current Sparkle offer with their
+corresponding choices. Manual checks show the same details in a window. When the
+main window is hidden, an automatic offer appears in a window without activating
+the application, so menu-bar-only users can still act on it.
+
 The ready-to-install window shows Cliptate's icon and a green **Signature verified**
 badge. It appears only when Sparkle reports that installer preparation has finished,
 after validation, rather than when an update is first found or downloaded. Checking,
-release notes, downloading, and errors continue to use Sparkle's standard UI. The
-custom installation prompt uses Sparkle's public user-driver API. Choosing **Install on Quit**
-or closing this prompt leaves the prepared update scheduled for installation on quit,
+downloading, and errors continue to use Sparkle's standard UI. The custom update
+offer and installation prompt use Sparkle's public user-driver API. Choosing
+**Install on Quit** or closing this prompt leaves the prepared update scheduled for installation on quit,
 as Sparkle specifies; **Install and Relaunch** proceeds immediately.
 
 The app menu and the status item both offer **Check for Updates…**. The settings

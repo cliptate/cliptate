@@ -18,9 +18,11 @@ struct AppUpdateSettingsView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       if updates.isAvailable {
-        Toggle("Automatically check for updates", isOn: Binding(
-          get: { updates.automaticallyChecksForUpdates },
-          set: { updates.setAutomaticallyChecksForUpdates($0) }))
+        Toggle(
+          "Automatically check for updates",
+          isOn: Binding(
+            get: { updates.automaticallyChecksForUpdates },
+            set: { updates.setAutomaticallyChecksForUpdates($0) }))
         CheckForAppUpdatesButton()
       } else {
         Text("Updates are unavailable in this build.")
@@ -28,6 +30,118 @@ struct AppUpdateSettingsView: View {
           .foregroundStyle(.secondary)
       }
     }
+  }
+}
+
+struct AvailableAppUpdateButton: View {
+  let update: AppUpdateOffer
+  @State private var isPresented = false
+
+  var body: some View {
+    Button {
+      isPresented = true
+    } label: {
+      Label {
+        Text("Update: \(update.details.version)")
+          .lineLimit(1)
+          .minimumScaleFactor(0.75)
+      } icon: {
+        Image(systemName: "shippingbox.fill")
+      }
+      .font(.caption.weight(.semibold))
+      .foregroundStyle(.white)
+      .padding(.horizontal, 8)
+      .padding(.vertical, 6)
+      .background(Color.blue, in: Capsule())
+      .contentShape(Capsule())
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel(Text("Update available: \(update.details.version)"))
+    .help(Text("Update available: \(update.details.version)"))
+    .popover(isPresented: $isPresented, arrowEdge: .trailing) {
+      AvailableAppUpdateView(update: update)
+    }
+    .onChange(of: update.id) { _, _ in isPresented = false }
+  }
+}
+
+struct AvailableAppUpdateView: View {
+  private let details: AppUpdateDetails
+  @ObservedObject private var prompt: AppUpdateInstallationPrompt
+
+  init(update: AppUpdateOffer) {
+    details = update.details
+    prompt = update.prompt
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      VStack(alignment: .leading, spacing: 16) {
+        Text("Update available")
+          .font(.title3.weight(.semibold))
+
+        Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 6) {
+          GridRow {
+            Text("Version:")
+              .foregroundStyle(.secondary)
+              .gridColumnAlignment(.trailing)
+            Text(details.version)
+          }
+          if let size = details.formattedSize {
+            GridRow {
+              Text("Size:").foregroundStyle(.secondary)
+              Text(size)
+            }
+          }
+          if let date = details.releaseDate {
+            GridRow {
+              Text("Release date:").foregroundStyle(.secondary)
+              Text(date, format: .dateTime.year().month(.wide).day())
+            }
+          }
+        }
+        .textSelection(.enabled)
+
+        HStack(spacing: 8) {
+          Button("Skip") { prompt.respond(.skip) }
+          Button("Later") { prompt.respond(.dismiss) }
+            .keyboardShortcut(.cancelAction)
+          Spacer(minLength: 8)
+          if details.isInformationOnly {
+            Button("View Update") {
+              NSWorkspace.shared.open(details.informationURL ?? details.notesURL)
+              prompt.respond(.dismiss)
+            }
+            .buttonStyle(.borderedProminent)
+          } else {
+            Button("Install and Relaunch") { prompt.respond(.install) }
+              .buttonStyle(.borderedProminent)
+              .keyboardShortcut(.defaultAction)
+          }
+        }
+        .buttonStyle(.bordered)
+        .disabled(!prompt.isActive)
+      }
+      .padding(20)
+
+      Divider()
+
+      Link(destination: details.notesURL) {
+        HStack(spacing: 10) {
+          Label("View Release Notes", systemImage: "doc.text")
+          Spacer()
+          Image(systemName: "arrow.up.right")
+            .accessibilityHidden(true)
+        }
+        .font(.body.weight(.medium))
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+    }
+    .frame(width: 400)
   }
 }
 

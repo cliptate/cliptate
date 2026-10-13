@@ -30,6 +30,7 @@ enum AppSidebarGroup: String, CaseIterable, Identifiable {
 struct AppSidebar: View {
   @Binding var selection: AppSection?
   let requiresGettingStarted: Bool
+  @ObservedObject private var updates = AppUpdateManager.shared
 
   var body: some View {
     VStack(spacing: 0) {
@@ -60,8 +61,13 @@ struct AppSidebar: View {
           .padding(.horizontal, 8)
           .padding(.bottom, 8)
         ForEach([AppSection.pro, .setting]) { section in
-          AppSidebarFooterButton(section: section, isSelected: selection == section) {
-            selection = section
+          HStack(spacing: 4) {
+            AppSidebarFooterButton(section: section, isSelected: selection == section) {
+              selection = section
+            }
+            if section == .setting, let update = updates.availableUpdate {
+              AvailableAppUpdateButton(update: update)
+            }
           }
         }
       }

@@ -13,7 +13,9 @@ final class AppUpdateManager: ObservableObject {
   @Published private(set) var canCheckForUpdates = false
   @Published private(set) var automaticallyChecksForUpdates = false
   @Published private(set) var isCheckingFeed = false
+  @Published private(set) var availableUpdate: AppUpdateOffer?
   private var updater: SPUUpdater?
+  private var userDriver: AppUpdateUserDriver?
 
   private init() {
     isAvailable = AppUpdateConfiguration.current.isEnabled
@@ -21,9 +23,13 @@ final class AppUpdateManager: ObservableObject {
 
   func start() {
     guard isAvailable, !RuntimeEnvironment.isRunningTests, updater == nil else { return }
+    let userDriver = AppUpdateUserDriver(hostBundle: .main) { [weak self] update in
+      self?.availableUpdate = update
+    }
+    self.userDriver = userDriver
     let updater = SPUUpdater(
       hostBundle: .main, applicationBundle: .main,
-      userDriver: AppUpdateUserDriver(hostBundle: .main), delegate: nil)
+      userDriver: userDriver, delegate: nil)
     self.updater = updater
     updater.publisher(for: \.canCheckForUpdates)
       .assign(to: &$canCheckForUpdates)
@@ -38,6 +44,10 @@ final class AppUpdateManager: ObservableObject {
 
   func checkForUpdates() {
     guard canCheckForUpdates, !isCheckingFeed, let updater else { return }
+    if availableUpdate != nil {
+      userDriver?.showUpdateInFocus()
+      return
+    }
     isCheckingFeed = true
     Task {
       defer { isCheckingFeed = false }

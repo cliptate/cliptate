@@ -702,6 +702,24 @@ public final class VoiceTranscriber: ObservableObject {
     }
   }
 
+  var canDismissInputIssue: Bool {
+    guard inputIssue != nil else { return false }
+    switch state {
+    case .idle, .error: return true
+    default: return false
+    }
+  }
+
+  /// Acknowledge completed input feedback without cancelling recording or post-processing.
+  func dismissInputIssue() {
+    guard canDismissInputIssue else { return }
+    inputIssue = nil
+    if state == .idle {
+      statusMessage = String(localized: "Ready")
+    }
+    micIndicator.stopTracking()
+  }
+
   // MARK: - Overlay Lifecycle
 
   /// Update the floating overlay status (e.g., during post-processing).

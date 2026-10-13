@@ -368,13 +368,21 @@ struct VoiceToTextView: View {
       warmupErrorLabel
 
       if let issue = transcriber.inputIssue {
-        VoiceInputFeedbackView(issue: issue, inputDeviceName: transcriber.inputDeviceName)
+        VoiceInputFeedbackView(
+          issue: issue, inputDeviceName: transcriber.inputDeviceName,
+          canDismiss: transcriber.canDismissInputIssue,
+          onDismiss: { transcriber.dismissInputIssue() }
+        )
       }
 
       usageStatsCards
 
       // Shortcuts Section
       shortcutModesSection
+
+      MicIndicatorStyleSettingsView(
+        selection: $config.micIndicatorStyle
+      )
 
       Divider()
         .padding(.vertical, 2)
@@ -2224,12 +2232,24 @@ extension NSFont {
 private struct VoiceInputFeedbackView: View {
   let issue: VoiceInputIssue
   let inputDeviceName: String?
+  let canDismiss: Bool
+  let onDismiss: () -> Void
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
-      Label(issue.title, systemImage: "exclamationmark.triangle.fill")
-        .font(.headline)
-        .foregroundStyle(.orange)
+      HStack(alignment: .top) {
+        Label(issue.title, systemImage: "exclamationmark.triangle.fill")
+          .font(.headline)
+          .foregroundStyle(.orange)
+        Spacer()
+        if canDismiss {
+          Button("Dismiss warning", systemImage: "xmark", action: onDismiss)
+            .labelStyle(.iconOnly)
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+            .help("Dismiss warning")
+        }
+      }
       Text(issue.message)
         .font(.callout)
         .foregroundStyle(.secondary)
