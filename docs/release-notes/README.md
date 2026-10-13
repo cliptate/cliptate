@@ -98,6 +98,7 @@ source and workflow.
 
 ## Version archive
 
+- [v1.2](v1.2.md) — more transcription engines, CLI speech/history workflows, and workspace improvements.
 - [v1.1](v1.1.md) — native CLI, dictation reliability, and app lifecycle improvements.
 - [v1.0](v1.0.md) — initial open-source, free direct-download release.
 - [Model lifecycle migration](model-lifecycle-migration.md) — engineering migration
