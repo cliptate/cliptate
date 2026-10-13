@@ -32,23 +32,68 @@ struct AppSidebar: View {
   let requiresGettingStarted: Bool
 
   var body: some View {
-    List(selection: $selection) {
-      ForEach(AppSidebarGroup.allCases) { group in
-        Section {
-          ForEach(group.sections(requiresGettingStarted: requiresGettingStarted)) { section in
-            AppSidebarRow(section: section, isSelected: selection == section)
-              .tag(section)
-              .listRowSeparator(.hidden)
+    VStack(spacing: 0) {
+      List(selection: $selection) {
+        ForEach([AppSidebarGroup.create, .library]) { group in
+          Section {
+            ForEach(group.sections(requiresGettingStarted: requiresGettingStarted)) { section in
+              AppSidebarRow(section: section, isSelected: selection == section)
+                .tag(section)
+                .listRowSeparator(.hidden)
+            }
+          } header: {
+            Text(group.title)
+              .font(.caption.weight(.semibold))
+              .textCase(nil)
           }
-        } header: {
-          Text(group.title)
-            .font(.caption.weight(.semibold))
-            .textCase(nil)
+        }
+        if requiresGettingStarted {
+          AppSidebarRow(section: .permissions, isSelected: selection == .permissions)
+            .tag(AppSection.permissions)
+            .listRowSeparator(.hidden)
         }
       }
+      .listStyle(.sidebar)
+
+      VStack(spacing: 4) {
+        Divider()
+          .padding(.horizontal, 8)
+          .padding(.bottom, 8)
+        ForEach([AppSection.pro, .setting]) { section in
+          AppSidebarFooterButton(section: section, isSelected: selection == section) {
+            selection = section
+          }
+        }
+      }
+      .padding(12)
     }
-    .listStyle(.sidebar)
-    .navigationSplitViewColumnWidth(min: 210, ideal: 240, max: 320)
+    .navigationSplitViewColumnWidth(min: 210, ideal: 224, max: 300)
+  }
+}
+
+private struct AppSidebarFooterButton: View {
+  let section: AppSection
+  let isSelected: Bool
+  let action: () -> Void
+  @State private var isHovered = false
+
+  var body: some View {
+    Button(action: action) {
+      AppSidebarRow(section: section, isSelected: isSelected)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .foregroundStyle(Color.primary)
+        .background {
+          RoundedRectangle(cornerRadius: 8)
+            .fill(
+              isSelected ? Color.accentColor.opacity(0.12)
+                : Color.primary.opacity(isHovered ? 0.05 : 0)
+            )
+        }
+    }
+    .buttonStyle(.plain)
+    .onHover { isHovered = $0 }
+    .accessibilityAddTraits(isSelected ? [.isSelected] : [])
   }
 }
 
@@ -61,6 +106,7 @@ private struct AppSidebarRow: View {
       Image(systemName: section.icon)
         .font(.system(size: 16, weight: .medium))
         .symbolRenderingMode(.hierarchical)
+        .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
         .frame(width: 24)
         .accessibilityHidden(true)
 

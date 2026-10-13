@@ -9,15 +9,12 @@ struct AppPageHeader<Content: View>: View {
   }
 
   var body: some View {
-    VStack(spacing: 0) {
-      content
-        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-        .padding(.horizontal, 24)
-        .padding(.vertical, 18)
-      Divider()
-    }
-    .background(AppSurface.pageBackground)
-    .fixedSize(horizontal: false, vertical: true)
+    content
+      .frame(maxWidth: .infinity, minHeight: 32, alignment: .leading)
+      .padding(.horizontal, 28)
+      .padding(.vertical, 16)
+      .background(AppSurface.pageBackground)
+      .fixedSize(horizontal: false, vertical: true)
   }
 }
 
@@ -48,7 +45,7 @@ struct AppPageTitle: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 3) {
       Text(title)
-        .font(.title2.weight(.semibold))
+        .font(.title.weight(.semibold))
         .accessibilityAddTraits(.isHeader)
       Text(subtitle)
         .font(.caption)

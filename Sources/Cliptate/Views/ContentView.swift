@@ -21,6 +21,7 @@ enum AppSection: String, CaseIterable, Identifiable {
     switch self {
     case .permissions: return "Getting Started"
     case .pro: return SubscriptionPolicy.isBillingEnabled ? "Pro" : "Free Access"
+    case .setting: return "Settings"
     default: return LocalizedStringKey(rawValue)
     }
   }

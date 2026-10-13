@@ -28,6 +28,7 @@ struct DropAreaView: View {
   var onDropURLs: ([URL]) -> Void
   var style: Style = .compact
   var onTap: (() -> Void)? = nil
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var isTargeted = false
   @State private var isHovered = false
 
@@ -42,7 +43,7 @@ struct DropAreaView: View {
         .font(style == .hero ? .headline : .caption)
         .foregroundColor(.secondary)
       if style == .hero {
-        Text("Drag and drop files or click to choose from Finder")
+        Text("Or click to choose one or more videos")
           .font(.callout)
           .foregroundStyle(.tertiary)
       }
@@ -68,11 +69,14 @@ struct DropAreaView: View {
       radius: style == .hero ? 16 : 0,
       y: style == .hero ? 8 : 0
     )
-    .scaleEffect(style == .hero && isHighlighted ? 1.01 : 1)
+    .scaleEffect(style == .hero && isHighlighted && !reduceMotion ? 1.01 : 1)
     .contentShape(RoundedRectangle(cornerRadius: style == .hero ? 18 : 10, style: .continuous))
     .onTapGesture {
       onTap?()
     }
+    .accessibilityElement(children: .combine)
+    .accessibilityAddTraits(onTap == nil ? [] : [.isButton])
+    .accessibilityAction { onTap?() }
     .onHover { hovering in
       isHovered = hovering
     }
@@ -130,6 +134,6 @@ struct DropAreaView: View {
       }
       return true
     }
-    .animation(.easeInOut(duration: 0.16), value: isHighlighted)
+    .animation(reduceMotion ? nil : .easeInOut(duration: 0.16), value: isHighlighted)
   }
 }
