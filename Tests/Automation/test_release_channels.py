@@ -30,9 +30,10 @@ class ReleaseChannelTests(unittest.TestCase):
         self.assertIn("appcast-path: ${{ steps.source.outputs.appcast-path }}", workflow)
         self.assertIn("path: ${{ steps.source.outputs.appcast-path }}", workflow)
         self.assertIn("APPCAST_PATH: ${{ needs.build.outputs.appcast-path }}", workflow)
-        for name in ["Generate signed appcast", "Upload appcast"]:
-            step = workflow.split(f"- name: {name}", 1)[1].split("- name:", 1)[0]
-            self.assertIn("if: ${{ steps.source.outputs.generate-appcast == 'true' }}", step)
+        generation = workflow.split("- name: Generate signed appcast", 1)[1].split("- name:", 1)[0]
+        self.assertIn("if: ${{ steps.source.outputs.generate-appcast == 'true' }}", generation)
+        upload = workflow.split("- name: Upload appcast", 1)[1].split("- name:", 1)[0]
+        self.assertIn("if: ${{ !env.ACT && steps.source.outputs.generate-appcast == 'true' }}", upload)
 
     def test_source_builds_keep_stable_feed(self):
         configuration = (ROOT / "config/Cliptate.xcconfig").read_text()

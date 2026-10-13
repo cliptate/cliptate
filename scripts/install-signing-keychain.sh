@@ -2,7 +2,7 @@
 set -euo pipefail
 umask 077
 
-: "${RUNNER_TEMP:?Run this script only on an ephemeral CI runner}"
+: "${RUNNER_TEMP:?RUNNER_TEMP must be an isolated runner directory}"
 : "${GITHUB_OUTPUT:?GITHUB_OUTPUT is required}"
 for name in APPLE_CERTIFICATE_P12_BASE64 APPLE_CERTIFICATE_PASSWORD APPLE_TEAM_ID APPLE_ID APPLE_APP_SPECIFIC_PASSWORD; do
   if [[ -z "${!name:-}" ]]; then

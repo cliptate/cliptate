@@ -15,6 +15,10 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 
 ## Build and test
 
+The [Makefile and local Actions guide](local-actions.md) provides `make build`,
+`make test`, `make ci`, and signed `make package` / `make release` entry points.
+Local Actions run on this Mac through act using the same workflows as CI.
+
 ```bash
 git clone https://github.com/cliptate/cliptate.git
 cd cliptate

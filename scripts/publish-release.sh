@@ -39,6 +39,11 @@ fi
 
 NOTES="$(mktemp)"
 trap 'rm -f "$NOTES"' EXIT
+if [[ "${ACT:-}" == true ]]; then
+  BUILD_DESCRIPTION='Local macOS build via act.'
+else
+  BUILD_DESCRIPTION="[GitHub Actions](https://github.com/$GH_REPO/actions/runs/${GITHUB_RUN_ID:?})"
+fi
 if [[ "$MOVE_TAG" != true ]]; then
   python3 "$(dirname "${BASH_SOURCE[0]}")/release-notes.py" "$TAG" > "$NOTES"
   printf '\n---\n\n' >> "$NOTES"
@@ -49,7 +54,7 @@ Apple Silicon, macOS 15+. $SIGNING_DESCRIPTION
 Download the DMG and drag Cliptate into Applications. Verify the download with the accompanying SHA-256 file.
 
 Source: [$COMMIT](https://github.com/$GH_REPO/commit/$COMMIT)
-Build: [GitHub Actions](https://github.com/$GH_REPO/actions/runs/${GITHUB_RUN_ID:?})
+Build: $BUILD_DESCRIPTION
 EOF
 
 if [[ "$MOVE_TAG" == true ]]; then

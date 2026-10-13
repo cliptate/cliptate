@@ -11,11 +11,15 @@ permissions:
 jobs:
   macos:
     runs-on: macos-26
+    defaults:
+      run:
+        working-directory: ${{ env.CLIPTATE_LOCAL_WORKSPACE || github.workspace }}
     timeout-minutes: 30
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        if: ${{ !env.ACT }}
         with:
           persist-credentials: false
       - name: Inspect toolchain
@@ -29,6 +33,7 @@ jobs:
       - name: Verify release automation
         run: python3 -m unittest discover -s Tests/Automation -v
       - name: Cache SwiftPM build and dependencies
+        if: ${{ !env.ACT }}
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           # This job only writes SwiftPM products to .build; never share it with signed packaging.

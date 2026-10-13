@@ -94,7 +94,7 @@ sys.exit(code)
 class PublishReleaseTests(unittest.TestCase):
     def run_release(self, tag="nightly", *, existing=True, fail_upload=False,
                     corrupt=False, tag_commit=COMMIT, signing_status="ad-hoc", appcast=False,
-                    wrong_feed=False, notes=True, notes_tag=None, notes_content=None):
+                    wrong_feed=False, notes=True, notes_tag=None, notes_content=None, local=False):
         with tempfile.TemporaryDirectory() as temp:
             work = Path(temp)
             # Use an isolated source checkout so fixtures cannot satisfy a missing document.
@@ -129,6 +129,10 @@ class PublishReleaseTests(unittest.TestCase):
                    "BUILT_COMMIT": COMMIT, "GITHUB_REPOSITORY": "cliptate/cliptate",
                    "GITHUB_RUN_ID": "123", "GH_TOKEN": "test-token",
                    "GITHUB_STEP_SUMMARY": str(work / "summary.md"), "SIGNING_STATUS": signing_status}
+            env.pop("ACT", None)
+            if local:
+                env["ACT"] = "true"
+                env.pop("GITHUB_RUN_ID")
             if appcast:
                 feed = work / "appcast.xml"
                 signature = base64.b64encode(b"s" * 64).decode()
@@ -151,6 +155,12 @@ class PublishReleaseTests(unittest.TestCase):
         self.assertIn("--prerelease", create)
         self.assertIn("--latest=false", create)
         self.assertTrue(state["tag_moved"])
+
+    def test_local_publication_does_not_invent_an_actions_run_link(self):
+        result, state = self.run_release(local=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Build: Local macOS build via act.", state["notes"])
+        self.assertNotIn("/actions/runs/", state["notes"])
 
     def test_nightly_keeps_current_pair_and_unrelated_assets(self):
         result, state = self.run_release()

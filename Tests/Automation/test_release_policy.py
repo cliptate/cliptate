@@ -92,6 +92,8 @@ class ReleasePolicyAdapterTests(unittest.TestCase):
                     "SPARKLE_PRIVATE_KEY": "test-only-placeholder"})
         env.pop("APPCAST_PATH", None)
         env.pop("SIGNING_STATUS", None)
+        env.pop("ACT", None)
+        env.pop("CLIPTATE_LOCAL_BUILD_VERSION", None)
         return env
 
     def run_cli(self, *args, env=None):

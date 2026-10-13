@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
+import re
 import sys
 
 from release_policy import build_plan, download_url_prefix, publication_plan
@@ -84,9 +85,14 @@ def main():
             valid_key = False
         if not valid_key:
             raise ValueError("Configure vars.SPARKLE_PUBLIC_KEY with a 32-byte public Ed25519 key")
+        version = plan["build_version"]
+        if env.get("ACT") == "true":
+            version = env.get("CLIPTATE_LOCAL_BUILD_VERSION", "")
+            if not re.fullmatch(r"[0-9]+\.[0-9]+", version):
+                raise ValueError("Local packaging requires a numeric CLIPTATE_LOCAL_BUILD_VERSION")
         settings = github_lines({"CLIPTATE_SPARKLE_PUBLIC_KEY": key,
                                  "CLIPTATE_UPDATE_FEED_URL": plan["feed_url"],
-                                 "CURRENT_PROJECT_VERSION": plan["build_version"]})
+                                 "CURRENT_PROJECT_VERSION": version})
         with Path(env["GITHUB_ENV"]).open("a") as output:
             output.write(settings)
 

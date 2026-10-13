@@ -22,6 +22,9 @@ concurrency:
 jobs:
   build:
     runs-on: macos-26
+    defaults:
+      run:
+        working-directory: ${{ env.CLIPTATE_LOCAL_WORKSPACE || github.workspace }}
     timeout-minutes: 75
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
@@ -36,6 +39,7 @@ jobs:
       signing-status: ${{ steps.notarize.outputs.signing-status }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        if: ${{ !env.ACT }}
         with:
           persist-credentials: false
           # Nightly always packages main; stable releases preserve the triggering version tag.
@@ -45,6 +49,11 @@ jobs:
         run: |
           echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           python3 scripts/release-policy.py build --format github >> "$GITHUB_OUTPUT"
+      - name: Verify local publication source
+        if: ${{ env.ACT && github.event.local_publish == true }}
+        env:
+          RELEASE_TAG: ${{ steps.source.outputs.release-tag }}
+        run: python3 scripts/local-actions.py verify-source --tag "$RELEASE_TAG"
       - name: Verify version release notes
         env:
           RELEASE_TAG: ${{ steps.source.outputs.release-tag }}
@@ -58,6 +67,7 @@ jobs:
           fingerprint="$( { sw_vers -buildVersion; xcodebuild -version; swift --version; } | shasum -a 256 | cut -d ' ' -f 1)"
           echo "cache-key=$fingerprint" >> "$GITHUB_OUTPUT"
       - name: Cache release dependencies
+        if: ${{ !env.ACT }}
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           # Cache dependency downloads only, excluding app products and signing/update configuration.
@@ -135,7 +145,7 @@ jobs:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: ./scripts/generate-appcast.sh "${{ steps.package.outputs.dmg-path }}"
       - name: Upload appcast
-        if: ${{ steps.source.outputs.generate-appcast == 'true' }}
+        if: ${{ !env.ACT && steps.source.outputs.generate-appcast == 'true' }}
         id: upload-appcast
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
@@ -145,6 +155,7 @@ jobs:
           retention-days: 14
           overwrite: true
       - name: Upload DMG
+        if: ${{ !env.ACT }}
         id: upload-dmg
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
@@ -155,6 +166,7 @@ jobs:
           overwrite: true
 
       - name: Upload SHA-256 checksum
+        if: ${{ !env.ACT }}
         id: upload-checksum
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
@@ -169,21 +181,34 @@ jobs:
 
   release:
     needs: build
+    # Local packaging keeps dist/; only the explicit make release entry publishes.
+    if: ${{ github.event.act != true || github.event.local_publish == true }}
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ${{ env.CLIPTATE_LOCAL_WORKSPACE || github.workspace }}
     timeout-minutes: 10
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        if: ${{ !env.ACT }}
         with:
           persist-credentials: false
           ref: ${{ needs.build.outputs.commit }}
       - name: Download verified packages
+        if: ${{ !env.ACT }}
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           artifact-ids: ${{ needs.build.outputs.artifact-ids }}
           path: dist
           merge-multiple: true
+      - name: Verify local publication source after packaging
+        if: ${{ env.ACT }}
+        env:
+          RELEASE_TAG: ${{ needs.build.outputs.release-tag }}
+          BUILT_COMMIT: ${{ needs.build.outputs.commit }}
+        run: python3 scripts/local-actions.py verify-source --tag "$RELEASE_TAG" --commit "$BUILT_COMMIT"
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
