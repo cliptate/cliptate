@@ -21,6 +21,15 @@ transcription does not accept stdin (TTS accepts `--text-file -`). Pass option
 values as separate arguments
 (`--format json`, not `--format=json`).
 
+## Agent skills
+
+The [Cliptate skills repository](https://github.com/cliptate/skills) provides reusable instructions for Codex and other compatible AI agents:
+
+- [cliptate](https://github.com/cliptate/skills/blob/main/cliptate/SKILL.md) covers transcription, subtitle export, TTS, dictionary management, and history queries through this CLI.
+- [cliptate-long2shorts](https://github.com/cliptate/skills/blob/main/cliptate-long2shorts/SKILL.md) builds on `cliptate` transcription to select highlights, translate captions, and render subtitled portrait clips with FFmpeg.
+
+See [agent skills in the project guide](../README.md#agent-skills) for requirements and usage, and the [skills installation guide](https://github.com/cliptate/skills#install-and-use) for setup. Install both skills for the long-video workflow; `cliptate` can be used independently. These instructions require the direct-download app and CLI described below.
+
 ## Install
 
 Open Settings → Command Line and copy the installation command into Terminal.

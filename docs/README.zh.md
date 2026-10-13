@@ -39,7 +39,7 @@ Cliptate 是一款原生 macOS 应用，可将语音转为可编辑文本、字�
 
 界面支持英语、简体中文、日语、韩语和德语，可在**设置 → 语言**中切换显示语言。
 
-[快速开始](#快速开始) · [功能](#功能) · [命令行](#命令行) · [隐私与模型](#隐私与模型) · [源码构建](#从源码构建)
+[快速开始](#快速开始) · [功能](#功能) · [命令行](#命令行) · [Skills](#agent-skills) · [隐私与模型](#隐私与模型) · [源码构建](#从源码构建)
 
 ## 快速开始
 
@@ -102,6 +102,17 @@ cliptate dictionary add "Cliptate" "MLX"
 ```
 
 CLI 使用应用当前选择的模型和配置，必要时在后台启动应用。`--download` 允许下载缺失模型。CLI 转写接受本地文件，不创建项目或历史记录。使用 `cliptate --help` 或阅读[完整命令参考](cli.md)，了解批量输出、模型覆盖和脚本调用方式。
+
+## Agent skills
+
+通过 [Cliptate skills 仓库](https://github.com/cliptate/skills/blob/main/docs/README.zh.md)，可在 Codex 或其他兼容的 AI agent 中调用 Cliptate：
+
+- [cliptate](https://github.com/cliptate/skills/blob/main/cliptate/SKILL.md) — CLI 转写、字幕导出、语音合成、自定义词典管理及历史查询。
+- [cliptate-long2shorts](https://github.com/cliptate/skills/blob/main/cliptate-long2shorts/SKILL.md) — 将本地或 YouTube 长视频转成带字幕的竖屏亮点短片，由 agent 选段、翻译字幕，FFmpeg 渲染成片。
+
+先安装 GitHub/直接下载版应用及 CLI，再按 [skills 安装说明](https://github.com/cliptate/skills/blob/main/docs/README.zh.md)安装技能。`cliptate` 可独立使用；`cliptate-long2shorts` 复用 `cliptate` 转写，需要同时安装两个技能。长视频工作流还需要 Python 3.9+、ffprobe、带 libass 的 FFmpeg 及字幕字体；下载 YouTube 素材需要 yt-dlp。
+
+安装后，用 `$cliptate` 执行 CLI 任务，或用 `$cliptate-long2shorts` 并提供来源视频、输出语言和目标片长。
 
 ## 隐私与模型
 
