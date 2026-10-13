@@ -105,7 +105,7 @@ private struct AppSidebarRow: View {
     HStack(spacing: 10) {
       Image(systemName: section.icon)
         .font(.system(size: 16, weight: .medium))
-        .symbolRenderingMode(.hierarchical)
+        .symbolRenderingMode(isSelected ? .monochrome : .hierarchical)
         .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
         .frame(width: 24)
         .accessibilityHidden(true)
