@@ -13,6 +13,7 @@
 
   <p>
     <a href="https://cliptate.github.io">ウェブサイト</a> ·
+    <a href="https://github.com/cliptate/skills">Skills</a> ·
     <a href="https://cliptate.github.io#features">機能</a> ·
     <a href="https://cliptate.github.io#voice">音声・TTS</a> ·
     <a href="https://github.com/cliptate/cliptate/releases">ダウンロード</a>
@@ -39,7 +40,7 @@ Cliptate は、音声を編集可能なテキスト、字幕、ラフカット�
 
 表示言語は英語、簡体字中国語、日本語、韓国語、ドイツ語に対応し、**設定 → 言語**で切り替えられます。
 
-[使い始める](#使い始める) · [機能](#機能) · [コマンドライン](#コマンドライン) · [Skills](#agent-skills) · [プライバシーとモデル](#プライバシーとモデル) · [ソースからビルド](#ソースからビルド)
+[使い始める](#使い始める) · [機能](#機能) · [コマンドライン](#コマンドライン) · [プライバシーとモデル](#プライバシーとモデル) · [ソースからビルド](#ソースからビルド)
 
 ## 使い始める
 
@@ -102,17 +103,6 @@ cliptate dictionary add "Cliptate" "MLX"
 ```
 
 CLI はアプリで選択したモデルと設定を使用し、必要に応じてアプリをバックグラウンドで起動します。`--download` は不足するモデルのダウンロードを許可します。CLI の文字起こしはローカルファイルを受け付け、プロジェクトや履歴を作成しません。バッチ出力、モデルの指定、スクリプトでの利用については `cliptate --help` または[完全なコマンドリファレンス](cli.md)をご覧ください。
-
-## Agent skills
-
-[Cliptate skills リポジトリ](https://github.com/cliptate/skills/blob/main/docs/README.ja.md)を使うと、Codex や対応する AI エージェントから Cliptate を利用できます。
-
-- [cliptate](https://github.com/cliptate/skills/blob/main/cliptate/SKILL.md) — CLI の文字起こし、字幕出力、音声合成、カスタム辞書の管理、履歴の参照。
-- [cliptate-long2shorts](https://github.com/cliptate/skills/blob/main/cliptate-long2shorts/SKILL.md) — ローカルまたは YouTube の長い動画から字幕付きの縦型ハイライトを作成。エージェントが区間を選び、字幕を翻訳し、FFmpeg が動画をレンダリングします。
-
-まず GitHub/直接ダウンロード版アプリと CLI を導入し、[スキルのインストール手順](https://github.com/cliptate/skills/blob/main/docs/README.ja.md)に従ってください。`cliptate` は単独で利用できます。`cliptate-long2shorts` は文字起こしに `cliptate` を使うため、両方のスキルが必要です。長い動画の処理には Python 3.9+、ffprobe、libass 対応 FFmpeg、字幕用フォントも必要です。YouTube のダウンロードには yt-dlp を使います。
-
-導入後、CLI の操作には `$cliptate` を、長い動画の処理には `$cliptate-long2shorts` を指定し、元動画、出力言語、希望するクリップの長さを伝えてください。
 
 ## プライバシーとモデル
 

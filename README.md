@@ -14,6 +14,7 @@
 
   <p>
     <a href="https://cliptate.github.io">Website</a> ·
+    <a href="https://github.com/cliptate/skills">Skills</a> ·
     <a href="https://cliptate.github.io#features">Features</a> ·
     <a href="https://cliptate.github.io#voice">Voice & TTS</a> ·
     <a href="https://github.com/cliptate/cliptate/releases">Download</a>
@@ -40,7 +41,7 @@ Drop videos into the import area, or click it to select one or more files. Use t
 
 The interface supports English, Simplified Chinese, Japanese, Korean, and German; choose your display language in **Settings → Language**.
 
-[Get started](#get-started) · [Features](#features) · [CLI](#command-line) · [Skills](#agent-skills) · [Privacy](#privacy-and-models) · [Build from source](#build-from-source)
+[Get started](#get-started) · [Features](#features) · [CLI](#command-line) · [Privacy](#privacy-and-models) · [Build from source](#build-from-source)
 
 ## Get started
 
@@ -103,17 +104,6 @@ cliptate dictionary add "Cliptate" "MLX"
 ```
 
 The CLI uses the app's selected models and configuration, launching the app in the background when needed. `--download` allows missing models to be downloaded. CLI transcription accepts local files and does not create projects or history entries. Run `cliptate --help` or read the [full command reference](docs/cli.md) for batch output, model overrides, and scripting behavior.
-
-## Agent skills
-
-Use Cliptate from Codex or another compatible AI agent with the [Cliptate skills repository](https://github.com/cliptate/skills):
-
-- [cliptate](https://github.com/cliptate/skills/blob/main/cliptate/SKILL.md) — CLI transcription, subtitle export, speech synthesis, custom dictionary management, and history queries.
-- [cliptate-long2shorts](https://github.com/cliptate/skills/blob/main/cliptate-long2shorts/SKILL.md) — turn local or YouTube long videos into subtitled portrait highlights, with the agent selecting clips and translating captions and FFmpeg rendering the result.
-
-Install the GitHub/direct-download app and its CLI first. Follow the [skills installation guide](https://github.com/cliptate/skills#install-and-use) to install the agent instructions. `cliptate` works on its own; for `cliptate-long2shorts`, install both skills because it reuses `cliptate` for transcription. The long-video workflow also requires Python 3.9+, ffprobe, FFmpeg with libass, and a subtitle font; YouTube downloads require yt-dlp.
-
-After installation, invoke `$cliptate` for CLI tasks or `$cliptate-long2shorts` with a source video, output language, and desired clip length.
 
 ## Privacy and models
 

@@ -13,6 +13,7 @@
 
   <p>
     <a href="https://cliptate.github.io">웹사이트</a> ·
+    <a href="https://github.com/cliptate/skills">Skills</a> ·
     <a href="https://cliptate.github.io#features">기능</a> ·
     <a href="https://cliptate.github.io#voice">음성 및 TTS</a> ·
     <a href="https://github.com/cliptate/cliptate/releases">다운로드</a>
@@ -39,7 +40,7 @@ Cliptate는 음성을 편집 가능한 텍스트, 자막, 러프 컷으로 바�
 
 인터페이스는 영어, 중국어 간체, 일본어, 한국어, 독일어를 지원하며 **설정 → 언어**에서 표시 언어를 변경할 수 있습니다.
 
-[시작하기](#시작하기) · [기능](#기능) · [명령줄](#명령줄) · [Skills](#agent-skills) · [개인정보와 모델](#개인정보와-모델) · [소스 빌드](#소스에서-빌드)
+[시작하기](#시작하기) · [기능](#기능) · [명령줄](#명령줄) · [개인정보와 모델](#개인정보와-모델) · [소스 빌드](#소스에서-빌드)
 
 ## 시작하기
 
@@ -102,17 +103,6 @@ cliptate dictionary add "Cliptate" "MLX"
 ```
 
 CLI는 앱에서 선택한 모델과 설정을 사용하며, 필요하면 앱을 백그라운드에서 실행합니다. `--download`는 없는 모델의 다운로드를 허용합니다. CLI 전사는 로컬 파일을 입력받으며 프로젝트나 기록을 생성하지 않습니다. 일괄 출력, 모델 지정, 스크립트 사용 방법은 `cliptate --help` 또는 [전체 명령 참조](cli.md)를 확인하세요.
-
-## Agent skills
-
-[Cliptate skills 저장소](https://github.com/cliptate/skills/blob/main/docs/README.ko.md)를 통해 Codex나 호환되는 AI 에이전트에서 Cliptate를 사용할 수 있습니다.
-
-- [cliptate](https://github.com/cliptate/skills/blob/main/cliptate/SKILL.md) — CLI 전사, 자막 내보내기, 음성 합성, 사용자 사전 관리 및 기록 조회.
-- [cliptate-long2shorts](https://github.com/cliptate/skills/blob/main/cliptate-long2shorts/SKILL.md) — 로컬 또는 YouTube의 긴 영상을 자막이 있는 세로형 하이라이트로 만듭니다. 에이전트가 구간을 선택하고 자막을 번역하며, FFmpeg가 영상을 렌더링합니다.
-
-먼저 GitHub/직접 다운로드 앱과 CLI를 설치한 뒤 [스킬 설치 안내](https://github.com/cliptate/skills/blob/main/docs/README.ko.md)를 따르세요. `cliptate`는 단독으로 사용할 수 있습니다. `cliptate-long2shorts`는 전사에 `cliptate`를 사용하므로 두 스킬을 함께 설치해야 합니다. 긴 영상 처리에는 Python 3.9+, ffprobe, libass를 지원하는 FFmpeg와 자막 글꼴도 필요합니다. YouTube 다운로드에는 yt-dlp가 필요합니다.
-
-설치 후 CLI 작업에는 `$cliptate`를, 긴 영상 처리에는 `$cliptate-long2shorts`를 지정하고 원본 영상, 출력 언어, 원하는 클립 길이를 알려 주세요.
 
 ## 개인정보와 모델
 

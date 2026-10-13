@@ -13,6 +13,7 @@
 
   <p>
     <a href="https://cliptate.github.io">Website</a> ·
+    <a href="https://github.com/cliptate/skills">Skills</a> ·
     <a href="https://cliptate.github.io#features">Funktionen</a> ·
     <a href="https://cliptate.github.io#voice">Sprache & TTS</a> ·
     <a href="https://github.com/cliptate/cliptate/releases">Download</a>
@@ -39,7 +40,7 @@ Ziehen Sie Videos in den Importbereich oder klicken Sie darauf, um eine oder meh
 
 Die Oberfläche unterstützt Englisch, vereinfachtes Chinesisch, Japanisch, Koreanisch und Deutsch. Die Anzeigesprache lässt sich unter **Einstellungen → Sprache** ändern.
 
-[Einstieg](#einstieg) · [Funktionen](#funktionen) · [Kommandozeile](#kommandozeile) · [Skills](#agent-skills) · [Datenschutz](#datenschutz-und-modelle) · [Quellcode bauen](#aus-dem-quellcode-bauen)
+[Einstieg](#einstieg) · [Funktionen](#funktionen) · [Kommandozeile](#kommandozeile) · [Datenschutz](#datenschutz-und-modelle) · [Quellcode bauen](#aus-dem-quellcode-bauen)
 
 ## Einstieg
 
@@ -102,17 +103,6 @@ cliptate dictionary add "Cliptate" "MLX"
 ```
 
 Die CLI verwendet Modelle und Einstellungen der App und startet sie bei Bedarf im Hintergrund. `--download` erlaubt das Herunterladen fehlender Modelle. CLI-Transkription akzeptiert lokale Dateien und erzeugt weder Projekte noch Verlaufseinträge. Details zu Stapelausgabe, Modellwahl und Skripten stehen unter `cliptate --help` und in der [vollständigen Befehlsreferenz](cli.md).
-
-## Agent skills
-
-Mit dem [Cliptate-Skills-Repository](https://github.com/cliptate/skills/blob/main/docs/README.de.md) können Codex und andere kompatible KI-Agenten Cliptate verwenden:
-
-- [cliptate](https://github.com/cliptate/skills/blob/main/cliptate/SKILL.md) — CLI-Transkription, Untertitelexport, Sprachsynthese, Verwaltung des eigenen Wörterbuchs und Verlaufsabfragen.
-- [cliptate-long2shorts](https://github.com/cliptate/skills/blob/main/cliptate-long2shorts/SKILL.md) — erstellt untertitelte Hochformat-Highlights aus lokalen oder YouTube-Videos. Der Agent wählt Ausschnitte und übersetzt Untertitel; FFmpeg rendert die Videos.
-
-Installieren Sie zuerst die GitHub-/Direktdownload-App und ihre CLI. Folgen Sie dann der [Installationsanleitung für Skills](https://github.com/cliptate/skills/blob/main/docs/README.de.md). `cliptate` funktioniert eigenständig. `cliptate-long2shorts` verwendet `cliptate` für die Transkription und benötigt beide Skills. Für lange Videos sind außerdem Python 3.9+, ffprobe, FFmpeg mit libass und eine Untertitelschrift erforderlich; YouTube-Downloads benötigen yt-dlp.
-
-Verwenden Sie nach der Installation `$cliptate` für CLI-Aufgaben oder `$cliptate-long2shorts` mit Quellvideo, Ausgabesprache und gewünschter Clipdauer.
 
 ## Datenschutz und Modelle
 
