@@ -22,7 +22,8 @@ enum AppSidebarGroup: String, CaseIterable, Identifiable {
     case .library:
       return [.history, .models, .dictionary]
     case .app:
-      return (requiresGettingStarted ? [.permissions] : []) + [.pro, .setting]
+      return (requiresGettingStarted ? [.permissions] : [])
+        + (SubscriptionPolicy.isBillingEnabled ? [.pro] : []) + [.setting]
     }
   }
 }
@@ -60,7 +61,7 @@ struct AppSidebar: View {
         Divider()
           .padding(.horizontal, 8)
           .padding(.bottom, 8)
-        ForEach([AppSection.pro, .setting]) { section in
+        ForEach(AppSidebarGroup.app.sections(requiresGettingStarted: false)) { section in
           HStack(spacing: 4) {
             AppSidebarFooterButton(section: section, isSelected: selection == section) {
               selection = section

@@ -10,14 +10,18 @@ struct ContentNavigationTests {
   func sidebarGroups() {
     #expect(AppSidebarGroup.create.sections(requiresGettingStarted: false) == [.aiCut, .voiceToText, .ttsStudio])
     #expect(AppSidebarGroup.library.sections(requiresGettingStarted: false) == [.history, .models, .dictionary])
-    #expect(AppSidebarGroup.app.sections(requiresGettingStarted: false) == [.pro, .setting])
-    #expect(AppSidebarGroup.app.sections(requiresGettingStarted: true) == [.permissions, .pro, .setting])
+    let appSections: [AppSection] = SubscriptionPolicy.isBillingEnabled ? [.pro, .setting] : [.setting]
+    #expect(AppSidebarGroup.app.sections(requiresGettingStarted: false) == appSections)
+    #expect(AppSidebarGroup.app.sections(requiresGettingStarted: true) == [.permissions] + appSections)
   }
 
   @Test("grouped sidebar includes every available destination exactly once", arguments: [false, true])
   func sidebarDestinationCoverage(requiresGettingStarted: Bool) {
     let sections = visibleAppSections(requiresGettingStarted: requiresGettingStarted)
-    let expected = AppSection.allCases.filter { requiresGettingStarted || $0 != .permissions }
+    let expected = AppSection.allCases.filter {
+      (requiresGettingStarted || $0 != .permissions)
+        && (SubscriptionPolicy.isBillingEnabled || $0 != .pro)
+    }
     #expect(Set(sections) == Set(expected))
     #expect(sections.count == Set(sections).count)
   }
@@ -72,12 +76,19 @@ struct ContentNavigationTests {
     #expect(observedBlock.contains("syncGettingStartedSection()") == false)
   }
 
-  @Test("pro section is exposed in app navigation")
+  @Test("pro navigation is available only in the billing channel")
   func proSectionIsAvailableInNavigation() {
-    #expect(AppSection.allCases.contains(.pro))
+    #expect(visibleAppSections(requiresGettingStarted: false).contains(.pro) == SubscriptionPolicy.isBillingEnabled)
     #expect(AppSection.pro.icon == "crown")
     #expect(AppSection.pro.description == (SubscriptionPolicy.isBillingEnabled
       ? "Subscription and benefits" : "All features are free"))
+  }
+
+  @Test("restored pro selection returns to AI Cut in the free channel")
+  func restoredProSelection() {
+    #expect(resolvedAppSection(currentSection: .pro, requiresGettingStarted: false)
+      == (SubscriptionPolicy.isBillingEnabled ? .pro : .aiCut))
+    #expect(resolvedAppSection(currentSection: .pro, requiresGettingStarted: true) == .permissions)
   }
 
   @Test("pro section notification is available")

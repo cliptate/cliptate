@@ -36,7 +36,7 @@ Cliptate ist eine native macOS-App, die Sprache in bearbeitbaren Text, Untertite
 
 ![Cliptate-Arbeitsbereich für AI Cut auf Deutsch](../assets/screenshots/home.de.jpg)
 
-Ziehen Sie Videos in den Importbereich oder klicken Sie darauf, um eine oder mehrere Dateien auszuwählen. Wechseln Sie über die Seitenleiste zwischen den Funktionen. **Kostenloser Zugang** und **Einstellungen** sind unten jederzeit erreichbar.
+Ziehen Sie Videos in den Importbereich oder klicken Sie darauf, um eine oder mehrere Dateien auszuwählen. Wechseln Sie über die Seitenleiste zwischen den Funktionen. **Einstellungen** sind unten jederzeit erreichbar.
 
 Die Oberfläche unterstützt Englisch, vereinfachtes Chinesisch, Japanisch, Koreanisch und Deutsch. Die Anzeigesprache lässt sich unter **Einstellungen → Sprache** ändern.
 

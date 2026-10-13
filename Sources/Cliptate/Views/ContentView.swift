@@ -77,6 +77,9 @@ func resolvedAppSection(
   if currentSection == .permissions {
     return requiresGettingStarted ? .permissions : .aiCut
   }
+  if currentSection == .pro && !SubscriptionPolicy.isBillingEnabled {
+    return .aiCut
+  }
   return currentSection ?? (requiresGettingStarted ? .permissions : .aiCut)
 }
 
@@ -297,7 +300,9 @@ struct ContentView: View {
       currentSection = .aiCut
     }
     .onReceive(NotificationCenter.default.publisher(for: .openProSection)) { _ in
-      currentSection = .pro
+      if SubscriptionPolicy.isBillingEnabled {
+        currentSection = .pro
+      }
       _ = AppNavigationRequestStore.consume()
     }
     .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) {
