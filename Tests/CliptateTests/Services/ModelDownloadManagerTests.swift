@@ -6,10 +6,11 @@ import Testing
 @Suite("ModelDownloadManager permission integration")
 struct ModelDownloadManagerPermissionTests {
   @Test
-  func isModelDownloadedReturnsTrueForFreeParakeetModel() async throws {
+  func freeParakeetModelDoesNotCheckPermissions() async throws {
     let mockAccess = MockAccessController(permissionQueue: [])
     let manager = ModelDownloadManager(
       accessController: mockAccess, fileManager: StubFileManager())
+    _ = await manager.isModelDownloaded(.parakeetV3)
     // Parakeet is a free model — no permission check needed
     let callCount = await mockAccess.checkPermissionCallCount
     #expect(callCount == 0)
@@ -778,7 +779,7 @@ actor MockAccessController: ModelAccessControlling {
   }
 }
 
-final class StubFileManager: FileManager {
+final class StubFileManager: FileManager, @unchecked Sendable {
   let documentDirectory: URL
   var existingDirectories: Set<String> = []
   var existingFiles: Set<String> = []

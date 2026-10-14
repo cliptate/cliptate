@@ -40,8 +40,7 @@ struct VADProviderTests {
 
   @Test("SileroVADProvider conforms to VADProvider")
   func sileroVADProviderConformance() {
-    let provider = SileroVADProvider(model: .sileroVAD)
-    #expect(provider is any VADProvider)
+    let _: any VADProvider = SileroVADProvider(model: .sileroVAD)
   }
 
   @Test("SileroVADProvider default init uses sileroVAD")

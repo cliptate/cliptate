@@ -87,7 +87,11 @@ struct HistoryCorrectionTests {
     }
     var query = CLIHistoryQuery(action: .list, limit: 1)
     let first = try runtime.query(query)
-    query.cursor = try #require(first.nextCursor)
+    guard let cursor = first.nextCursor else {
+      Issue.record("Expected a cursor for the remaining history entries")
+      return
+    }
+    query.cursor = cursor
     var newSession = TranscriptSession(startTime: Date().addingTimeInterval(10), source: .fileTranscription)
     newSession.append(text: "newer", at: 0)
     runtime.add(newSession)
@@ -177,7 +181,11 @@ struct HistoryCorrectionTests {
     let page = try HistoryQuery.page(query, sessions: [session], maximumBytes: 1_900)
     #expect(page.lines.count == 1)
     #expect(page.lines.first?.text == session.lines.first?.text)
-    query.cursor = try #require(page.nextCursor)
+    guard let cursor = page.nextCursor else {
+      Issue.record("Expected a cursor for the remaining history lines")
+      return
+    }
+    query.cursor = cursor
     #expect(try HistoryQuery.page(query, sessions: [session], maximumBytes: 1_900).lines.first?.text == session.lines.last?.text)
     #expect(throws: (any Error).self) {
       try HistoryQuery.page(CLIHistoryQuery(action: .show, sessionID: session.id.uuidString),

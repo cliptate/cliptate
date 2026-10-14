@@ -198,9 +198,9 @@ struct MLXTTSServiceTests {
     }
 
     @Test
-    func sharedSingletonExists() async {
+    func sharedSingletonHasStableIdentity() {
         let service = MLXTTSService.shared
-        #expect(service != nil)
+        #expect(service === MLXTTSService.shared)
     }
 
     @Test

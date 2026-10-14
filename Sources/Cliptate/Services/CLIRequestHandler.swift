@@ -58,16 +58,7 @@ final class CLIRequestHandler {
     ensureModel:
       @escaping @Sendable (ModelVariant, Bool, @escaping @Sendable (String) -> Void) async throws ->
       Void = { model, download, progress in
-        guard !(await ModelDownloadManager.shared.hasLocalArtifacts(for: model)) else { return }
-        guard download else {
-          throw CLIError(
-            String(
-              format: String(
-                localized: "Model %@ is not downloaded. Download it in Cliptate or use --download."),
-              model.rawValue))
-        }
-        try await ModelDownloadManager.shared.download(
-          model: model, progressHandler: { progress($0.currentStep) })
+        try await CLIRequestHandler.defaultEnsureModel(model, download: download, progress: progress)
       }
   ) {
     self.config = config
@@ -76,6 +67,22 @@ final class CLIRequestHandler {
     self.transcribe = transcribe
     self.ensureModel = ensureModel
     self.synthesize = synthesize
+  }
+
+  nonisolated private static func defaultEnsureModel(
+    _ model: ModelVariant, download: Bool, progress: @escaping @Sendable (String) -> Void
+  ) async throws {
+    let downloads = ModelDownloadManager.shared
+    guard !(await downloads.hasLocalArtifacts(for: model)) else { return }
+    guard download else {
+      throw CLIError(
+        String(
+          format: String(
+            localized: "Model %@ is not downloaded. Download it in Cliptate or use --download."),
+          model.rawValue))
+    }
+    try await downloads.download(
+      model: model, progressHandler: { progress($0.currentStep) })
   }
 
   func execute(_ request: CLIRequest, progress: @escaping @Sendable (String) -> Void = { _ in })

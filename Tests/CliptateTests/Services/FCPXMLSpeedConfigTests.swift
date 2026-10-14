@@ -22,7 +22,7 @@ struct FCPXMLSpeedConfigTests {
   }
 
   @Test func legacySnapshot_decodesSpeedAsDefault() throws {
-    var snapshot = AppConfiguration.defaultSnapshot
+    let snapshot = AppConfiguration.defaultSnapshot
     let data = try JSONEncoder().encode(snapshot)
     var json = try JSONSerialization.jsonObject(with: data) as! [String: Any]
     json.removeValue(forKey: "fcpxmlSpeed")

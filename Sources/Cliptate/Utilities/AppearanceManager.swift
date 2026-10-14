@@ -1,5 +1,6 @@
 import AppKit
 
+@MainActor
 enum AppearanceManager {
   static func apply(mode: String) {
     switch mode {

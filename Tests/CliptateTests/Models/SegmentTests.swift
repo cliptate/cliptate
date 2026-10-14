@@ -74,7 +74,7 @@ struct SegmentUUIDTests {
 
   @Test("Equatable ignores id — same content with different UUIDs are equal")
   func equatableIgnoresId() {
-    var a = Segment(startTime: 0, endTime: 1, text: "hello")
+    let a = Segment(startTime: 0, endTime: 1, text: "hello")
     let b = Segment(startTime: 0, endTime: 1, text: "hello")
     // Different UUIDs, but should be equal by content
     #expect(a.id != b.id)

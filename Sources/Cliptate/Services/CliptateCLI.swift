@@ -66,8 +66,10 @@ public enum CliptateCLI {
 
     init(
       transcribe: @escaping @Sendable (CutRequest) async throws -> CutTranscription =
-        Self.defaultTranscribe,
-      synthesize: @escaping @Sendable (TTSRequest) async throws -> Data = Self.defaultSynthesize,
+        { try await Self.defaultTranscribe($0) },
+      synthesize: @escaping @Sendable (TTSRequest) async throws -> Data = {
+        try await Self.defaultSynthesize($0)
+      },
       renderVideo: @escaping @Sendable (
         URL,
         [Segment],
@@ -76,7 +78,11 @@ public enum CliptateCLI {
         SubtitleTranslationPlacement,
         VideoExportQuality,
         SubtitleStylesConfiguration
-      ) async throws -> Void = Self.defaultRenderVideo
+      ) async throws -> Void = {
+        try await Self.defaultRenderVideo(
+          videoURL: $0, segments: $1, outputURL: $2, filterSilentSegments: $3,
+          translationPlacement: $4, quality: $5, styleConfiguration: $6)
+      }
     ) {
       self.transcribe = transcribe
       self.synthesize = synthesize

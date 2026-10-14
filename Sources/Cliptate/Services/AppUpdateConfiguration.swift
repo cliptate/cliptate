@@ -19,11 +19,14 @@ struct AppUpdateConfiguration {
       && feed?.scheme == "https" && feed?.host?.isEmpty == false && key?.count == 32
   }
 
+  init(bundle: Bundle) {
+    // Only inspect local macOS distribution metadata; this is not purchase validation.
+    let receipt = bundle.bundleURL.appendingPathComponent("Contents/_MASReceipt/receipt")
+    let hasReceipt = FileManager.default.fileExists(atPath: receipt.path)
+    self.init(info: bundle.infoDictionary ?? [:], hasAppStoreReceipt: hasReceipt)
+  }
+
   static var current: AppUpdateConfiguration {
-    let bundle = Bundle.main
-    let hasReceipt = bundle.appStoreReceiptURL.map {
-      FileManager.default.fileExists(atPath: $0.path)
-    } ?? false
-    return AppUpdateConfiguration(info: bundle.infoDictionary ?? [:], hasAppStoreReceipt: hasReceipt)
+    AppUpdateConfiguration(bundle: .main)
   }
 }

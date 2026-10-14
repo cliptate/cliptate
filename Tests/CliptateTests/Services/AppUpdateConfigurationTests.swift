@@ -14,6 +14,25 @@ struct AppUpdateConfigurationTests {
     #expect(AppUpdateConfiguration(info: valid, hasAppStoreReceipt: false).isEnabled)
   }
 
+  @Test func localBundleReceiptDisablesUpdates() throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let app = directory.appendingPathComponent("ReceiptTest.app")
+    let contents = app.appendingPathComponent("Contents")
+    let receipts = contents.appendingPathComponent("_MASReceipt")
+    try FileManager.default.createDirectory(at: receipts, withIntermediateDirectories: true)
+    var info = valid
+    info["CFBundleIdentifier"] = "com.cliptate.receipt-test"
+    info["CFBundlePackageType"] = "APPL"
+    let plist = try PropertyListSerialization.data(fromPropertyList: info, format: .xml, options: 0)
+    try plist.write(to: contents.appendingPathComponent("Info.plist"))
+    let bundle = try #require(Bundle(url: app))
+
+    #expect(AppUpdateConfiguration(bundle: bundle).isEnabled)
+    try Data("receipt".utf8).write(to: receipts.appendingPathComponent("receipt"))
+    #expect(!AppUpdateConfiguration(bundle: bundle).isEnabled)
+  }
+
   @Test func developmentAppCannotUseTheProductionUpdater() {
     var info = valid
     info["CFBundleIdentifier"] = "com.cliptate.dev"

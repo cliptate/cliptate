@@ -1087,7 +1087,9 @@ private struct MicIndicatorView: View {
                 }
             }
         } else {
-            DispatchQueue.main.async(execute: scrollAction)
+            DispatchQueue.main.async {
+                scrollAction()
+            }
         }
     }
 

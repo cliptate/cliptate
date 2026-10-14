@@ -334,4 +334,9 @@ public struct CLIHistoryPage: Codable, Sendable {
   public var nextCursor: String?
   public let schemaVersion = 1
   public init() {}
+
+  // The schema identifies the page we produce and stays fixed when decoding.
+  private enum CodingKeys: String, CodingKey {
+    case sessions, lines, corrections, nextCursor, schemaVersion
+  }
 }

@@ -54,6 +54,8 @@ let package = Package(
                 .product(name: "SwiftAssRenderer", package: "swift-ass-renderer"),
                 .product(name: "AudioKit", package: "AudioKit"),
                 .product(name: "RevenueCat", package: "purchases-ios-spm"),
+                // Used transitively by RevenueCat's CombineSchedulers; keep the pinned identity explicit.
+                .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
                 .product(name: "MLX", package: "mlx-swift"),
                 .product(name: "MLXLMCommon", package: "mlx-swift-lm"),
                 .product(name: "MLXAudioSTT", package: "mlx-audio-swift"),

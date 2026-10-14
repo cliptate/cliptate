@@ -322,7 +322,7 @@ final class TranscriberWarmupCoordinator: ObservableObject {
         _ = try await ModelCacheManager.shared.getASRTranscriber(
           type: signature.type,
           model: signature.model,
-          progress: { progress in
+          progress: { [weak coordinator] progress in
             Task { @MainActor [weak coordinator] in
               guard let coordinator else { return }
               coordinator.publishProgress(progress, for: signature)
