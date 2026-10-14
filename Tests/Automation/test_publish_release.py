@@ -191,12 +191,16 @@ class PublishReleaseTests(unittest.TestCase):
                 self.assertEqual(state["deleted"], [])
                 self.assertFalse(any("/git/" in " ".join(c) for c in state["calls"]))
 
-    def test_version_release_publishes_document_for_new_and_existing_releases(self):
+    def test_version_release_links_to_website_for_new_and_existing_releases(self):
         for existing in [False, True]:
             with self.subTest(existing=existing):
                 result, state = self.run_release(tag="v1.8.0", existing=existing)
                 self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertIn(version_notes("v1.8.0"), state["notes"])
+                self.assertIn("[Release notes](https://cliptate.github.io/changelog/v1.8.0/)", state["notes"])
+                self.assertNotIn("## Highlights", state["notes"])
+                self.assertNotIn("Restart Cliptate after replacing", state["notes"])
+                self.assertIn("Apple Silicon, macOS 15+.", state["notes"])
+                self.assertIn("Verify the download with the accompanying SHA-256 file.", state["notes"])
                 self.assertIn("Source:", state["notes"])
                 self.assertIn("Build:", state["notes"])
 
@@ -220,6 +224,7 @@ class PublishReleaseTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Source:", state["notes"])
         self.assertNotIn("## Highlights", state["notes"])
+        self.assertNotIn("cliptate.github.io/changelog/", state["notes"])
 
     def test_stable_release_is_explicitly_marked_latest(self):
         result, state = self.run_release(tag="v1.0", signing_status="developer-id-notarized", appcast=True)
@@ -232,7 +237,8 @@ class PublishReleaseTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         create = next(c for c in state["calls"] if c[:2] == ["release", "create"])
         self.assertEqual(create[create.index("--title") + 1], "Cliptate preview/中文+1")
-        self.assertIn(version_notes("preview/中文+1"), state["notes"])
+        self.assertIn("https://cliptate.github.io/changelog/preview%2F%E4%B8%AD%E6%96%87%2B1/", state["notes"])
+        self.assertNotIn("## Highlights", state["notes"])
         self.assertTrue(any("repos/cliptate/cliptate/commits/preview%2F%E4%B8%AD%E6%96%87%2B1" in c
                             for c in state["calls"]))
         self.assertFalse(state["tag_moved"])

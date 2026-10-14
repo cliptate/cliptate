@@ -1,0 +1,3 @@
+interface:
+  display_name: "Cliptate Release"
+  short_description: "Prepare, publish, and verify Cliptate releases"

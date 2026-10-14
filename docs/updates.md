@@ -48,10 +48,12 @@ generates a fresh `appcast.xml` for each stable release. The feed is a generated
 Release asset, not a tracked source file; apps fetch the Latest release asset.
 GitHub Pages and commits to `main` are unnecessary for serving updates.
 
-Embedded notes come from the same detailed
-[version document](release-notes/README.md) used for GitHub Release. The generator
-includes its content as plain text plus release and source links; missing or
-incomplete version notes stop generation before the signing tool is downloaded.
+Embedded notes come from the complete repository
+[version document](release-notes/README.md). The generator includes its content as
+plain text plus release and source links; missing or incomplete version notes stop
+generation before the signing tool is downloaded. GitHub Release links to the
+website's version page instead of duplicating this document. This presentation
+change preserves the complete in-app notes and their validation.
 
 The initial stable release is `v1.0`, with display version `1.0`. Its internal build
 number continues above existing installations even though the display version

@@ -45,8 +45,10 @@ else
   BUILD_DESCRIPTION="[GitHub Actions](https://github.com/$GH_REPO/actions/runs/${GITHUB_RUN_ID:?})"
 fi
 if [[ "$MOVE_TAG" != true ]]; then
-  python3 "$(dirname "${BASH_SOURCE[0]}")/release-notes.py" "$TAG" > "$NOTES"
-  printf '\n---\n\n' >> "$NOTES"
+  # Keep the complete source document for validation and Sparkle's embedded notes.
+  python3 "$(dirname "${BASH_SOURCE[0]}")/release-notes.py" "$TAG" --check
+  ENCODED_TAG="$(policy_field encoded_tag)"
+  printf '[Release notes](https://cliptate.github.io/changelog/%s/)\n\n---\n\n' "$ENCODED_TAG" > "$NOTES"
 fi
 cat >> "$NOTES" <<EOF
 Apple Silicon, macOS 15+. $SIGNING_DESCRIPTION
@@ -65,7 +67,6 @@ if [[ "$MOVE_TAG" == true ]]; then
   fi
 else
   # Never create or move a version tag: it must already identify the built commit.
-  ENCODED_TAG="$(policy_field encoded_tag)"
   test "$(gh api "repos/$GH_REPO/commits/$ENCODED_TAG" --jq .sha)" = "$COMMIT"
 fi
 

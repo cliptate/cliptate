@@ -86,10 +86,19 @@ The package workflow validates the document before building. Both
 source, independently of the working directory. Missing files, mismatched titles,
 empty sections, and TODO/TBD placeholders fail before publication.
 
-GitHub Release uses the Markdown document followed by installation, signing,
-source-commit, and Actions-run information. Updating an existing release refreshes
-its notes too. Sparkle embeds the document as plain text with source and release
-links. The workflow publishes generated assets without writing back to `main`.
+GitHub Release links to the website's version detail page at
+`https://cliptate.github.io/changelog/<URL-encoded-tag>/`, followed by installation,
+signing, source-commit, and build information. Updating an existing release refreshes
+this description too. The complete Markdown document remains required for validation
+and Sparkle, which embeds it as plain text with source and release links. The workflow
+publishes generated assets without writing back to `main`.
+
+Prepare the website's five-language entry from this document before release, then
+deploy it during release completion and verify the GitHub description's link resolves
+to the correct version. Website maintenance and deployment are separate from the
+package workflow; follow `.agents/skills/release/references/website.md` in the
+application repository for the handoff. Older tags retain the publication behavior
+in their tagged scripts; editing this document on `main` does not refresh live releases.
 
 Historical documentation may be backfilled on `main` without moving published
 tags. Such a backfill does not update an already published GitHub Release or

@@ -131,9 +131,11 @@ branch pushes and pull requests do not build installers.
   The installer is always named `Cliptate.dmg`; its version comes from the app's build settings.
 
 Version release notes are maintained in `docs/release-notes/<tag>.md` and checked
-before building. GitHub Release and the Sparkle feed use that document from the
-packaged commit; publication appends verified signing, installation, and build
-details. Rerunning publication also refreshes an existing release's description.
+before building. The Sparkle feed embeds the complete document from the packaged
+commit. GitHub Release links to the corresponding website changelog page; publication
+appends verified signing, installation, and build details. Maintain and deploy the
+website entry separately as part of release completion. Rerunning publication also
+refreshes an existing release's description using its tagged publication script.
 Nightly keeps its generated build summary and does not require a version document.
 
 Stable releases include the DMG, SHA-256 checksum, and signed `appcast.xml` feed
