@@ -34,7 +34,9 @@ Cliptate 是一款原生 macOS 应用，可将语音转为可编辑文本、字�
 
 **GitHub 下载版完全免费**：所有模型与 Pro 功能均已解锁，无需订阅或购买。可选在线 AI 功能使用你自行配置的服务。
 
-![Cliptate AI 剪辑工作台（简体中文）](../assets/screenshots/home.zh-Hans.jpg)
+![Cliptate AI 剪辑首页（简体中文），浅灰色背景](../assets/screenshots/home.zh-Hans.jpg)
+
+*浅色外观采用浅灰色页面背景。*
 
 将视频拖入中央导入区，或点击选择文件，支持一次导入多个视频。通过左侧栏切换功能；**设置**始终位于侧栏底部。
 
