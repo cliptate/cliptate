@@ -154,8 +154,11 @@ struct HistoryView: View {
     HSplitView {
       listPanel
         .frame(minWidth: 280, idealWidth: 340, maxWidth: 420)
-      detailPanel
-        .frame(minWidth: 320, maxWidth: .infinity)
+      // Keep the split pane's identity stable when selection replaces the placeholder.
+      VStack(spacing: 0) {
+        detailPanel
+      }
+      .frame(minWidth: 320, maxWidth: .infinity)
     }
   }
 
