@@ -410,6 +410,7 @@ extension ContentView {
     case .holdRecordingStarted:
       shortcutState.startRecording()
       Task {
+        guard shortcutState.phase == .recording else { return }
         await VoiceTranscriber.shared.start(
           type: config.transcriberType,
           model: config.modelVariant,
@@ -427,14 +428,11 @@ extension ContentView {
       // Session end is handled by .modeDeactivated which follows immediately
 
     case .escapePressed:
-      // Cancel session — stop recording, save to history but no text output
-      if shortcutState.phase == .recording {
-        shortcutState.stopRecording()
-        Task {
-          await VoiceTranscriber.shared.stop(reason: .cancelled)
-        }
-      }
+      // Cancel both shortcut and UI recordings without delivering or saving a result.
       shortcutState.cancelSession()
+      Task {
+        await VoiceTranscriber.shared.stop(reason: .cancelled)
+      }
     }
   }
 

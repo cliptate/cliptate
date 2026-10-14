@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Testing
 
@@ -412,6 +413,19 @@ struct VoiceTranscriberStopReasonTests {
     transcriber.testResetAfterOverlayStateAssertions()
   }
 
+  @Test("Warmup completion cannot reactivate a cancelled dictation")
+  func warmupDoesNotReactivateCancelledDictation() async {
+    let transcriber = VoiceTranscriber.shared
+    transcriber.testPrepareForOverlayStateAssertions()
+    defer { transcriber.testResetAfterOverlayStateAssertions() }
+    let handled = await transcriber.testApplyWarmupWaitingStateIfNeeded(
+      type: .parakeet, model: .parakeetV3, isModelLoadingOverride: true
+    )
+    #expect(!handled)
+    #expect(transcriber.state == .idle)
+    #expect(!transcriber.testOverlayIsActive)
+  }
+
   @Test("AI enhance helper restores overlay after shortcut retranscription finishes")
   func aiEnhanceHelperRestoresOverlayAfterRetranscription() {
     let transcriber = VoiceTranscriber.shared
@@ -548,6 +562,46 @@ struct VoiceTranscriberStopReasonTests {
     await transcriber.stop(reason: .cancelled)
     #expect(transcriber.inputIssue == nil)
     transcriber.testResetAfterQwen3StreamAssertions()
+  }
+
+  @Test("Escape tracks UI dictation through permission, preparation, and recording")
+  func escapeTracksUIDictation() async throws {
+    for state in [VoiceTranscriber.State.requestingPermission, .preparing, .running] {
+      let transcriber = VoiceTranscriber.shared
+      let manager = KeyboardShortcutManager.shared
+      transcriber.testPrepareForQwen3StreamAssertions()
+      let session = TranscriptSession()
+      transcriber.testSetSession(session)
+      transcriber.testHandleQwen3StreamUpdate("discard this preview")
+      transcriber.testSetOverlayLifecycleState(state)
+      let escape = try #require(NSEvent.keyEvent(
+        with: .keyDown, location: .zero, modifierFlags: [], timestamp: 1,
+        windowNumber: 0, context: nil, characters: "", charactersIgnoringModifiers: "",
+        isARepeat: false, keyCode: 53
+      ))
+      defer {
+        manager.unbindShortcuts()
+        transcriber.testResetAfterQwen3StreamAssertions()
+      }
+      #expect(manager.activeMode == nil)
+      // No modifier-key session exists: cancellation comes from transcriber state.
+      #expect(manager.processSpaceFallback(escape))
+      await transcriber.stop(reason: .cancelled)
+      #expect(transcriber.state == .idle)
+      #expect(!transcriber.isRetranscribing)
+      #expect(transcriber.session?.combinedText.isEmpty == true)
+      #expect(!TranscriptHistoryStore.shared.recentDictationSessions.contains { $0.id == session.id })
+      let delivered = Mirror(reflecting: transcriber).children
+        .first { $0.label == "deliveredText" }?.value as? String
+      #expect(delivered == "")
+      let release = try #require(NSEvent.keyEvent(
+        with: .keyUp, location: .zero, modifierFlags: [], timestamp: 2,
+        windowNumber: 0, context: nil, characters: "", charactersIgnoringModifiers: "",
+        isARepeat: false, keyCode: 53
+      ))
+      #expect(manager.processSpaceFallback(release))
+      #expect(!manager.processSpaceFallback(escape))
+    }
   }
 
   @Test("Live input feedback clears when microphone audio arrives")

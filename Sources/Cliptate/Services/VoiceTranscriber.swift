@@ -46,7 +46,15 @@ public final class VoiceTranscriber: ObservableObject {
   }
 
   @Published public private(set) var state: State = .idle {
-    didSet { updateMicIndicator(for: state) }
+    didSet {
+      switch state {
+      case .requestingPermission, .preparing, .running:
+        KeyboardShortcutManager.shared.setDictationActive(true)
+      case .idle, .stopping, .error:
+        KeyboardShortcutManager.shared.setDictationActive(false)
+      }
+      updateMicIndicator(for: state)
+    }
   }
   @Published public private(set) var session: TranscriptSession?
   @Published public private(set) var liveText: String = ""
@@ -150,7 +158,7 @@ public final class VoiceTranscriber: ObservableObject {
     await waitForStopCompletionIfNeeded()
     if Task.isCancelled { return }
 
-    guard state != .running && state != .preparing else {
+    guard state != .running && state != .preparing && state != .requestingPermission else {
       logger.debug("Ignoring start request while already running")
       return
     }
@@ -162,7 +170,10 @@ public final class VoiceTranscriber: ObservableObject {
     state = .requestingPermission
     statusMessage = "Checking microphone permissions..."
 
-    guard await ensureMicrophoneAccess() else {
+    let hasMicrophoneAccess = await ensureMicrophoneAccess()
+    // Escape can cancel while the system permission request is suspended.
+    guard state == .requestingPermission else { return }
+    guard hasMicrophoneAccess else {
       state = .error(message: "Microphone access denied. Please enable it in System Settings.")
       return
     }
@@ -186,6 +197,7 @@ public final class VoiceTranscriber: ObservableObject {
       try throwIfStartupNoLongerPreparing()
 
       _ = await applyWarmupWaitingStateIfNeeded(type: type, model: model)
+      try throwIfStartupNoLongerPreparing()
 
       try await configureEngine(type: type, model: model, language: language)
       try throwIfStartupNoLongerPreparing()
@@ -613,7 +625,7 @@ public final class VoiceTranscriber: ObservableObject {
       isModelLoading = await ModelCacheManager.shared.isModelLoading(type: type, model: model)
     }
 
-    guard isModelLoading else { return false }
+    guard isModelLoading, state == .preparing else { return false }
 
     state = .preparing
     statusMessage = String(

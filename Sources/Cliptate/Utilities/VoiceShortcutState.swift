@@ -89,7 +89,7 @@ final class VoiceShortcutState: ObservableObject {
   }
 
   /// Cancels the current session. Resets all state without creating a pending result.
-  /// Used for Escape key — history is preserved by the transcriber, but no text is output.
+  /// Used for Escape key — no pending text is delivered or saved to history.
   func cancelSession() {
     activeMode = nil
     phase = .idle

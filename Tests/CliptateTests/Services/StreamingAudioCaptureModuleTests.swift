@@ -85,6 +85,27 @@ struct StreamingAudioCaptureModuleAsyncTests {
 
   // MARK: - Async Transcription Tests
 
+  @Test("Stopping during VAD startup prevents the microphone from restarting")
+  func stopDuringVADStartup() async throws {
+    let module = makeModule()
+    let vad = SuspendedStartupVAD()
+    let startup = Task {
+      try await module.start(
+        engine: MockStreamingASREngine(), language: .auto,
+        streamingVAD: vad, vadModel: .sileroVAD
+      )
+    }
+    while !(await vad.hasStarted) { await Task.yield() }
+    _ = try await module.stop()
+    await vad.resumeStartup()
+    do {
+      try await startup.value
+      Issue.record("Cancelled startup should throw before configuring the microphone")
+    } catch is CancellationError {
+      #expect(await vad.stopCount == 1)
+    }
+  }
+
   @Test("Continuous speech updates preview before endpointing and replaces earlier hypotheses")
   func continuousSpeechRevisesPreview() async throws {
     let engine = MockStreamingASREngine()
@@ -617,6 +638,24 @@ struct MicIndicatorWaveformCenteringTests {
   }
 }
 
+
+private actor SuspendedStartupVAD: StreamingVADProvider {
+  private var continuation: CheckedContinuation<Void, Never>?
+  private(set) var stopCount = 0
+  var hasStarted: Bool { continuation != nil }
+
+  func start(model: ModelVariant) async throws {
+    await withCheckedContinuation { continuation = $0 }
+  }
+  func resumeStartup() {
+    continuation?.resume()
+    continuation = nil
+  }
+  func stop() async { stopCount += 1 }
+  func feed(samples: [Float]) async throws -> SortformerSpeechActivity {
+    SortformerSpeechActivity(speechSampleRanges: [])
+  }
+}
 
 private struct AllSpeechVAD: StreamingVADProvider {
   func start(model: ModelVariant) async throws {}

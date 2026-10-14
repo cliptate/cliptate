@@ -44,7 +44,12 @@ public final class KeyboardShortcutManager: ObservableObject {
   private(set) var activeMode: VoiceShortcutMode?
 
   // Thread-safe snapshot for CGEventTap callback (runs on arbitrary thread)
-  private let _snapshotLock = OSAllocatedUnfairLock(initialState: VoiceShortcutMode?.none)
+  private struct EventSnapshot {
+    var mode: VoiceShortcutMode?
+    var isDictationActive = false
+    var isEscapeHeld = false
+  }
+  private let _snapshotLock = OSAllocatedUnfairLock(initialState: EventSnapshot())
 
   // Event monitors
   private var flagsLocalMonitor: Any?
@@ -65,7 +70,7 @@ public final class KeyboardShortcutManager: ObservableObject {
   private(set) var isHandsFreeMode = false
   static let holdThreshold: TimeInterval = 0.3
 
-  private init() {
+  init() {
     // Migrate from V2 keys: preserve non-Fn custom values, replace Fn with new default
     let oldDictationKey = "VoiceToTextDictationPresetV2"
     let oldAssistantKey = "VoiceToTextAssistantPresetV2"
@@ -98,7 +103,12 @@ public final class KeyboardShortcutManager: ObservableObject {
 
   private func setActiveMode(_ mode: VoiceShortcutMode?) {
     activeMode = mode
-    _snapshotLock.withLock { $0 = mode }
+    _snapshotLock.withLock { $0.mode = mode }
+  }
+
+  /// Includes recordings started from the UI, which have no modifier-key session.
+  func setDictationActive(_ isActive: Bool) {
+    _snapshotLock.withLock { $0.isDictationActive = isActive }
   }
 
   // MARK: - Preset Management
@@ -164,6 +174,7 @@ public final class KeyboardShortcutManager: ObservableObject {
     isHoldRecording = false
     isHandsFreeMode = false
     setActiveMode(nil)
+    _snapshotLock.withLock { $0.isEscapeHeld = false }
   }
 
   /// Test-only entry point to simulate modifier key presses.
@@ -331,11 +342,14 @@ public final class KeyboardShortcutManager: ObservableObject {
 
   /// Handles Escape key: cancels the entire mode session.
   private func handleEscapePressed() {
+    let snapshot = _snapshotLock.withLock { $0 }
+    guard snapshot.mode != nil || snapshot.isDictationActive else { return }
     cancelHoldTimer()
-    guard let mode = activeMode else { return }
+    let mode = snapshot.mode ?? .dictation
     isHoldRecording = false
     isHandsFreeMode = false
     setActiveMode(nil)
+    setDictationActive(false)
     emitEvent(ShortcutEvent(phase: .escapePressed, mode: mode))
   }
 
@@ -359,7 +373,42 @@ public final class KeyboardShortcutManager: ObservableObject {
     holdTimer = nil
   }
 
-  // MARK: - Space Monitor (CGEventTap with fallback)
+  // MARK: - Space and Escape Monitor (CGEventTap with fallback)
+
+  private enum EscapeAction {
+    case passThrough
+    case consume
+    case cancel
+  }
+
+  /// Consume the entire cancelling keystroke, even after the session becomes idle.
+  private nonisolated func escapeAction(isKeyDown: Bool, isRepeat: Bool) -> EscapeAction {
+    _snapshotLock.withLock { snapshot in
+      if snapshot.isEscapeHeld {
+        if !isKeyDown { snapshot.isEscapeHeld = false }
+        return .consume
+      }
+      guard isKeyDown, !isRepeat,
+            snapshot.mode != nil || snapshot.isDictationActive else { return .passThrough }
+      snapshot.isEscapeHeld = true
+      return .cancel
+    }
+  }
+
+  /// Route Escape from an event-tap callback without touching main-actor state synchronously.
+  nonisolated func processEscapeKey(isKeyDown: Bool, isRepeat: Bool) -> Bool {
+    switch escapeAction(isKeyDown: isKeyDown, isRepeat: isRepeat) {
+    case .passThrough:
+      return false
+    case .consume:
+      return true
+    case .cancel:
+      DispatchQueue.main.async { [weak self] in
+        self?.handleEscapePressed()
+      }
+      return true
+    }
+  }
 
   private func installSpaceMonitor() {
     removeSpaceMonitor()
@@ -382,13 +431,13 @@ public final class KeyboardShortcutManager: ObservableObject {
             guard let refcon else { return Unmanaged.passUnretained(event) }
             let manager = Unmanaged<KeyboardShortcutManager>.fromOpaque(refcon)
               .takeUnretainedValue()
-            return manager.handleCGEvent(proxy: proxy, type: type, event: event)
+            return manager.handleCGEvent(type: type, event: event)
           },
           userInfo: unmanagedSelf.toOpaque()
         )
       else {
         logger.warning(
-          "CGEventTap creation failed — falling back to NSEvent monitor (Space will not be suppressed)"
+          "CGEventTap creation failed — falling back to NSEvent monitor (global keys will not be suppressed)"
         )
         installSpaceFallbackMonitor(includeGlobalMonitor: true)
         return
@@ -400,13 +449,12 @@ public final class KeyboardShortcutManager: ObservableObject {
       CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
       CGEvent.tapEnable(tap: tap, enable: true)
 
-      logger.notice("Installed CGEventTap for Space key interception")
+      logger.notice("Installed CGEventTap for Space and Escape key interception")
     #endif
   }
 
   #if !APP_STORE
   private nonisolated func handleCGEvent(
-    proxy: CGEventTapProxy,
     type: CGEventType,
     event: CGEvent
   ) -> Unmanaged<CGEvent>? {
@@ -425,16 +473,16 @@ public final class KeyboardShortcutManager: ObservableObject {
     let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
 
     // Thread-safe read via lock (no GCD sync to avoid main-thread deadlock)
-    let mode = _snapshotLock.withLock { $0 }
+    let snapshot = _snapshotLock.withLock { $0 }
+    let mode = snapshot.mode
 
-    // Escape key (keyCode 53) — end session when mode is active
-    if keyCode == 53, let _ = mode {
-      if type == .keyDown {
-        DispatchQueue.main.async { [weak self] in
-          self?.handleEscapePressed()
-        }
-      }
-      return nil  // Suppress Escape while mode is active
+    // Escape also cancels recordings started from the UI.
+    if keyCode == 53 {
+      let shouldConsume = processEscapeKey(
+        isKeyDown: type == .keyDown,
+        isRepeat: event.getIntegerValueField(.keyboardEventAutorepeat) != 0
+      )
+      return shouldConsume ? nil : Unmanaged.passUnretained(event)
     }
 
     guard keyCode == 49 else {
@@ -464,31 +512,42 @@ public final class KeyboardShortcutManager: ObservableObject {
 
   private func installSpaceFallbackMonitor(includeGlobalMonitor: Bool) {
     let handler: (NSEvent) -> NSEvent? = { [weak self] event in
-      self?.processSpaceFallback(event)
-      return event
+      self?.processSpaceFallback(event) == true ? nil : event
     }
 
     spaceFallbackLocalMonitor = NSEvent.addLocalMonitorForEvents(
-      matching: [.keyDown], handler: handler)
+      matching: [.keyDown, .keyUp], handler: handler)
 
     #if !APP_STORE
       if includeGlobalMonitor {
-        spaceFallbackGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown]) {
+        spaceFallbackGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown, .keyUp]) {
           [weak self] event in
           self?.processSpaceFallback(event)
         }
       }
     #endif
 
-    logger.notice("Installed NSEvent fallback monitors for Space (no suppression)")
+    logger.notice("Installed NSEvent fallback monitors for Space and Escape (global events cannot be suppressed)")
   }
 
-  private func processSpaceFallback(_ event: NSEvent) {
-    guard event.keyCode == 49 else { return }
-    guard !event.isARepeat else { return }
-    guard let mode = activeMode else { return }
+  /// Returns whether the local monitor should consume the event.
+  @discardableResult
+  func processSpaceFallback(_ event: NSEvent) -> Bool {
+    guard event.type == .keyDown || event.type == .keyUp else { return false }
+    if event.keyCode == 53 {
+      switch escapeAction(isKeyDown: event.type == .keyDown, isRepeat: event.isARepeat) {
+      case .passThrough: return false
+      case .consume: return true
+      case .cancel:
+        handleEscapePressed()
+        return true
+      }
+    }
+    guard event.type == .keyDown, !event.isARepeat,
+          event.keyCode == 49, let mode = activeMode else { return false }
     isHandsFreeMode = true
     emitEvent(ShortcutEvent(phase: .spaceToggle, mode: mode))
+    return false
   }
 
   private func removeSpaceMonitor() {

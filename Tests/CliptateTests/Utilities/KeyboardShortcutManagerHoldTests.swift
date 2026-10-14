@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Testing
 
@@ -16,7 +17,7 @@ struct KeyboardShortcutManagerHoldTests {
 
   @Test("tap activates and deactivates mode (no hold)")
   func tapToggle() async throws {
-    let manager = KeyboardShortcutManager.shared
+    let manager = KeyboardShortcutManager()
     var events: [KeyboardShortcutManager.ShortcutEvent] = []
     manager.bindShortcuts { events.append($0) }
     defer { manager.unbindShortcuts() }
@@ -41,7 +42,7 @@ struct KeyboardShortcutManagerHoldTests {
 
   @Test("hold starts recording, release ends session")
   func holdAndRelease() async throws {
-    let manager = KeyboardShortcutManager.shared
+    let manager = KeyboardShortcutManager()
     var events: [KeyboardShortcutManager.ShortcutEvent] = []
     manager.bindShortcuts { events.append($0) }
     defer { manager.unbindShortcuts() }
@@ -70,7 +71,7 @@ struct KeyboardShortcutManagerHoldTests {
 
   @Test("Space during hold enters hands-free, release keeps mode active")
   func spaceEntersHandsFree() async throws {
-    let manager = KeyboardShortcutManager.shared
+    let manager = KeyboardShortcutManager()
     var events: [KeyboardShortcutManager.ShortcutEvent] = []
     manager.bindShortcuts { events.append($0) }
     defer { manager.unbindShortcuts() }
@@ -103,7 +104,7 @@ struct KeyboardShortcutManagerHoldTests {
 
   @Test("Escape cancels session during hold-recording")
   func escapeInHoldRecording() async throws {
-    let manager = KeyboardShortcutManager.shared
+    let manager = KeyboardShortcutManager()
     var events: [KeyboardShortcutManager.ShortcutEvent] = []
     manager.bindShortcuts { events.append($0) }
     defer { manager.unbindShortcuts() }
@@ -123,7 +124,7 @@ struct KeyboardShortcutManagerHoldTests {
 
   @Test("Escape cancels session in hands-free mode")
   func escapeInHandsFree() async throws {
-    let manager = KeyboardShortcutManager.shared
+    let manager = KeyboardShortcutManager()
     var events: [KeyboardShortcutManager.ShortcutEvent] = []
     manager.bindShortcuts { events.append($0) }
     defer { manager.unbindShortcuts() }
@@ -147,7 +148,7 @@ struct KeyboardShortcutManagerHoldTests {
 
   @Test("Escape when no mode active does nothing")
   func escapeWithoutMode() async throws {
-    let manager = KeyboardShortcutManager.shared
+    let manager = KeyboardShortcutManager()
     var events: [KeyboardShortcutManager.ShortcutEvent] = []
     manager.bindShortcuts { events.append($0) }
     defer { manager.unbindShortcuts() }
@@ -157,9 +158,87 @@ struct KeyboardShortcutManagerHoldTests {
     #expect(events.isEmpty)
   }
 
+  @Test("Fallback Escape cancels a modifier session and release does not deliver")
+  func fallbackEscapeCancelsShortcut() throws {
+    let manager = KeyboardShortcutManager()
+    var events: [KeyboardShortcutManager.ShortcutEvent] = []
+    manager.bindShortcuts { events.append($0) }
+    defer { manager.unbindShortcuts() }
+    let keyCode = manager.dictationPreset.keyInfo!.keyCode
+    manager.simulateModifierPress(keyCode: keyCode, isDown: true)
+    manager.simulateSpacePress()
+
+    #expect(manager.processSpaceFallback(try keyEvent(keyCode: 53)))
+    #expect(events.last?.phase == .escapePressed)
+    #expect(manager.activeMode == nil)
+    #expect(!manager.isHandsFreeMode)
+    let countAfterCancel = events.count
+    manager.simulateModifierPress(keyCode: keyCode, isDown: false)
+    #expect(events.count == countAfterCancel)
+  }
+
+  @Test("Fallback Escape cancels UI dictation without an active shortcut mode")
+  func fallbackEscapeCancelsUIDictation() throws {
+    let manager = KeyboardShortcutManager()
+    var events: [KeyboardShortcutManager.ShortcutEvent] = []
+    manager.bindShortcuts { events.append($0) }
+    defer { manager.unbindShortcuts() }
+    manager.setDictationActive(true)
+
+    #expect(manager.processSpaceFallback(try keyEvent(keyCode: 53)))
+    #expect(events.count == 1)
+    #expect(events.first?.phase == .escapePressed)
+    #expect(events.first?.mode == .dictation)
+    #expect(manager.processSpaceFallback(try keyEvent(keyCode: 53, isRepeat: true)))
+    #expect(manager.processSpaceFallback(try keyEvent(keyCode: 53, type: .keyUp)))
+    #expect(!manager.processSpaceFallback(try keyEvent(keyCode: 53)))
+    #expect(events.count == 1)
+  }
+
+  @Test("Fallback leaves idle Escape, repeated Escape, and unrelated keys alone")
+  func fallbackPassesUnrelatedEvents() throws {
+    let manager = KeyboardShortcutManager()
+    var events: [KeyboardShortcutManager.ShortcutEvent] = []
+    manager.bindShortcuts { events.append($0) }
+    defer { manager.unbindShortcuts() }
+    #expect(!manager.processSpaceFallback(try keyEvent(keyCode: 53)))
+    manager.setDictationActive(true)
+    #expect(!manager.processSpaceFallback(try keyEvent(keyCode: 53, isRepeat: true)))
+    #expect(!manager.processSpaceFallback(try keyEvent(keyCode: 49)))
+    #expect(!manager.processSpaceFallback(try keyEvent(keyCode: 0)))
+    #expect(events.isEmpty)
+  }
+
+  @Test("Event tap route consumes Escape for UI dictation from another app")
+  func eventTapEscapeCancelsUIDictation() async throws {
+    let manager = KeyboardShortcutManager()
+    var events: [KeyboardShortcutManager.ShortcutEvent] = []
+    manager.bindShortcuts { events.append($0) }
+    defer { manager.unbindShortcuts() }
+    #expect(!manager.processEscapeKey(isKeyDown: true, isRepeat: false))
+    manager.setDictationActive(true)
+    #expect(manager.processEscapeKey(isKeyDown: true, isRepeat: false))
+    try await Task.sleep(for: .milliseconds(10))
+    #expect(events.count == 1)
+    #expect(events.first?.phase == .escapePressed)
+    #expect(manager.processEscapeKey(isKeyDown: true, isRepeat: true))
+    #expect(manager.processEscapeKey(isKeyDown: false, isRepeat: false))
+    #expect(!manager.processEscapeKey(isKeyDown: true, isRepeat: false))
+  }
+
+  private func keyEvent(
+    keyCode: UInt16, isRepeat: Bool = false, type: NSEvent.EventType = .keyDown
+  ) throws -> NSEvent {
+    try #require(NSEvent.keyEvent(
+      with: type, location: .zero, modifierFlags: [], timestamp: 1,
+      windowNumber: 0, context: nil, characters: "", charactersIgnoringModifiers: "",
+      isARepeat: isRepeat, keyCode: keyCode
+    ))
+  }
+
   @Test("assistant mode via dictation key + Shift")
   func assistantMode() async throws {
-    let manager = KeyboardShortcutManager.shared
+    let manager = KeyboardShortcutManager()
     var events: [KeyboardShortcutManager.ShortcutEvent] = []
     manager.bindShortcuts { events.append($0) }
     defer { manager.unbindShortcuts() }

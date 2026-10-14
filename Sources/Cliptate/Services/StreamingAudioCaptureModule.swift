@@ -116,6 +116,7 @@ final class StreamingAudioCaptureModule {
     resetState(preservingRecordingSink: true)
 
     sessionToken &+= 1
+    let startupToken = sessionToken
     isActive = true
     currentLanguage = language
     self.engine = engine
@@ -125,14 +126,22 @@ final class StreamingAudioCaptureModule {
     if let vad = streamingVAD, let vadModel {
       do {
         try await vad.start(model: vadModel)
+        guard isActive, sessionToken == startupToken else {
+          await vad.stop()
+          throw CancellationError()
+        }
         self.streamingVAD = vad
         logger.notice("🎤 Streaming VAD enabled: \(vadModel.displayName)")
+      } catch is CancellationError {
+        throw CancellationError()
       } catch {
+        guard isActive, sessionToken == startupToken else { throw CancellationError() }
         self.streamingVAD = nil
         logger.error("🎤 VAD unavailable, falling back to fixed chunks: \(error.localizedDescription)")
       }
     }
 
+    guard isActive, sessionToken == startupToken else { throw CancellationError() }
     try configureAudioPipeline()
   }
 
