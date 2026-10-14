@@ -71,8 +71,10 @@ mkdir -p "$STAGING_DIR/Licenses/docs"
 /usr/bin/ditto "$ROOT_DIR/THIRD_PARTY_NOTICES.md" "$STAGING_DIR/Licenses/THIRD_PARTY_NOTICES.md"
 /usr/bin/ditto "$ROOT_DIR/docs/legal" "$STAGING_DIR/Licenses/docs/legal"
 
+# LZMA images require macOS 10.15, below the app's macOS 15 minimum.
+# Compress the signed bundle as-is; stripping belongs to the build before signing.
 /usr/bin/hdiutil create -volname "Cliptate $VERSION" -srcfolder "$STAGING_DIR" \
-  -fs HFS+ -format UDZO -ov "$DMG_PATH"
+  -fs HFS+ -format ULMO -ov "$DMG_PATH"
 if [[ -n "${CODE_SIGN_IDENTITY:-}" && "$CODE_SIGN_IDENTITY" != - ]]; then
   /usr/bin/codesign --sign "$CODE_SIGN_IDENTITY" --timestamp "$DMG_PATH"
   /usr/bin/codesign --verify --strict "$DMG_PATH"

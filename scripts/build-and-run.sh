@@ -20,6 +20,10 @@ if [[ "$CONFIGURATION" == Debug && -z "${CODE_SIGN_IDENTITY:-}" ]]; then
   read -r SIGNING_IDENTITY SIGNING_TEAM <<< "$DEVELOPMENT_SIGNING"
 fi
 SIGNING_FLAGS=(CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$SIGNING_TEAM")
+if [[ "$CONFIGURATION" == Release ]]; then
+  # Apply to package dependencies too; coverage instrumentation adds shipping bytes.
+  SIGNING_FLAGS+=(ENABLE_CODE_COVERAGE=NO)
+fi
 if [[ "${CLIPTATE_APP_STORE:-}" == NO || ( -z "${CLIPTATE_APP_STORE:-}" && "$CONFIGURATION" == Debug ) ]]; then
   # Dev defaults to the free direct channel, including Accessibility and the CLI.
   SIGNING_FLAGS+=(CLIPTATE_CHANNEL_CONDITIONS= CLIPTATE_ENABLE_APP_SANDBOX=NO CLIPTATE_CLI_URL_SCHEME="$CLI_URL_SCHEME" CLIPTATE_CODE_SIGN_ENTITLEMENTS="$ROOT_DIR/Sources/Cliptate/Cliptate-Direct.entitlements")
