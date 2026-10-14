@@ -30,6 +30,10 @@ final class HistoryRuntime: ObservableObject {
     store.sessions
   }
 
+  var activityRecords: [HistoryActivityRecord] {
+    store.activityRecords
+  }
+
   func add(_ session: TranscriptSession, replacingTranscription: Bool = false) {
     store.add(session, replacingTranscription: replacingTranscription)
   }

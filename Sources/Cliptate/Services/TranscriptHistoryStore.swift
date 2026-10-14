@@ -10,8 +10,10 @@ final class TranscriptHistoryStore: ObservableObject {
   static let shared = TranscriptHistoryStore()
 
   @Published private(set) var sessions: [TranscriptSession] = []
+  @Published private(set) var activityRecords: [HistoryActivityRecord] = []
 
   private let historyURL: URL
+  private let activityURL: URL
   private let logger = Logger(subsystem: "com.Cliptate", category: "TranscriptHistory")
   /// How long to retain live-dictation sessions (and their associated audio recordings).
   private let dictationRetentionInterval: TimeInterval = 60 * 60 * 24  // 24 hours
@@ -20,7 +22,15 @@ final class TranscriptHistoryStore: ObservableObject {
 
   init(historyURL: URL? = nil) {
     self.historyURL = historyURL ?? Self.makeHistoryURL()
+    self.activityURL = self.historyURL.deletingPathExtension().appendingPathExtension("activity.json")
     load()
+    loadActivity()
+    // Seed legacy sessions before the normal retention policy removes their content.
+    var recordsByID = Dictionary(activityRecords.map { ($0.id, $0) }, uniquingKeysWith: { _, newer in newer })
+    for session in sessions { recordsByID[session.id] = HistoryActivityRecord(session: session) }
+    activityRecords = Array(recordsByID.values)
+    pruneActivity()
+    saveActivity()
     purgeExpiredSessions()
   }
 
@@ -54,6 +64,7 @@ final class TranscriptHistoryStore: ObservableObject {
       }
     }
     sessions.append(normalized)
+    updateActivity(for: normalized)
     purgeExpiredSessions()
     save()
   }
@@ -75,6 +86,7 @@ final class TranscriptHistoryStore: ObservableObject {
     }
 
     sessions[index] = updated
+    updateActivity(for: updated)
     purgeExpiredSessions()
     save()
   }
@@ -117,6 +129,7 @@ final class TranscriptHistoryStore: ObservableObject {
     let removedSessions = sessions.filter { $0.id == id }
     removedSessions.forEach { deleteOwnedRecording(for: $0) }
     sessions.removeAll { $0.id == id }
+    activityRecords.removeAll { $0.id == id }
     save()
   }
 
@@ -126,9 +139,11 @@ final class TranscriptHistoryStore: ObservableObject {
       let toRemove = sessions.filter { ($0.source ?? .voiceDictation) == source }
       toRemove.forEach { deleteOwnedRecording(for: $0) }
       sessions.removeAll { ($0.source ?? .voiceDictation) == source }
+      activityRecords.removeAll { $0.source == source }
     } else {
       sessions.forEach { deleteOwnedRecording(for: $0) }
       sessions.removeAll()
+      activityRecords.removeAll()
     }
     save()
   }
@@ -230,6 +245,41 @@ final class TranscriptHistoryStore: ObservableObject {
       try data.write(to: historyURL, options: [.atomic])
     } catch {
       logger.error("Failed to persist transcript history: \(error.localizedDescription)")
+    }
+    saveActivity()
+  }
+
+  private func updateActivity(for session: TranscriptSession) {
+    let record = HistoryActivityRecord(session: session)
+    if let index = activityRecords.firstIndex(where: { $0.id == session.id }) {
+      activityRecords[index] = record
+    } else {
+      activityRecords.append(record)
+    }
+    pruneActivity()
+  }
+
+  private func pruneActivity() {
+    let cutoff = HistoryActivity.rangeStart(now: Date(), calendar: .current)
+    activityRecords.removeAll { $0.startTime < cutoff }
+  }
+
+  private func loadActivity() {
+    do {
+      activityRecords = try JSONDecoder().decode([HistoryActivityRecord].self, from: Data(contentsOf: activityURL))
+    } catch {
+      if (error as NSError).code != NSFileReadNoSuchFileError {
+        logger.error("Failed to load history activity: \(error.localizedDescription)")
+      }
+    }
+  }
+
+  private func saveActivity() {
+    do {
+      let data = try JSONEncoder().encode(activityRecords.sorted { $0.startTime < $1.startTime })
+      try data.write(to: activityURL, options: .atomic)
+    } catch {
+      logger.error("Failed to persist history activity: \(error.localizedDescription)")
     }
   }
 

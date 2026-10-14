@@ -93,11 +93,18 @@ struct HistoryView: View {
   }
 
   var body: some View {
-    GeometryReader { proxy in
-      if proxy.size.width >= 700 {
-        splitLayout
-      } else {
-        compactLayout
+    VStack(spacing: 0) {
+      HistoryActivityView(records: historyRuntime.activityRecords)
+        .frame(maxWidth: 1120)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+      GeometryReader { proxy in
+        if proxy.size.width >= 700 {
+          splitLayout
+        } else {
+          compactLayout
+        }
       }
     }
     .background(AppSurface.pageBackground, ignoresSafeAreaEdges: [])
@@ -195,7 +202,7 @@ struct HistoryView: View {
         .foregroundStyle(.secondary)
       }
       Spacer()
-      if !historyRuntime.allSortedSessions.isEmpty {
+      if !historyRuntime.allSortedSessions.isEmpty || !historyRuntime.activityRecords.isEmpty {
         Menu {
           Button(role: .destructive) {
             historyRuntime.removeAll(source: .voiceDictation)
