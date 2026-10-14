@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "ai-seo": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/ai-seo/SKILL.md",
+      "computedHash": "d15d6b1ee35dee306ec904f198e46d5ad7f0ae65e594671c7a1472578c185f0e"
+    },
     "ask-matt": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -132,6 +138,12 @@
       "sourceType": "github",
       "skillPath": "skills/misc/scaffold-exercises/SKILL.md",
       "computedHash": "354c91f6dbc9b058632f30594aacb4edc6d25012596585abb00402af8d7ec5e9"
+    },
+    "seo-audit": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/seo-audit/SKILL.md",
+      "computedHash": "928ca75d9899be7d17d7cbfa21aee28cc2e66681b2f4e19e6c9bd2a8330daa24"
     },
     "setup-matt-pocock-skills": {
       "source": "mattpocock/skills",
