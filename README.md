@@ -17,6 +17,7 @@
     <a href="https://github.com/cliptate/skills">Skills</a> ·
     <a href="https://cliptate.github.io#features">Features</a> ·
     <a href="https://cliptate.github.io#voice">Voice & TTS</a> ·
+    <a href="https://youtu.be/2MEVQTw3OVs">Video Demo</a> ·
     <a href="https://github.com/cliptate/cliptate/releases">Download</a>
   </p>
 
@@ -34,6 +35,8 @@
 Cliptate is a native macOS app for turning speech into editable text, subtitles, and rough cuts. Transcribe recordings, dictate into other apps, trim pauses, and generate speech with models running on your Apple Silicon Mac.
 
 **GitHub downloads are free:** all models and Pro features are unlocked, with no subscription or purchase required. Optional online AI services use your own provider configuration.
+
+**[Watch the Cliptate video demo on YouTube](https://youtu.be/2MEVQTw3OVs).**
 
 ![Cliptate AI Cut home screen in English with a light-gray background](assets/screenshots/home.en.jpg)
 
