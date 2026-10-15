@@ -11,6 +11,12 @@ case "NO": channelSwiftSettings = []
 default: channelSwiftSettings = [.define("APP_STORE", .when(configuration: .release))]
 }
 
+// SwiftPM uses swiftc to link executables. Its driver needs -O at link time
+// as well as compile time to enable the release linker optimizations.
+let releaseLinkerSettings: [LinkerSetting] = [
+    .unsafeFlags(["-O"], .when(configuration: .release))
+]
+
 let package = Package(
     name: "Cliptate",
     defaultLocalization: "en",
@@ -44,7 +50,8 @@ let package = Package(
     ],
     targets: [
         .target(name: "CliptateCLIKit", path: "Sources/Cliptate/CLIShared"),
-        .executableTarget(name: "CliptateCommand", dependencies: ["CliptateCLIKit"]),
+        .executableTarget(name: "CliptateCommand", dependencies: ["CliptateCLIKit"],
+                          linkerSettings: releaseLinkerSettings),
         .executableTarget(
             name: "Cliptate",
             dependencies: [
@@ -76,7 +83,8 @@ let package = Package(
                 .process("Assets.xcassets"),
                 .process("Localizable.xcstrings")
             ],
-            swiftSettings: channelSwiftSettings
+            swiftSettings: channelSwiftSettings,
+            linkerSettings: releaseLinkerSettings
         ),
         .testTarget(
             name: "CliptateTests",

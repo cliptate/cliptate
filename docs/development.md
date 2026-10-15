@@ -180,10 +180,12 @@ The image includes `Cliptate.app`, an `Applications`
 shortcut, and the project's and dependencies' license notices in `Licenses`.
 Open the DMG and drag the app into Applications to install it.
 
-Release builds disable code coverage for the app and package dependencies and
-strip symbols from the app and embedded CLI before code signing. Separate dSYM
-files remain in the build products for crash symbolication; Debug builds retain
-their normal debugging settings. Inference keeps the existing speed optimization.
+Release builds disable code coverage for the app and package dependencies, enable
+Swift's linker optimizations, and fully strip executable symbols that are unnecessary
+for dynamic linking before code signing. `Cliptate.app.dSYM` and `cliptate.dSYM`
+remain in the build products for crash symbolication; their names stay distinct on
+case-insensitive volumes. Debug builds retain their normal debugging settings.
+Inference keeps the existing speed optimization.
 The DMG uses LZMA compression (`ULMO`, supported since macOS 10.15, below the
 app's macOS 15 minimum). Packaging preserves the signed app without modifying it.
 

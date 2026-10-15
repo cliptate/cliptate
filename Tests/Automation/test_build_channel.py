@@ -152,6 +152,13 @@ class BundleAssemblyTests(unittest.TestCase):
             app, _, _ = self.assemble(directory, "NO", fail_signing=True)
             self.assertTrue((app / "previous").is_file())
 
+    def test_release_app_and_helper_keep_distinct_debug_symbols(self):
+        with tempfile.TemporaryDirectory() as directory:
+            _, _, calls = self.assemble(directory, "NO", "Release")
+            outputs = [Path(args[args.index("-o") + 1]).name
+                       for args, _ in calls if "dsymutil" in args]
+            self.assertEqual(len({name.casefold() for name in outputs}), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

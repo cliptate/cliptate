@@ -170,6 +170,13 @@ def sign(app, values, identity, work):
     run("codesign", "--verify", "--deep", "--strict", app)
 
 
+def prepare_release_binary(binary, symbols):
+    run("xcrun", "dsymutil", binary, "-o", symbols)
+    # Match Xcode's executable STRIP_STYLE=all; -S -x retains tens of
+    # thousands of global Swift symbols that aren't needed for dynamic linking.
+    run("xcrun", "strip", "-u", "-r", binary)
+
+
 def build_app(values, destination, identity):
     env = {**os.environ, "CLIPTATE_APP_STORE": values["CLIPTATE_APP_STORE"]}
     command = [ROOT / "scripts/swift-safe.sh", "build", "--package-path", ROOT,
@@ -209,8 +216,9 @@ def build_app(values, destination, identity):
             binaries.append(helper)
         if values["CONFIGURATION"] == "Release":
             for binary in binaries:
-                run("xcrun", "dsymutil", binary, "-o", destination.parent / f"{binary.name}.dSYM")
-                run("xcrun", "strip", "-S", "-x", binary)
+                # App and helper names differ only in case on production builds.
+                name = f"{app.name}.dSYM" if binary == executable else f"{binary.name}.dSYM"
+                prepare_release_binary(binary, destination.parent / name)
         sign(app, values, identity, work)
         # Keep the previous working app until all compilation and signing succeeds.
         if destination.exists():
