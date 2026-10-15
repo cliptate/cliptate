@@ -332,7 +332,7 @@ struct VoiceToTextView: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(Color.primary.opacity(0.04))
+        .background(AppSurface.subtleFill)
         .cornerRadius(6)
       } else if isRecording {
         HStack(spacing: 6) {
@@ -358,7 +358,7 @@ struct VoiceToTextView: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(Color.blue.opacity(0.08))
+        .background(Color.accentColor.opacity(0.08))
         .cornerRadius(6)
       }
     }
@@ -454,7 +454,7 @@ struct VoiceToTextView: View {
       }
     }
     .padding(12)
-    .background(Color.primary.opacity(0.02))
+    .background(AppSurface.cardBackground)
     .cornerRadius(8)
   }
 
@@ -500,7 +500,7 @@ struct VoiceToTextView: View {
   private func statsCardsContent(for stats: VoiceUsageStats) -> some View {
     usageStatCard(
       icon: "mic.fill",
-      tint: .orange,
+      tint: .accentColor,
       title: "Total Voice Input",
       primary: formattedDurationText(stats.totalDuration),
       secondary: stats.sessionCount > 0
@@ -511,7 +511,7 @@ struct VoiceToTextView: View {
     let averageSpeed = stats.averageWordsPerMinute
     usageStatCard(
       icon: "character.cursor.ibeam",
-      tint: .purple,
+      tint: .accentColor,
       title: "Generated Text",
       primary: String(localized: "\(formattedCount(stats.totalWords)) words", comment: "Voice stats: total word count"),
       secondary: averageSpeed > 0
@@ -521,7 +521,7 @@ struct VoiceToTextView: View {
 
     usageStatCard(
       icon: "bolt.fill",
-      tint: .yellow,
+      tint: .accentColor,
       title: "Time Saved",
       primary: formattedDurationText(stats.savedSeconds),
       secondary: String(localized: "Estimated 20 words/min composition typing", comment: "Voice stats: time saved estimation note")
@@ -552,13 +552,11 @@ struct VoiceToTextView: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(
       RoundedRectangle(cornerRadius: 16, style: .continuous)
-        .fill(
-          LinearGradient(
-            colors: [tint.opacity(0.18), tint.opacity(0.06)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-          )
-        )
+        .fill(AppSurface.cardBackground)
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: 16, style: .continuous)
+        .strokeBorder(AppSurface.border, lineWidth: 1)
     )
   }
 
@@ -573,7 +571,7 @@ struct VoiceToTextView: View {
           Label("Dictation", systemImage: "bolt.horizontal.fill")
             .font(.subheadline)
             .fontWeight(.semibold)
-            .foregroundStyle(.blue)
+            .foregroundStyle(Color.accentColor)
 
           Picker("Key", selection: Binding(
             get: { shortcutManager.dictationPreset },
@@ -599,7 +597,7 @@ struct VoiceToTextView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(AppSurface.cardBackground)
         .cornerRadius(8)
 
         Spacer().frame(width: 12)
@@ -609,7 +607,7 @@ struct VoiceToTextView: View {
           Label("Assistant", systemImage: "wand.and.stars")
             .font(.subheadline)
             .fontWeight(.semibold)
-            .foregroundStyle(.purple)
+            .foregroundStyle(Color.accentColor)
 
           Picker("Key", selection: Binding(
             get: { shortcutManager.assistantPreset },
@@ -641,7 +639,7 @@ struct VoiceToTextView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(AppSurface.cardBackground)
         .cornerRadius(8)
       }
 
@@ -681,16 +679,16 @@ struct VoiceToTextView: View {
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(AppSurface.cardBackground)
         .cornerRadius(8)
       }
     }
     .padding(16)
-    .background(Color(nsColor: .windowBackgroundColor).opacity(0.5))
+    .background(AppSurface.pageBackground.opacity(0.5))
     .cornerRadius(12)
     .overlay(
       RoundedRectangle(cornerRadius: 12)
-        .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
+        .stroke(AppSurface.border, lineWidth: 1)
     )
   }
 
@@ -720,7 +718,7 @@ struct VoiceToTextView: View {
         Spacer()
       }
       .padding(10)
-      .background(Color(nsColor: .controlBackgroundColor))
+      .background(AppSurface.cardBackground)
       .cornerRadius(8)
     }
   }
@@ -794,8 +792,8 @@ struct VoiceToTextView: View {
           .font(.caption2.weight(.semibold))
           .padding(.horizontal, 6)
           .padding(.vertical, 2)
-          .background(Color.blue.opacity(0.12))
-          .foregroundStyle(Color.blue)
+          .background(Color.accentColor.opacity(0.12))
+          .foregroundStyle(Color.accentColor)
           .cornerRadius(4)
         Button(action: clearHistory) {
           Image(systemName: "trash")
@@ -825,7 +823,7 @@ struct VoiceToTextView: View {
       .padding(14)
       .background(
         RoundedRectangle(cornerRadius: 12)
-          .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
+          .stroke(AppSurface.border, lineWidth: 1)
       )
     }
   }
@@ -879,7 +877,7 @@ struct VoiceToTextView: View {
             .font(.caption2.weight(.semibold))
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(Color.primary.opacity(0.05))
+            .background(AppSurface.subtleFill)
             .cornerRadius(5)
         }
       }
@@ -937,12 +935,12 @@ struct VoiceToTextView: View {
     .padding(14)
     .background(
       RoundedRectangle(cornerRadius: 14)
-        .fill(Color(nsColor: .textBackgroundColor))
+        .fill(AppSurface.inputBackground)
         .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
     )
     .overlay(
       RoundedRectangle(cornerRadius: 14)
-        .stroke(Color.secondary.opacity(0.12), lineWidth: 1)
+        .stroke(AppSurface.border, lineWidth: 1)
     )
   }
 
@@ -960,7 +958,7 @@ struct VoiceToTextView: View {
       Button(action: { retranscribe(session) }) {
         Label("Re-transcribe", systemImage: "arrow.triangle.2.circlepath")
       }
-      .tint(.purple)
+      .tint(.accentColor)
       .disabled(
         session.recordingURL == nil
           || reprocessingSessionID == session.id
@@ -992,7 +990,7 @@ struct VoiceToTextView: View {
     .padding(18)
     .background(
       RoundedRectangle(cornerRadius: 12)
-        .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
+        .stroke(AppSurface.border, lineWidth: 1)
     )
   }
 
@@ -1913,7 +1911,7 @@ private struct WaveformGraph: View {
         with: .linearGradient(
           Gradient(colors: [
             Color.accentColor.opacity(0.48),
-            Color.purple.opacity(0.35),
+            Color.accentColor.opacity(0.20),
           ]),
           startPoint: .zero,
           endPoint: CGPoint(x: width, y: height)
@@ -1990,12 +1988,12 @@ private struct HistorySessionRow: View {
     .padding(12)
     .background(
       RoundedRectangle(cornerRadius: 12)
-        .fill(isSelected ? Color.accentColor.opacity(0.12) : Color(nsColor: .textBackgroundColor))
+        .fill(isSelected ? AppSurface.selectedFill : AppSurface.cardBackground)
     )
     .overlay(
       RoundedRectangle(cornerRadius: 12)
         .stroke(
-          isSelected ? Color.accentColor.opacity(0.45) : Color.secondary.opacity(0.15),
+          isSelected ? AppSurface.selectedBorder : AppSurface.border,
           lineWidth: isSelected ? 1.2 : 1)
     )
     .contentShape(RoundedRectangle(cornerRadius: 12))
@@ -2044,7 +2042,7 @@ private struct HistorySessionRow: View {
       .disabled(session.recordingURL == nil)
 
       Button(action: onRetranscribe) {
-        actionChip(systemName: "arrow.triangle.2.circlepath", tint: .purple)
+        actionChip(systemName: "arrow.triangle.2.circlepath", tint: .accentColor)
       }
       .buttonStyle(.plain)
       .help("Re-transcribe this session")
@@ -2158,7 +2156,7 @@ private struct HistorySessionRow: View {
       .frame(width: 26, height: 26)
       .background(
         RoundedRectangle(cornerRadius: 6)
-          .fill(Color.primary.opacity(0.08))
+          .fill(AppSurface.subtleFill)
       )
   }
 }
@@ -2170,14 +2168,14 @@ private struct SessionMetadataBadges: View {
     if session.transcriberType != nil || session.modelVariant != nil || session.language != nil {
       HStack(spacing: 6) {
         if let type = session.transcriberType {
-          let tint: Color = type == .whisper ? .blue : .green
+          let tint: Color = .secondary
           badge(text: type.displayName, systemImage: "waveform", tint: tint)
         }
         if let model = session.modelVariant {
-          badge(text: model.displayName, systemImage: "cpu", tint: .purple)
+          badge(text: model.displayName, systemImage: "cpu", tint: .secondary)
         }
         if let language = session.language {
-          badge(text: language.displayName, systemImage: "globe", tint: .orange)
+          badge(text: language.displayName, systemImage: "globe", tint: .secondary)
         }
       }
     }

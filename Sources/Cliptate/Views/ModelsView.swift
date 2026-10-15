@@ -389,6 +389,7 @@ struct ModelsView: View {
               }
               .padding(16)
               .frame(width: 360)
+              .background(AppSurface.pageBackground)
             }
           }
         }
@@ -446,12 +447,12 @@ struct ModelsView: View {
             .padding(.vertical, 7)
             .background(
               Capsule()
-                .fill(isSelected ? style.accent.color.opacity(0.13) : Color.clear)
+                .fill(isSelected ? AppSurface.selectedFill : Color.clear)
             )
             .overlay(
               Capsule()
                 .stroke(
-                  isSelected ? style.accent.color.opacity(0.35) : Color.secondary.opacity(0.18),
+                  isSelected ? AppSurface.selectedBorder : AppSurface.border,
                   lineWidth: 1
                 )
             )
@@ -480,12 +481,12 @@ struct ModelsView: View {
         .padding(.vertical, 7)
         .background(
           Capsule()
-            .fill(showDownloadedOnly ? Color.accentColor.opacity(0.12) : Color.clear)
+            .fill(showDownloadedOnly ? AppSurface.selectedFill : Color.clear)
         )
         .overlay(
           Capsule()
             .stroke(
-              showDownloadedOnly ? Color.accentColor.opacity(0.35) : Color.secondary.opacity(0.18),
+              showDownloadedOnly ? AppSurface.selectedBorder : AppSurface.border,
               lineWidth: 1
             )
         )
@@ -670,7 +671,7 @@ struct ModelsView: View {
     .padding(.horizontal, 20)
     .background(
       RoundedRectangle(cornerRadius: 18, style: .continuous)
-        .fill(Color.accentColor.opacity(0.12))
+        .fill(AppSurface.selectedFill)
     )
     .overlay(
       RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -695,12 +696,12 @@ struct ModelsView: View {
           .padding(.vertical, 7)
           .background(
             Capsule()
-              .fill(isSelected ? style.accent.color.opacity(0.14) : Color.clear)
+              .fill(isSelected ? AppSurface.selectedFill : Color.clear)
           )
           .overlay(
             Capsule()
               .stroke(
-                isSelected ? style.accent.color.opacity(0.28) : Color.secondary.opacity(0.2),
+                isSelected ? style.accent.color.opacity(0.28) : AppSurface.border,
                 lineWidth: 1
               )
           )
@@ -728,7 +729,7 @@ struct ModelsView: View {
               Capsule()
                 .fill(
                   selectedASRProvider == provider
-                    ? accentColor.opacity(0.12) : Color.secondary.opacity(0.07))
+                    ? accentColor.opacity(0.12) : AppSurface.subtleFill)
             )
             .overlay(
               Capsule()
@@ -759,7 +760,7 @@ struct ModelsView: View {
               Capsule()
                 .fill(
                   selectedTTSProvider == provider
-                    ? accentColor.opacity(0.12) : Color.secondary.opacity(0.07))
+                    ? accentColor.opacity(0.12) : AppSurface.subtleFill)
             )
             .overlay(
               Capsule()
@@ -860,11 +861,11 @@ struct ModelsView: View {
     .padding(.vertical, 7)
     .background(
       RoundedRectangle(cornerRadius: 10, style: .continuous)
-        .fill(Color(NSColor.textBackgroundColor))
+        .fill(AppSurface.inputBackground)
     )
     .overlay(
       RoundedRectangle(cornerRadius: 10, style: .continuous)
-        .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
+        .stroke(AppSurface.border, lineWidth: 1)
     )
     .frame(width: 220)
   }
@@ -1613,14 +1614,8 @@ extension ModelsView {
 
     var color: Color {
       switch self {
-      case .asrAccent:
+      case .asrAccent, .alignAccent, .vadAccent, .ttsAccent:
         return .accentColor
-      case .alignAccent:
-        return .indigo
-      case .vadAccent:
-        return .purple
-      case .ttsAccent:
-        return .teal
       case .success:
         return .green
       case .neutral:
@@ -1740,9 +1735,9 @@ extension ModelsView {
       case "Downloaded":
         return .green
       case "Disk Usage":
-        return .blue
+        return .accentColor
       case "Cache Memory":
-        return .blue
+        return .accentColor
       default:
         return .secondary
       }
@@ -2262,16 +2257,18 @@ private struct CompactModelRowView: View {
     }
     .background(
       RoundedRectangle(cornerRadius: 16, style: .continuous)
-        .fill(isHovering
-          ? AppSurface.cardBackground.opacity(0.95)
-          : AppSurface.cardBackground)
+        .fill(AppSurface.cardBackground)
+        .overlay {
+          RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(isHovering ? AppSurface.subtleFill : Color.clear)
+        }
     )
     .overlay(
       RoundedRectangle(cornerRadius: 16, style: .continuous)
         .strokeBorder(
           presentation.statusKind == .active
             ? categoryAccentColor.opacity(0.40)
-            : Color.secondary.opacity(0.12),
+            : AppSurface.border,
           lineWidth: presentation.statusKind == .active ? 1.2 : 1
         )
     )
@@ -2433,16 +2430,18 @@ private struct CompactMLXTTSRowView: View {
     }
     .background(
       RoundedRectangle(cornerRadius: 16, style: .continuous)
-        .fill(isHovering
-          ? AppSurface.cardBackground.opacity(0.95)
-          : AppSurface.cardBackground)
+        .fill(AppSurface.cardBackground)
+        .overlay {
+          RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(isHovering ? AppSurface.subtleFill : Color.clear)
+        }
     )
     .overlay(
       RoundedRectangle(cornerRadius: 16, style: .continuous)
         .strokeBorder(
           isActive
             ? categoryAccentColor.opacity(0.40)
-            : Color.secondary.opacity(0.12),
+            : AppSurface.border,
           lineWidth: isActive ? 1.2 : 1
         )
     )
@@ -2472,7 +2471,7 @@ private struct PurchaseBanner: Identifiable, Equatable {
     var foreground: Color {
       switch self {
       case .success: return .green
-      case .info: return .blue
+      case .info: return .accentColor
       case .error: return .red
       }
     }
@@ -2480,7 +2479,7 @@ private struct PurchaseBanner: Identifiable, Equatable {
     var background: Color {
       switch self {
       case .success: return Color.green.opacity(0.12)
-      case .info: return Color.blue.opacity(0.12)
+      case .info: return AppSurface.selectedFill
       case .error: return Color.red.opacity(0.12)
       }
     }

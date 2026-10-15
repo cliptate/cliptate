@@ -8,7 +8,7 @@ struct WaveformView: View {
   let duration: TimeInterval
   let progress: Double
   var accentColor: Color = .accentColor
-  var backgroundColor: Color = Color(nsColor: .textBackgroundColor).opacity(0.72)
+  var backgroundColor: Color = AppSurface.inputBackground
   var mixToMono: Bool = true
   var segments: [Segment] = []
   var filterSilentSegments: Bool = false
@@ -39,7 +39,7 @@ struct WaveformView: View {
   private let maxZoomScale: CGFloat = 8.0
   private let preciseScrollMultiplier: CGFloat = 0.04
   private let coarseScrollMultiplier: CGFloat = 0.15
-  private let waveformBaseColor = Color(red: 0.16, green: 0.58, blue: 0.98)
+  private var waveformBaseColor: Color { accentColor }
   private let smoothingWindow: Int = 5
 
   var body: some View {
@@ -76,7 +76,7 @@ struct WaveformView: View {
         RoundedRectangle(cornerRadius: 10, style: .continuous)
           .fill(backgroundColor)
         RoundedRectangle(cornerRadius: 10, style: .continuous)
-          .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
+          .strokeBorder(AppSurface.border, lineWidth: 1)
 
         Group {
           if let effectiveSnapshot, effectiveSnapshot.pointCount > 0 {
@@ -404,15 +404,15 @@ struct WaveformView: View {
         let strokeWidth: CGFloat
 
         if isSelected {
-          fillOpacity = 0.32
+          fillOpacity = 0.18
           strokeOpacity = 1.0
           strokeWidth = 2.2
         } else if isActive {
-          fillOpacity = 0.24
+          fillOpacity = 0.12
           strokeOpacity = 0.9
           strokeWidth = 1.8
         } else {
-          fillOpacity = 0.12
+          fillOpacity = 0.06
           strokeOpacity = 0.45
           strokeWidth = 1.0
         }

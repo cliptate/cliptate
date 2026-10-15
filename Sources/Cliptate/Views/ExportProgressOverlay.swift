@@ -54,12 +54,12 @@ struct ExportProgressOverlay: View {
         }
       }
       .padding(16)
-      .frame(width: 320)
-      .background(.ultraThinMaterial)
+      .frame(maxWidth: 320)
+      .background(.regularMaterial)
       .clipShape(RoundedRectangle(cornerRadius: 12))
       .overlay(
         RoundedRectangle(cornerRadius: 12)
-          .strokeBorder(.separator.opacity(0.3), lineWidth: 1)
+          .strokeBorder(AppSurface.border, lineWidth: 1)
       )
       .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
       .transition(.opacity.combined(with: .move(edge: .bottom)))

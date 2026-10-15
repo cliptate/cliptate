@@ -47,7 +47,7 @@ struct AICutImportSetupView: View {
               .buttonStyle(.borderless)
             }
             .padding(12)
-            .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(AppSurface.cardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
           }
         }
       }
@@ -76,5 +76,6 @@ struct AICutImportSetupView: View {
     }
     .padding(24)
     .frame(minWidth: 520, idealWidth: 560, minHeight: 420)
+    .background(AppSurface.pageBackground)
   }
 }

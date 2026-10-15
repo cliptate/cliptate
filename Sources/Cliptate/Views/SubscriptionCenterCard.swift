@@ -14,11 +14,11 @@ private struct SubscriptionCenterCardModifier: ViewModifier {
       .padding(20)
       .background(
         RoundedRectangle(cornerRadius: 18, style: .continuous)
-          .fill(Color(NSColor.controlBackgroundColor))
+          .fill(AppSurface.cardBackground)
       )
       .overlay(
         RoundedRectangle(cornerRadius: 18, style: .continuous)
-          .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+          .stroke(AppSurface.border, lineWidth: 1)
       )
   }
 }

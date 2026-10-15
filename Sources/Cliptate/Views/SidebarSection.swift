@@ -26,7 +26,7 @@ struct SidebarSection<Content: View>: View {
       .padding(.horizontal, 4)
       content
         .padding(10)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(AppSurface.cardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
     .padding(.horizontal, 4)
   }

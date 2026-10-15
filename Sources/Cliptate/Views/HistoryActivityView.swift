@@ -36,7 +36,7 @@ struct HistoryActivityView: View {
       .background(AppSurface.cardBackground, in: RoundedRectangle(cornerRadius: 12))
       .overlay {
         RoundedRectangle(cornerRadius: 12)
-          .strokeBorder(.primary.opacity(0.06), lineWidth: 1)
+          .strokeBorder(AppSurface.border, lineWidth: 1)
       }
     }
   }

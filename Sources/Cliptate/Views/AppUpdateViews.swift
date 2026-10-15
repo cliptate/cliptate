@@ -52,7 +52,7 @@ struct AvailableAppUpdateButton: View {
       .foregroundStyle(.white)
       .padding(.horizontal, 8)
       .padding(.vertical, 6)
-      .background(Color.blue, in: Capsule())
+      .background(Color.accentColor, in: Capsule())
       .contentShape(Capsule())
     }
     .buttonStyle(.plain)
@@ -142,6 +142,7 @@ struct AvailableAppUpdateView: View {
       .buttonStyle(.plain)
     }
     .frame(width: 400)
+    .background(AppSurface.pageBackground)
   }
 }
 
@@ -170,10 +171,10 @@ struct VerifiedAppUpdateView: View {
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(16)
-      .background(.background, in: RoundedRectangle(cornerRadius: 16))
+      .background(AppSurface.cardBackground, in: RoundedRectangle(cornerRadius: 16))
       .overlay {
         RoundedRectangle(cornerRadius: 16)
-          .strokeBorder(.quaternary, lineWidth: 1)
+          .strokeBorder(AppSurface.border, lineWidth: 1)
       }
       .accessibilityElement(children: .combine)
 
@@ -189,5 +190,6 @@ struct VerifiedAppUpdateView: View {
     }
     .padding(24)
     .frame(width: 440)
+    .background(AppSurface.pageBackground)
   }
 }

@@ -81,7 +81,7 @@ struct AICutEditorView: View {
     let cachedSegments = processedSegments
 
     HSplitView {
-      VStack(spacing: 14) {
+      VStack(spacing: 0) {
         ControlPanelView(
           videoURLs: $selectedVideoURLs,
           activeVideoURL: $activeVideoURL,
@@ -124,7 +124,6 @@ struct AICutEditorView: View {
         )
       }
       .frame(minWidth: 360, idealWidth: 400, maxWidth: 520)
-      .padding(.vertical, 12)
 
       GeometryReader { proxy in
         let containerSize = proxy.size
@@ -178,12 +177,7 @@ struct AICutEditorView: View {
           }
           .padding(24)
           .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .background(.thinMaterial)
-          .clipShape(RoundedRectangle(cornerRadius: 14))
-          .overlay(
-            RoundedRectangle(cornerRadius: 14)
-              .strokeBorder(.separator.opacity(0.25), lineWidth: 1)
-          )
+          .background(AppSurface.inputBackground)
           .transition(.opacity.combined(with: .scale(scale: 0.98)))
         }
 
@@ -201,7 +195,6 @@ struct AICutEditorView: View {
           .animation(.easeInOut(duration: 0.25), value: vs.segments.isEmpty)
         }
       }
-      .padding(12)
       .frame(minWidth: 320, idealWidth: 400, maxWidth: 580)
       .layoutPriority(1)
       .id(activeVideoURL)
@@ -213,7 +206,7 @@ struct AICutEditorView: View {
     VStack(spacing: 20) {
       ZStack {
         Circle()
-          .fill(Color.accentColor.opacity(0.1))
+          .fill(AppSurface.selectedFill)
           .frame(width: 120, height: 120)
 
         Image(systemName: "video.fill")
@@ -233,11 +226,11 @@ struct AICutEditorView: View {
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(.regularMaterial)
+    .background(AppSurface.cardBackground)
     .clipShape(RoundedRectangle(cornerRadius: 16))
     .overlay(
       RoundedRectangle(cornerRadius: 16)
-        .strokeBorder(.separator.opacity(0.3), lineWidth: 1)
+        .strokeBorder(AppSurface.border, lineWidth: 1)
     )
     .padding(24)
   }

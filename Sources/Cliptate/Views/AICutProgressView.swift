@@ -46,7 +46,7 @@ struct AICutProgressView: View {
           }
         }
         .padding(16)
-        .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(AppSurface.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
       }
 
       HStack {
@@ -58,6 +58,7 @@ struct AICutProgressView: View {
     }
     .padding(24)
     .frame(minWidth: 420, idealWidth: 460)
+    .background(AppSurface.pageBackground)
   }
 
   private func label(for status: AICutBatchItem.Status) -> String {
@@ -112,16 +113,10 @@ private struct StyledProgressBar: View {
       GeometryReader { geo in
         ZStack(alignment: .leading) {
           Capsule()
-            .fill(Color.primary.opacity(0.08))
+            .fill(AppSurface.subtleFill)
 
           Capsule()
-            .fill(
-              LinearGradient(
-                colors: [.accentColor, .accentColor.opacity(0.7)],
-                startPoint: .leading,
-                endPoint: .trailing
-              )
-            )
+            .fill(Color.accentColor)
             .frame(width: max(geo.size.width * CGFloat(value), 0))
             .animation(.easeInOut(duration: 0.3), value: value)
         }

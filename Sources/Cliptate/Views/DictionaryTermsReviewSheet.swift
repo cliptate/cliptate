@@ -122,12 +122,13 @@ struct DictionaryTermsReviewSheet: View {
                     .foregroundStyle(.tertiary)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Capsule().fill(Color.secondary.opacity(0.10)))
+                    .background(Capsule().fill(AppSurface.subtleFill))
                 }
                 Spacer()
               }
               .padding(.horizontal, 16)
               .padding(.vertical, 7)
+              .background(!existing && selected.contains(term) ? AppSurface.selectedFill : Color.clear)
               .contentShape(Rectangle())
               .onTapGesture {
                 guard !existing else { return }
@@ -138,7 +139,7 @@ struct DictionaryTermsReviewSheet: View {
           }
           .padding(.vertical, 6)
         }
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(AppSurface.cardBackground)
       }
 
       Divider()
@@ -173,5 +174,6 @@ struct DictionaryTermsReviewSheet: View {
       .padding(16)
     }
     .frame(width: 440, height: 480)
+    .background(AppSurface.pageBackground)
   }
 }

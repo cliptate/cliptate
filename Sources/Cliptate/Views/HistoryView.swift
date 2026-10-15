@@ -32,14 +32,7 @@ struct HistoryView: View {
       }
     }
 
-    var accentColor: Color {
-      switch self {
-      case .all: return .accentColor
-      case .dictation: return .blue
-      case .fileTranscription: return .orange
-      case .ttsSynthesis: return .purple
-      }
-    }
+    var accentColor: Color { .accentColor }
   }
 
   private var filteredSessions: [TranscriptSession] {
@@ -492,12 +485,12 @@ private struct FilterChip: View {
       .padding(.horizontal, 10)
       .padding(.vertical, 5)
       .background(
-        isSelected ? accent.opacity(0.15) : (isHovered ? Color.primary.opacity(0.06) : Color.clear),
+        isSelected ? AppSurface.selectedFill : (isHovered ? AppSurface.hoverFill : Color.clear),
         in: Capsule()
       )
       .overlay(
         Capsule()
-          .stroke(isSelected ? accent.opacity(0.4) : Color.secondary.opacity(0.2), lineWidth: 1)
+          .stroke(isSelected ? AppSurface.selectedBorder : AppSurface.border, lineWidth: 1)
       )
       .foregroundStyle(isSelected ? accent : Color.secondary)
     }
@@ -548,33 +541,25 @@ private struct HistoryRowView: View {
     RoundedRectangle(cornerRadius: 10)
       .fill(
         isSelected
-          ? sourceAccentColor.opacity(0.1)
-          : (isHovered ? Color.primary.opacity(0.04) : Color(NSColor.textBackgroundColor))
+          ? AppSurface.selectedFill
+          : (isHovered ? AppSurface.hoverFill : AppSurface.cardBackground)
       )
   }
 
   private var rowBorder: some View {
     RoundedRectangle(cornerRadius: 10)
       .stroke(
-        isSelected ? sourceAccentColor.opacity(0.35) : Color.secondary.opacity(0.1),
+        isSelected ? AppSurface.selectedBorder : AppSurface.border,
         lineWidth: isSelected ? 1.2 : 1
       )
-  }
-
-  private var sourceAccentColor: Color {
-    switch effectiveSource {
-    case .voiceDictation: return .blue
-    case .fileTranscription: return .orange
-    case .ttsSynthesis: return .purple
-    }
   }
 
   private var sourceIcon: some View {
     let (icon, tint): (String, Color) = {
       switch effectiveSource {
-      case .voiceDictation: return ("mic.fill", .blue)
-      case .fileTranscription: return ("doc.text.fill", .orange)
-      case .ttsSynthesis: return ("waveform", .purple)
+      case .voiceDictation: return ("mic.fill", .accentColor)
+      case .fileTranscription: return ("doc.text.fill", .accentColor)
+      case .ttsSynthesis: return ("waveform", .accentColor)
       }
     }()
     return Image(systemName: icon)
@@ -600,7 +585,7 @@ private struct HistoryRowView: View {
           if let modelName = session.sourceFileName {
             Text(modelName)
               .font(.caption.weight(.semibold))
-              .foregroundStyle(.purple)
+              .foregroundStyle(.primary)
               .lineLimit(1)
           } else {
             Text("TTS Synthesis")
@@ -642,10 +627,10 @@ private struct HistoryRowView: View {
   private var metaRow: some View {
     HStack(spacing: 5) {
       if let type = session.transcriberType {
-        badge(type.displayName, tint: .purple)
+        badge(type.displayName, tint: .secondary)
       }
       if let lang = session.language {
-        badge(lang.displayName, tint: .green)
+        badge(lang.displayName, tint: .secondary)
       }
       let words = voiceTextWordCount(in: session.combinedText)
       if words > 0 {
@@ -713,14 +698,6 @@ private struct HistoryDetailView: View {
 
   private var effectiveSource: SessionSource { session.source ?? .voiceDictation }
 
-  private var sourceAccentColor: Color {
-    switch effectiveSource {
-    case .voiceDictation: return .blue
-    case .fileTranscription: return .orange
-    case .ttsSynthesis: return .purple
-    }
-  }
-
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       detailHeader
@@ -768,7 +745,7 @@ private struct HistoryDetailView: View {
         }
       }
     }
-    .background(Color(NSColor.controlBackgroundColor))
+    .background(AppSurface.cardBackground)
     .onDisappear {
       stopPlayback()
     }
@@ -798,11 +775,11 @@ private struct HistoryDetailView: View {
           // Accent icon
           ZStack {
             RoundedRectangle(cornerRadius: 9)
-              .fill(sourceAccentColor.opacity(0.12))
+              .fill(AppSurface.selectedFill)
               .frame(width: 36, height: 36)
             Image(systemName: sourceIconName)
               .font(.system(size: 15, weight: .semibold))
-              .foregroundStyle(sourceAccentColor)
+              .foregroundStyle(Color.accentColor)
           }
 
           VStack(alignment: .leading, spacing: 2) {
@@ -887,7 +864,7 @@ private struct HistoryDetailView: View {
           .font(.caption.weight(.medium))
         }
         .buttonStyle(.bordered)
-        .tint(.orange)
+        .tint(.accentColor)
         .controlSize(.small)
         .disabled(isRetranscribing)
         .help(String(localized: "Re-transcribe with current model settings", comment: "History: re-transcribe button help"))
@@ -926,7 +903,7 @@ private struct HistoryDetailView: View {
           .font(.caption.weight(.medium))
         }
         .buttonStyle(.bordered)
-        .tint(.purple)
+        .tint(.accentColor)
         .controlSize(.small)
         .help(isPlayingAudio ? "Stop audio playback" : "Play synthesized audio")
 
@@ -967,13 +944,13 @@ private struct HistoryDetailView: View {
   private var metaBadges: some View {
     HStack(spacing: 6) {
       if let type = session.transcriberType {
-        detailBadge(type.displayName, icon: "waveform", tint: .purple)
+        detailBadge(type.displayName, icon: "waveform", tint: .secondary)
       }
       if let model = session.modelVariant {
-        detailBadge(model.displayName, icon: "cpu", tint: .blue)
+        detailBadge(model.displayName, icon: "cpu", tint: .secondary)
       }
       if let lang = session.language {
-        detailBadge(lang.displayName, icon: "globe", tint: .green)
+        detailBadge(lang.displayName, icon: "globe", tint: .secondary)
       }
       let words = voiceTextWordCount(in: session.combinedText)
       let chars = session.combinedText.filter { !$0.isWhitespace }.count
@@ -1020,7 +997,7 @@ private struct HistoryDetailView: View {
     }
     .padding(.horizontal, 14)
     .padding(.vertical, 8)
-    .background(Color(NSColor.controlBackgroundColor))
+    .background(AppSurface.cardBackground)
   }
 
   // MARK: - Dictation Display Toggles
@@ -1041,7 +1018,7 @@ private struct HistoryDetailView: View {
     }
     .padding(.horizontal, 14)
     .padding(.vertical, 8)
-    .background(Color(NSColor.controlBackgroundColor))
+    .background(AppSurface.cardBackground)
   }
 
   @ViewBuilder
@@ -1061,8 +1038,8 @@ private struct HistoryDetailView: View {
       .padding(.vertical, 4)
       .background(
         isOn.wrappedValue
-          ? Color.accentColor.opacity(0.12)
-          : Color.secondary.opacity(0.08),
+          ? AppSurface.selectedFill
+          : AppSurface.subtleFill,
         in: Capsule()
       )
       .foregroundStyle(isOn.wrappedValue ? Color.accentColor : Color.secondary)
@@ -1247,7 +1224,7 @@ private struct HistoryDetailView: View {
             .frame(width: 30, height: 30)
           Image(systemName: isPlayingAudio ? "pause.fill" : "play.fill")
             .font(.caption.weight(.semibold))
-            .foregroundStyle(.blue)
+            .foregroundStyle(Color.accentColor)
         }
       }
       .buttonStyle(.plain)
@@ -1265,7 +1242,7 @@ private struct HistoryDetailView: View {
         ),
         in: 0...1
       )
-      .tint(.blue)
+      .tint(.accentColor)
 
       Text(formatPlaybackTime(playbackProgress * playbackDuration) + " / " + formatPlaybackTime(playbackDuration))
         .font(.caption.monospacedDigit())
@@ -1280,7 +1257,7 @@ private struct HistoryDetailView: View {
     HStack(spacing: 10) {
       ProgressView(value: retranscribeProgress)
         .progressViewStyle(.linear)
-        .tint(.orange)
+        .tint(.accentColor)
       Text(String(localized: "Re-transcribing…", comment: "History: re-transcription in progress"))
         .font(.caption)
         .foregroundStyle(.secondary)

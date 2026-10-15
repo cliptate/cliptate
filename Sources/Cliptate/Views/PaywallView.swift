@@ -67,26 +67,8 @@ struct PaywallView: View {
         }
     }
 
-    @ViewBuilder
     private var background: some View {
-        RoundedRectangle(cornerRadius: 28, style: .continuous)
-            .fill(
-                LinearGradient(
-                    colors: [
-                        Color.accentColor.opacity(0.18),
-                        Color.accentColor.opacity(0.05),
-                        Color(nsColor: .windowBackgroundColor),
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .shadow(color: Color.black.opacity(0.15), radius: 24, x: 0, y: 12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
-            )
-            .ignoresSafeArea()
+        AppSurface.pageBackground.ignoresSafeArea()
     }
 
     private func headerSection(for context: PaywallContext) -> some View {
@@ -95,7 +77,7 @@ struct PaywallView: View {
                 .font(.caption.weight(.semibold))
                 .padding(.vertical, 6)
                 .padding(.horizontal, 10)
-                .background(Color.accentColor.opacity(0.12), in: Capsule())
+                .background(AppSurface.selectedFill, in: Capsule())
                 .foregroundStyle(Color.accentColor)
                 .accessibilityLabel(
                     String(
@@ -153,11 +135,11 @@ struct PaywallView: View {
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.primary.opacity(0.04))
+                .fill(AppSurface.subtleFill)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color.primary.opacity(0.06))
+                .stroke(AppSurface.border)
         )
     }
 
@@ -181,7 +163,7 @@ struct PaywallView: View {
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.primary.opacity(0.03))
+                .fill(AppSurface.subtleFill)
         )
     }
 
@@ -328,7 +310,7 @@ struct PaywallView: View {
         .padding(.vertical, 24)
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                .stroke(AppSurface.border, lineWidth: 1)
         )
     }
 
@@ -447,22 +429,8 @@ struct PaywallView: View {
             .padding(18)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background {
-                if isSelected {
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(Color.accentColor.opacity(0.08))
-                } else {
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color(nsColor: .controlBackgroundColor).opacity(0.95),
-                                    Color(nsColor: .controlBackgroundColor).opacity(0.8),
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                }
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(isSelected ? AppSurface.selectedFill : AppSurface.cardBackground)
             }
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -479,7 +447,6 @@ struct PaywallView: View {
         }
         .buttonStyle(.plain)
         .disabled(isDisabled)
-        .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 6)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(planAccessibilityLabel(for: plan, price: priceLabel(for: plan)))
     }
@@ -777,7 +744,7 @@ struct PaywallView: View {
                         .padding(24)
                         .background(
                             RoundedRectangle(cornerRadius: 16).fill(
-                                Color(nsColor: .windowBackgroundColor)))
+                                AppSurface.pageBackground))
                 }
                 .transition(.opacity)
             }

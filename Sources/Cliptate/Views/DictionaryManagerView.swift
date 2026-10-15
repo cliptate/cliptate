@@ -103,10 +103,10 @@ struct DictionaryManagerView: View {
                 .scrollContentBackground(.hidden)
                 .padding(16)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(NSColor.textBackgroundColor))
+                .background(AppSurface.inputBackground)
                 .onChange(of: editorText) { _, _ in saveChanges() }
         }
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(AppSurface.cardBackground)
     }
 
     private var editorPanelHeader: some View {

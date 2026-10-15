@@ -230,7 +230,7 @@ struct TTSSynthesisView: View {
                 }
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(Capsule().fill(Color.secondary.opacity(0.08)))
+                .background(Capsule().fill(AppSurface.subtleFill))
             }
             .padding(.horizontal, 16)
             .padding(.top, 14)
@@ -246,7 +246,7 @@ struct TTSSynthesisView: View {
                     .frame(minHeight: 180)
                     .padding(12)
                     .scrollContentBackground(.hidden)
-                    .background(Color.clear)
+                    .background(AppSurface.inputBackground)
                     .focused($isEditorFocused)
 
                 if inputText.isEmpty {
@@ -292,7 +292,7 @@ struct TTSSynthesisView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(
-                    isEditorFocused ? Color.accentColor.opacity(0.5) : Color.secondary.opacity(0.15),
+                    isEditorFocused ? AppSurface.selectedBorder : AppSurface.border,
                     lineWidth: isEditorFocused ? 1.5 : 1
                 )
         )
@@ -320,7 +320,7 @@ struct TTSSynthesisView: View {
                 .padding(.vertical, 14)
         }
         .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(AppSurface.cardBackground))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color.secondary.opacity(0.15)))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(AppSurface.border))
     }
 
 
@@ -474,7 +474,7 @@ struct TTSSynthesisView: View {
                 .padding(10)
                 .background(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color.secondary.opacity(0.07))
+                        .fill(AppSurface.subtleFill)
                 )
             }
         }
@@ -571,7 +571,7 @@ struct TTSSynthesisView: View {
                 .padding(8)
                 .background(
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(Color.secondary.opacity(0.07))
+                        .fill(AppSurface.subtleFill)
                 )
             }
 
@@ -622,7 +622,7 @@ struct TTSSynthesisView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.secondary.opacity(isReferenceAudioDropTarget ? 0.12 : 0.06))
+                        .fill(isReferenceAudioDropTarget ? AppSurface.selectedFill : AppSurface.inputBackground)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -660,7 +660,7 @@ struct TTSSynthesisView: View {
                     }
                     .font(.caption)
                     .buttonStyle(.plain)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(Color.accentColor)
                 }
                 Spacer()
             }
@@ -831,7 +831,7 @@ struct TTSSynthesisView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Color.secondary.opacity(0.15))
+                .stroke(AppSurface.border)
         )
     }
 
@@ -864,7 +864,7 @@ struct TTSSynthesisView: View {
                             .font(.caption2)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 3)
-                            .background(Capsule().fill(Color.accentColor.opacity(0.12)))
+                            .background(Capsule().fill(AppSurface.selectedFill))
                     }
                 }
             }

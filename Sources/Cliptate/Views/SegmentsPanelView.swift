@@ -19,13 +19,6 @@ struct SegmentsPanelView: View {
   @State private var stableActiveIndex: Int? = nil
   @State private var lastUpdateTime: TimeInterval = 0
 
-  private var headerControlState: SegmentsPanelHeaderControlState {
-    SegmentsPanelHeaderControlState(
-      hasSegments: !computedSegments.isEmpty,
-      showTimes: showTimes
-    )
-  }
-
   /// Segments computed from VideoState + config via SegmentComputer.
   /// This reacts to any @Published change on videoState or config.
   private var computedSegments: [Segment] {
@@ -135,17 +128,22 @@ struct SegmentsPanelView: View {
 
   var body: some View {
     let currentDisplaySegments = displaySegments
-    VStack(spacing: 12) {
-      headerView(displayCount: currentDisplaySegments.count)
-      searchView
+    VStack(spacing: 0) {
+      VStack(spacing: 10) {
+        SegmentsPanelHeader(
+          displayCount: currentDisplaySegments.count,
+          hasSegments: !computedSegments.isEmpty,
+          hasDiarization: hasDiarization,
+          showTimes: $showTimes
+        )
+        searchView
+      }
+      .padding(12)
+      Divider()
       segmentsListView(currentDisplaySegments)
-      Spacer(minLength: 0)
     }
-    .padding(.horizontal, 16)
-    .padding(.top, 16)
-    .padding(.bottom, 18)
     .frame(maxHeight: .infinity)
-    .background(.ultraThinMaterial)
+    .background(AppSurface.inputBackground)
     .onChange(of: playback.isPlaying) { _, isPlaying in
       handlePlaybackStateChange(isPlaying: isPlaying)
     }
@@ -156,63 +154,6 @@ struct SegmentsPanelView: View {
     }
   }
 
-
-  private func headerView(displayCount: Int) -> some View {
-    HStack(spacing: 6) {
-      Text("Segments")
-        .font(.headline)
-      if !computedSegments.isEmpty {
-        Text("\(displayCount)")
-          .font(.caption2.weight(.semibold))
-          .foregroundStyle(.white)
-          .padding(.horizontal, 6)
-          .padding(.vertical, 2)
-          .background(Capsule().fill(Color.secondary.opacity(0.5)))
-      }
-      // Show a diarization badge when any segment carries a speaker ID
-      if hasDiarization {
-        Label("Speaker", systemImage: "person.2.wave.2")
-          .font(.caption2.weight(.medium))
-          .foregroundStyle(Color.accentColor)
-          .padding(.horizontal, 6)
-          .padding(.vertical, 2)
-          .background(
-            Capsule().fill(Color.accentColor.opacity(0.12))
-          )
-          .help(
-            String(
-              localized: "Diarization active – speaker badges are shown per segment",
-              comment: "Tooltip shown when any segment has a speaker ID"))
-      }
-      Spacer()
-      Button(action: { showTimes.toggle() }) {
-        Image(systemName: headerControlState.timeSymbolName)
-          .foregroundStyle(
-            headerControlState.isTimeHighlighted ? Color.accentColor : Color.secondary
-          )
-          .frame(
-            width: headerControlState.controlSize.width,
-            height: headerControlState.controlSize.height
-          )
-          .background(
-            RoundedRectangle(cornerRadius: 7, style: .continuous)
-              .fill(
-                headerControlState.isTimeHighlighted
-                  ? Color.accentColor.opacity(0.12) : Color.primary.opacity(0.06)
-              )
-          )
-      }
-      .buttonStyle(.borderless)
-      .contentShape(Rectangle())
-      .accessibilityIdentifier("segments.toggle-times")
-      .help(
-        headerControlState.showTimes
-          ? String(localized: "Hide times", comment: "Tooltip to hide time labels in segments panel")
-          : String(localized: "Show times", comment: "Tooltip to show time labels in segments panel")
-      )
-    }
-    .padding(.horizontal, 4)
-  }
 
   private var hasDiarization: Bool {
     computedSegments.contains { $0.speakerId != nil }
@@ -228,7 +169,7 @@ struct SegmentsPanelView: View {
   private func segmentsListView(_ displaySegs: [DisplaySeg]) -> some View {
     ScrollViewReader { proxy in
       ScrollView {
-        LazyVStack(alignment: .leading, spacing: 8) {
+        LazyVStack(alignment: .leading, spacing: 0) {
           ForEach(displaySegs) { item in
             SegmentRowView(
               item: item,
@@ -255,9 +196,9 @@ struct SegmentsPanelView: View {
             // recreates the row (reinitializing @State) when text changes externally.
             // Local edits don't change this identity until commit propagates back.
             .id(item.contentIdentity)
+            Divider().padding(.leading, 16)
           }
         }
-        .padding(.vertical, 4)
       }
       .onChange(of: stableActiveIndex) { _, newIndex in
         if let activeIndex = newIndex {
@@ -269,477 +210,8 @@ struct SegmentsPanelView: View {
     }
   }
 
-  private func timeLabel(_ t: TimeInterval) -> String {
-    // 精确到毫秒 mm:ss.SSS
-    let msTotal = Int((t * 1000).rounded())
-    let m = msTotal / 60000
-    let s = (msTotal % 60000) / 1000
-    let ms = msTotal % 1000
-    return String(format: "%02d:%02d.%03d", m, s, ms)
-  }
+
 }
-
-struct SegmentsPanelHeaderControlState {
-  let hasSegments: Bool
-  let showTimes: Bool
-
-  let timeSymbolName = "clock"
-  var isTimeHighlighted: Bool { showTimes }
-  let controlSize = CGSize(width: 30, height: 28)
-}
-
-// MARK: - Row Subview
-private struct SegmentRowView: View {
-  @EnvironmentObject private var config: AppConfiguration
-  let item: SegmentsPanelView.DisplaySeg
-  let showTimes: Bool
-  let active: Bool
-  let compressTimeline: Bool
-  let effect: SegmentEffectState?
-  let translation: SegmentTranslation?
-  let playAction: () -> Void
-  let deleteAction: (() -> Void)?
-  let onCommit: (String) -> Void
-  let onTranslationCommit: (String?) -> Void
-
-  // Local editing buffers — initialized from segment data.
-  // Because the parent uses .id(contentIdentity), this view is RECREATED
-  // whenever segment text changes externally (AI correction, etc.),
-  // so @State is always fresh. No complex onChange sync needed.
-  @State private var editedText: String
-  @State private var editedTranslation: String
-  @State private var isHovered: Bool = false
-  @FocusState private var isFocused: Bool
-  @FocusState private var isTranslationFocused: Bool
-
-  private static let durationFormatter: NumberFormatter = {
-    let formatter = NumberFormatter()
-    formatter.numberStyle = .decimal
-    formatter.groupingSeparator = ","
-    formatter.maximumFractionDigits = 0
-    formatter.minimumFractionDigits = 0
-    return formatter
-  }()
-
-  init(
-    item: SegmentsPanelView.DisplaySeg, showTimes: Bool, active: Bool, compressTimeline: Bool,
-    effect: SegmentEffectState?, translation: SegmentTranslation?, playAction: @escaping () -> Void,
-    deleteAction: (() -> Void)? = nil,
-    onCommit: @escaping (String) -> Void,
-    onTranslationCommit: @escaping (String?) -> Void
-  ) {
-    self.item = item
-    self.showTimes = showTimes
-    self.active = active
-    self.compressTimeline = compressTimeline
-    self.effect = effect
-    self.translation = translation
-    self.playAction = playAction
-    self.deleteAction = deleteAction
-    self.onCommit = onCommit
-    self.onTranslationCommit = onTranslationCommit
-    self._editedText = State(initialValue: item.segment.text)
-    self._editedTranslation = State(initialValue: translation?.text ?? "")
-  }
-
-  var body: some View {
-    let highlightCoverage = Self.normalizedCoverage(effect?.highlightCoverage ?? 0)
-    let hasHighlights = !(effect?.keywords.isEmpty ?? true) && highlightCoverage > 0
-    let zoomScale = Self.deriveZoomScale(from: effect?.appliedZoom)
-    let baseBackground =
-      active
-      ? Color.accentColor.opacity(0.18)
-      : Color.primary.opacity(0.05)
-    let highlightOverlayOpacity =
-      hasHighlights
-      ? 0.12 + (highlightCoverage * 0.25)
-      : 0
-    let resolvedTranslation = normalizedTranslation
-
-    return panelBody(
-      highlightCoverage: highlightCoverage,
-      zoomScale: zoomScale,
-      baseBackground: baseBackground,
-      highlightOverlayOpacity: highlightOverlayOpacity,
-      resolvedTranslation: resolvedTranslation
-    )
-    .onHover { hovering in
-      withAnimation(.easeInOut(duration: 0.15)) {
-        isHovered = hovering
-      }
-    }
-  }
-
-  @ViewBuilder
-  private func panelBody(
-    highlightCoverage: Double,
-    zoomScale: CGFloat,
-    baseBackground: Color,
-    highlightOverlayOpacity: Double,
-    resolvedTranslation: SegmentTranslation?
-  ) -> some View {
-    HStack(spacing: 8) {
-      VStack(alignment: .leading, spacing: 6) {
-        if let resolvedTranslation, config.translationPlacement == .above {
-          translationEditor(for: resolvedTranslation)
-        }
-
-        HStack(alignment: .firstTextBaseline, spacing: 6) {
-          Text("#\(item.id + 1)")
-            .font(.caption2)
-            .foregroundColor(active ? .accentColor : .secondary)
-
-          if let sid = item.segment.speakerId {
-            Text(speakerBadgeText(id: sid))
-              .font(.caption.weight(.semibold))
-              .foregroundStyle(Color.white)
-              .padding(.horizontal, 7)
-              .padding(.vertical, 3)
-              .background(
-                Capsule().fill(speakerBadgeColor(id: sid))
-              )
-              .help(String(format: String(localized: "Speaker %lld", comment: "Speaker badge tooltip showing speaker number"), Int64(sid + 1)))
-          }
-
-          ZStack(alignment: .topLeading) {
-            HighlightedSegmentText(
-              text: editedText,
-              effect: effect,
-              isActive: active
-            )
-            .opacity(isFocused ? 0 : 1)
-            .onTapGesture { isFocused = true }
-
-            TextField("Segment text", text: $editedText, axis: .vertical)
-              .textFieldStyle(.plain)
-              .font(.subheadline)
-              .foregroundColor(active ? .accentColor : .primary)
-              .lineLimit(3...6)
-              .focused($isFocused)
-              .opacity(isFocused ? 1 : 0)
-              .allowsHitTesting(isFocused)
-              .onSubmit { commitIfNeeded() }
-          }
-          .scaleEffect(zoomScale, anchor: .topLeading)
-          .animation(
-            .spring(response: 0.35, dampingFraction: 0.78, blendDuration: 0.15),
-            value: zoomScale
-          )
-        }
-
-        if let resolvedTranslation, config.translationPlacement == .below {
-          translationEditor(for: resolvedTranslation)
-        }
-
-        if showTimes {
-          HStack(spacing: 6) {
-            Text(timeLabel(item.displayStart))
-            Text("→").foregroundColor(.secondary)
-            Text(timeLabel(item.displayEnd))
-            Text("(\(formatDuration(item.displayEnd - item.displayStart)))")
-              .foregroundColor(.secondary.opacity(0.7))
-          }
-          .font(.caption2)
-          .foregroundColor(active ? .accentColor : .secondary)
-        }
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
-
-      if isHovered || active || isFocused {
-        HStack(spacing: 4) {
-          Button(action: playAction) {
-            Image(systemName: "play.circle.fill")
-              .font(.title3)
-              .foregroundColor(.accentColor)
-          }
-          .buttonStyle(.plain)
-          .help(String(localized: "Play this segment", comment: "Tooltip for play segment button"))
-
-          if let deleteAction {
-            Button(role: .destructive, action: deleteAction) {
-              Image(systemName: "trash")
-                .font(.body)
-                .foregroundColor(.secondary)
-            }
-            .buttonStyle(.plain)
-            .help(String(localized: "Delete this segment", comment: "Tooltip for delete segment button"))
-          }
-        }
-        .transition(.opacity.combined(with: .scale(scale: 0.85)))
-      }
-    }
-    .padding(10)
-    .background(
-      ZStack {
-        RoundedRectangle(cornerRadius: 8, style: .continuous)
-          .fill(baseBackground)
-        if highlightOverlayOpacity > 0 {
-          RoundedRectangle(cornerRadius: 8, style: .continuous)
-            .fill(Color.yellow.opacity(highlightOverlayOpacity))
-            .transition(.opacity)
-        }
-      }
-    )
-    .overlay(
-      RoundedRectangle(cornerRadius: 8, style: .continuous)
-        .strokeBorder(
-          active ? Color.accentColor.opacity(0.4) : Color.clear,
-          lineWidth: 2
-        )
-    )
-    .overlay(alignment: .topTrailing) {
-      if let zoomLabel = effect?.appliedZoom, zoomLabel > 1.0 {
-        ZoomBadgeView(scale: zoomLabel, coverage: highlightCoverage)
-          .padding(6)
-      }
-    }
-    .onChange(of: isFocused) { _, focused in
-      if !focused { commitIfNeeded() }
-    }
-    .onChange(of: isTranslationFocused) { _, focused in
-      if !focused { commitTranslationIfNeeded() }
-    }
-    .onDisappear {
-      commitIfNeeded()
-      commitTranslationIfNeeded()
-    }
-  }
-
-  private func timeLabel(_ t: TimeInterval) -> String {
-    let msTotal = Int((t * 1000).rounded())
-    let m = msTotal / 60000
-    let s = (msTotal % 60000) / 1000
-    let ms = msTotal % 1000
-    return String(format: "%02d:%02d.%03d", m, s, ms)
-  }
-
-  private func formatDuration(_ duration: TimeInterval) -> String {
-    let milliseconds = Int((duration * 1000).rounded())
-    let formatted =
-      Self.durationFormatter.string(from: NSNumber(value: milliseconds))
-      ?? String(milliseconds)
-    return String(localized: "\(formatted) ms", comment: "Segment duration in milliseconds")
-  }
-
-  private var normalizedTranslation: SegmentTranslation? {
-    guard let translation, !translation.isEmpty else { return nil }
-    return translation
-  }
-
-  @ViewBuilder
-  private func translationEditor(for translation: SegmentTranslation) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
-      HStack(alignment: .firstTextBaseline, spacing: 6) {
-        Image(systemName: "globe")
-          .font(.caption2)
-          .foregroundColor(.secondary)
-        Text(translation.language.displayName)
-          .font(.caption2)
-          .foregroundColor(.secondary)
-      }
-
-      ZStack(alignment: .topLeading) {
-        Text(editedTranslation)
-          .font(.callout)
-          .foregroundStyle(.secondary)
-          .multilineTextAlignment(.leading)
-          .lineLimit(3...6)
-          .fixedSize(horizontal: false, vertical: true)
-          .opacity(isTranslationFocused ? 0 : 1)
-          .onTapGesture { isTranslationFocused = true }
-
-        TextField("Translation", text: $editedTranslation, axis: .vertical)
-          .textFieldStyle(.roundedBorder)
-          .font(.callout)
-          .focused($isTranslationFocused)
-          .lineLimit(3...6)
-          .opacity(isTranslationFocused ? 1 : 0)
-          .allowsHitTesting(isTranslationFocused)
-          .onSubmit { commitTranslationIfNeeded() }
-      }
-    }
-    .padding(.vertical, 2)
-    .transition(.opacity.combined(with: .move(edge: .top)))
-  }
-}
-
-extension SegmentRowView {
-  fileprivate func commitIfNeeded() {
-    let newValue = editedText
-    guard newValue != item.segment.text else { return }
-    onCommit(newValue)
-  }
-
-  fileprivate func commitTranslationIfNeeded() {
-    guard translation != nil else { return }
-    let trimmed = editedTranslation.trimmingCharacters(in: .whitespacesAndNewlines)
-    let current = translation?.text.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-    guard trimmed != current else { return }
-    onTranslationCommit(trimmed.isEmpty ? nil : trimmed)
-  }
-}
-
-// MARK: - Highlight Rendering
-
-private struct HighlightedSegmentText: View {
-  let text: String
-  let effect: SegmentEffectState?
-  let isActive: Bool
-
-  private let baseHighlightFontSize: CGFloat = 13
-
-  var body: some View {
-    buildText()
-      .font(.subheadline)
-      .foregroundColor(isActive ? .accentColor : .primary)
-      .lineLimit(6)
-      .fixedSize(horizontal: false, vertical: true)
-      .multilineTextAlignment(.leading)
-      .animation(nil, value: effect?.keywords)  // 避免频繁更新导致闪烁
-  }
-
-  private func buildText() -> Text {
-    let keywords = effect?.keywords ?? []
-    guard !keywords.isEmpty else {
-      return Text(text)
-    }
-
-    let matches = keywordRanges(in: text, keywords: keywords)
-    guard !matches.isEmpty else {
-      return Text(text)
-    }
-
-    var components: [Text] = []
-    var cursor = text.startIndex
-
-    for range in matches {
-      if range.lowerBound > cursor {
-        let prefix = String(text[cursor..<range.lowerBound])
-        if !prefix.isEmpty {
-          components.append(Text(prefix))
-        }
-      }
-
-      let keyword = String(text[range])
-      var highlight = Text(keyword)
-        .bold()
-        .foregroundColor(.yellow)
-      if let scale = effect?.appliedScale, scale > 0 {
-        let fontSize = baseHighlightFontSize * scale
-        highlight = highlight.font(.system(size: fontSize, weight: .bold))
-      }
-      components.append(highlight)
-
-      cursor = range.upperBound
-    }
-
-    if cursor < text.endIndex {
-      let suffix = String(text[cursor...])
-      if !suffix.isEmpty {
-        components.append(Text(suffix))
-      }
-    }
-
-    guard let first = components.first else {
-      return Text(text)
-    }
-
-    return components.dropFirst().reduce(first) { $0 + $1 }
-  }
-
-  private func keywordRanges(in text: String, keywords: [String]) -> [Range<String.Index>] {
-    guard !text.isEmpty else { return [] }
-
-    let lowercasedText = text.lowercased()
-    var collected: [Range<String.Index>] = []
-
-    for keyword in keywords {
-      let normalized = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
-      guard !normalized.isEmpty else { continue }
-      let lowerKeyword = normalized.lowercased()
-
-      var searchRange: Range<String.Index> = lowercasedText.startIndex..<lowercasedText.endIndex
-      while let found = lowercasedText.range(of: lowerKeyword, options: [], range: searchRange) {
-        let lowerStartOffset = lowercasedText.distance(
-          from: lowercasedText.startIndex, to: found.lowerBound)
-        let lowerEndOffset = lowercasedText.distance(
-          from: lowercasedText.startIndex, to: found.upperBound)
-
-        guard
-          let start = text.index(
-            text.startIndex, offsetBy: lowerStartOffset, limitedBy: text.endIndex),
-          let end = text.index(text.startIndex, offsetBy: lowerEndOffset, limitedBy: text.endIndex)
-        else {
-          break
-        }
-
-        let candidate = start..<end
-        if !collected.contains(where: { $0 == candidate }) {
-          collected.append(candidate)
-        }
-
-        searchRange = found.upperBound..<lowercasedText.endIndex
-      }
-    }
-
-    return collected.sorted { $0.lowerBound < $1.lowerBound }
-  }
-}
-
-extension SegmentRowView {
-  fileprivate static func normalizedCoverage(_ coverage: Double) -> Double {
-    if coverage.isNaN || coverage.isInfinite { return 0 }
-    return min(max(coverage, 0), 1)
-  }
-
-  fileprivate static func deriveZoomScale(from rawZoom: Double?) -> CGFloat {
-    guard let rawZoom else { return 1 }
-    if rawZoom.isNaN || rawZoom.isInfinite { return 1 }
-    return CGFloat(min(max(rawZoom, 1), 2.6))
-  }
-}
-
-private struct ZoomBadgeView: View {
-  let scale: Double
-  let coverage: Double
-
-  private var displayText: String {
-    if scale >= 2.0 {
-      return String(format: "×%.1f", scale)
-    } else {
-      return String(format: "×%.2f", scale)
-    }
-  }
-
-  private var accentOpacity: Double {
-    let normalized = min(max(coverage, 0), 1)
-    return 0.35 + (normalized * 0.25)
-  }
-
-  var body: some View {
-    Label {
-      Text(displayText)
-        .fontWeight(.semibold)
-    } icon: {
-      Image(systemName: "viewfinder")
-        .font(.caption2)
-    }
-    .font(.caption2)
-    .padding(.horizontal, 8)
-    .padding(.vertical, 4)
-    .background(
-      Capsule(style: .continuous)
-        .fill(Color.accentColor.opacity(0.16))
-        .overlay(
-          Capsule(style: .continuous)
-            .stroke(Color.accentColor.opacity(accentOpacity), lineWidth: 1)
-        )
-    )
-    .foregroundColor(.accentColor)
-  }
-}
-
-// MARK: - State Change Handlers
 
 extension SegmentsPanelView {
 

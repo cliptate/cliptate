@@ -93,8 +93,8 @@ private struct AppSidebarFooterButton: View {
         .background {
           RoundedRectangle(cornerRadius: 8)
             .fill(
-              isSelected ? Color.accentColor.opacity(0.12)
-                : Color.primary.opacity(isHovered ? 0.05 : 0)
+              isSelected ? AppSurface.selectedFill
+                : (isHovered ? AppSurface.hoverFill : Color.clear)
             )
         }
     }

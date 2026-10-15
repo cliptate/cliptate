@@ -35,11 +35,11 @@ private struct SettingsCard<Content: View>: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(
       RoundedRectangle(cornerRadius: 14, style: .continuous)
-        .fill(Color.primary.opacity(0.03))
+        .fill(AppSurface.cardBackground)
     )
     .overlay(
       RoundedRectangle(cornerRadius: 14, style: .continuous)
-        .stroke(Color.primary.opacity(0.07))
+        .stroke(AppSurface.border)
     )
   }
 }
@@ -181,14 +181,14 @@ struct AISettingsView: View {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                   .fill(
                     appAppearanceMode == option.id
-                      ? Color.accentColor.opacity(0.15)
-                      : Color.primary.opacity(0.05)
+                      ? AppSurface.selectedFill
+                      : AppSurface.subtleFill
                   )
               )
               .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                   .stroke(
-                    appAppearanceMode == option.id ? Color.accentColor.opacity(0.6) : Color.clear,
+                    appAppearanceMode == option.id ? AppSurface.selectedBorder : Color.clear,
                     lineWidth: 1.5
                   )
               )
@@ -323,7 +323,7 @@ struct AISettingsView: View {
               .padding(.vertical, 4)
               .padding(.horizontal, 8)
               .background(
-                Capsule().fill(Color.primary.opacity(0.05))
+                Capsule().fill(AppSurface.subtleFill)
               )
           }
 
@@ -340,7 +340,7 @@ struct AISettingsView: View {
 
       HStack(alignment: .top, spacing: 8) {
         Image(systemName: "lock.shield")
-          .foregroundStyle(.blue)
+          .foregroundStyle(Color.accentColor)
         Text(
           "Keys are stored securely in the system keychain. Only the active provider's key is used during AI operations."
         )

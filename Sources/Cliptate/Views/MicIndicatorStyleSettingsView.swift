@@ -23,7 +23,7 @@ struct MicIndicatorStyleSettingsView: View {
       .frame(maxWidth: 560, alignment: .leading)
     }
     .padding(12)
-    .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12))
+    .background(AppSurface.subtleFill, in: RoundedRectangle(cornerRadius: 12))
   }
 
   private func styleCard(_ style: MicIndicatorStyle) -> some View {
@@ -50,13 +50,13 @@ struct MicIndicatorStyleSettingsView: View {
       .padding(6)
       .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
       .background(
-        isSelected ? Color.accentColor.opacity(0.08) : Color(nsColor: .controlBackgroundColor),
+        isSelected ? AppSurface.selectedFill : AppSurface.cardBackground,
         in: RoundedRectangle(cornerRadius: 8)
       )
       .overlay {
         RoundedRectangle(cornerRadius: 8)
           .strokeBorder(
-            isSelected ? Color.accentColor : Color.primary.opacity(0.12),
+            isSelected ? AppSurface.selectedBorder : AppSurface.border,
             lineWidth: isSelected ? 1.5 : 1)
       }
       .overlay(alignment: .topTrailing) {

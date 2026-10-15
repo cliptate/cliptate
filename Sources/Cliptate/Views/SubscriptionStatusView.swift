@@ -136,7 +136,7 @@ struct SubscriptionStatusView: View {
     .background(
       Capsule()
         .fill(
-          isActive ? Color.green.opacity(0.15) : Color.secondary.opacity(0.1)
+          isActive ? Color.green.opacity(0.15) : AppSurface.subtleFill
         )
     )
   }

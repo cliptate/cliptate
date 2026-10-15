@@ -215,7 +215,6 @@ struct VideoPlayerView: View {
   @State private var presentationSize: CGSize?
   @State private var layoutResult: VideoOrientationLayout.Result?
   @State private var subtitlePreviewMode: SubtitlePreviewMode = .nativeTextOverlay
-  @State private var isHoveringPlayer = false
   @State private var isScrubbing = false
   @State private var scrubbedTime: TimeInterval?
   @State private var wasPlayingBeforeScrub = false
@@ -253,12 +252,6 @@ struct VideoPlayerView: View {
     Self.makeStyleSignature(for: styleConfiguration)
   }
 
-  private var targetAspectRatio: CGFloat? {
-    let layout = activeLayout
-    let ratio = layout.aspectRatio
-    return ratio.isFinite && ratio > 0 ? ratio : nil
-  }
-
   private var activeLayout: VideoOrientationLayout.Result {
     if let layoutResult {
       return layoutResult
@@ -266,10 +259,6 @@ struct VideoPlayerView: View {
 
     let fallbackSize = presentationSize ?? Self.defaultVideoSize(for: detectedOrientation)
     return VideoOrientationLayout.layout(for: fallbackSize, targetOrientation: detectedOrientation)
-  }
-
-  private var shouldShowControls: Bool {
-    viewModel.player != nil && (isHoveringPlayer || !playback.isPlaying || isScrubbing)
   }
 
   private var sliderRange: ClosedRange<Double> {
@@ -351,15 +340,6 @@ struct VideoPlayerView: View {
     hashStyleSet(configuration.landscape, into: &hasher)
     hashStyleSet(configuration.portrait, into: &hasher)
     return hasher.finalize()
-  }
-
-  private static func scaleToFit(_ content: CGSize, in container: CGSize) -> CGFloat {
-    guard content.width > 0, content.height > 0, container.width > 0, container.height > 0 else {
-      return 1
-    }
-    let scaleX = container.width / content.width
-    let scaleY = container.height / content.height
-    return min(scaleX, scaleY)
   }
 
   private static func defaultVideoSize(for orientation: SubtitleOrientation) -> CGSize {
@@ -474,89 +454,40 @@ struct VideoPlayerView: View {
   }
 
   var body: some View {
-    ZStack {
-      Group {
-        if let player = viewModel.player {
-          GeometryReader { proxy in
-            let containerSize = proxy.size
-            let layout = activeLayout
-            let fitScale = Self.scaleToFit(layout.canvasSize, in: containerSize)
-            let canvasSize = CGSize(
-              width: layout.canvasSize.width * fitScale,
-              height: layout.canvasSize.height * fitScale
-            )
+    VStack(spacing: 0) {
+      ZStack {
+        EditorVideoCanvas(player: viewModel.player, layout: activeLayout) { player, canvasSize in
+          subtitlesOverlay(player: player, canvasSize: canvasSize)
+        }
 
-            let displayedVideoSize = CGSize(
-              width: layout.scaledVideoSize.width * fitScale,
-              height: layout.scaledVideoSize.height * fitScale
-            )
-
-            let canvasOffset = CGSize(
-              width: layout.offset.x * fitScale,
-              height: layout.offset.y * fitScale
-            )
-
-            ZStack(alignment: .topLeading) {
-              Color.black
-                .frame(width: canvasSize.width, height: canvasSize.height)
-
-              PlayerContainerView(player: player, videoGravity: .resizeAspect)
-                .frame(width: displayedVideoSize.width, height: displayedVideoSize.height)
-                .offset(x: canvasOffset.width, y: canvasOffset.height)
-
-              subtitlesOverlay(player: player, canvasSize: canvasSize)
-            }
-            .frame(width: canvasSize.width, height: canvasSize.height)
-            .clipped()
-            .position(x: containerSize.width / 2, y: containerSize.height / 2)
-          }
-          .background(Color.black)
-          .aspectRatio(targetAspectRatio, contentMode: .fit)
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else {
-          VStack(spacing: 12) {
+        VStack(spacing: 4) {
+          if viewModel.isBuildingComposition {
             ProgressView()
-            Text("Loading video…")
-              .foregroundColor(.secondary)
+              .frame(width: 20, height: 20)
+            Text("Building selection…")
+              .font(.caption2)
+              .foregroundColor(.orange)
           }
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .background(Color.black.opacity(0.6))
+          if let error = viewModel.errorMessage {
+            Text(error)
+              .font(.caption2)
+              .foregroundColor(.red)
+              .padding(.horizontal, 8)
+          }
         }
+        .padding(.horizontal, 8)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
+        .padding(6)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
       }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-      VStack(spacing: 4) {
-        if viewModel.isBuildingComposition {
-          ProgressView()
-            .frame(width: 20, height: 20)
-          Text("Building selection…")
-            .font(.caption2)
-            .foregroundColor(.orange)
-        }
-        if let error = viewModel.errorMessage {
-          Text(error)
-            .font(.caption2)
-            .foregroundColor(.red)
-            .padding(.horizontal, 8)
-        }
-      }
-      .padding(.horizontal, 8)
-      .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
-      .padding(6)
-      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-
-      VStack {
-        Spacer()
-        controlsStack
-          .padding(.horizontal, 16)
-          .padding(.bottom, 18)
-          .opacity(shouldShowControls ? 1 : 0)
-          .animation(.easeInOut(duration: 0.2), value: shouldShowControls)
-      }
+      controlsStack
+        .padding(.horizontal, 16)
+        .padding(.top, 12)
+        .padding(.bottom, 18)
     }
     .contentShape(Rectangle())
-    .onHover { hovering in
-      isHoveringPlayer = hovering
-    }
     .onAppear {
       print(
         "🎬 [ASS] onAppear: segments=\(effectiveSegments.count) filter=\(filterSilentSegments) initialASS=\(ass.count)chars"
@@ -871,8 +802,8 @@ struct VideoPlayerView: View {
           state: playback.waveformState,
           duration: waveformDuration,
           progress: waveformProgress,
-          accentColor: Color(red: 0.16, green: 0.58, blue: 0.98),
-          backgroundColor: Color.black.opacity(0.26),
+          accentColor: .accentColor,
+          backgroundColor: AppSurface.inputBackground,
           mixToMono: true,
           segments: effectiveSegments,
           filterSilentSegments: filterSilentSegments,
@@ -908,80 +839,30 @@ struct VideoPlayerView: View {
   }
 
   private var playbackControls: some View {
-    let range = sliderRange
     let hasDuration = playback.duration.isFinite && playback.duration > 0
-    return VStack(spacing: 8) {
-      HStack(alignment: .center, spacing: 14) {
-        Button(action: togglePlayback) {
-          Image(systemName: playback.isPlaying && !isScrubbing ? "pause.fill" : "play.fill")
-            .font(.system(size: 16, weight: .bold))
-            .frame(width: 32, height: 32)
-            .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .keyboardShortcut(.space, modifiers: [])
-        .background(
-          Circle()
-            .fill(Color.accentColor.opacity(0.15))
-        )
+    return EditorPlaybackControls(
+      isPlaying: playback.isPlaying && !isScrubbing,
+      hasDuration: hasDuration,
+      currentTimeLabel: formatTime(displayedTime),
+      durationLabel: hasDuration ? formatTime(playback.duration) : "--:--",
+      range: sliderRange,
+      time: Binding(
+        get: { scrubbedTime ?? playback.currentTime },
+        set: { updateScrubbedTime($0) }
+      ),
+      onTogglePlayback: togglePlayback,
+      onSeekBackward: { seek(by: -5) },
+      onSeekForward: { seek(by: 5) },
+      onScrubbingChange: handleScrubbingChange
+    )
+  }
 
-        HStack(spacing: 10) {
-          Button {
-            seek(by: -5)
-          } label: {
-            Image(systemName: "gobackward.5")
-          }
-          .buttonStyle(.plain)
-          .foregroundStyle(.primary)
-          .frame(width: 28, height: 28)
-          .contentShape(Circle())
-          .disabled(!hasDuration)
-
-          Button {
-            seek(by: 5)
-          } label: {
-            Image(systemName: "goforward.5")
-          }
-          .buttonStyle(.plain)
-          .foregroundStyle(.primary)
-          .frame(width: 28, height: 28)
-          .contentShape(Circle())
-          .disabled(!hasDuration)
-        }
-
-        Text(formatTime(displayedTime))
-          .font(.system(.caption, design: .monospaced))
-          .foregroundColor(.secondary)
-
-        Slider(
-          value: Binding(
-            get: { scrubbedTime ?? playback.currentTime },
-            set: { newValue in
-              updateScrubbedTime(newValue)
-            }
-          ),
-          in: range,
-          onEditingChanged: { editing in
-            if editing {
-              beginScrubbing()
-            } else {
-              let target = scrubbedTime ?? playback.currentTime
-              commitScrub(to: target)
-            }
-          }
-        )
-        .disabled(!hasDuration)
-
-        Text(hasDuration ? formatTime(playback.duration) : "--:--")
-          .font(.system(.caption, design: .monospaced))
-          .foregroundColor(.secondary)
-      }
-      .padding(.horizontal, 16)
-      .padding(.vertical, 12)
-      .background(.ultraThinMaterial, in: Capsule())
-      .shadow(color: Color.black.opacity(0.2), radius: 10, y: 4)
+  private func handleScrubbingChange(_ editing: Bool) {
+    if editing {
+      beginScrubbing()
+    } else {
+      commitScrub(to: scrubbedTime ?? playback.currentTime)
     }
-    .frame(maxWidth: 540)
   }
 
   private func togglePlayback() {

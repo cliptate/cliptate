@@ -138,7 +138,7 @@ struct ModelSelectionView: View {
           if let languageNotice = languageRestrictionNotice {
             HStack(alignment: .top, spacing: 6) {
               Image(systemName: "info.circle")
-                .foregroundColor(.blue)
+                .foregroundStyle(Color.accentColor)
               Text(languageNotice)
             }
             .font(.caption)

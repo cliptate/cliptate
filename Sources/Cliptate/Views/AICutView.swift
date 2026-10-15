@@ -270,7 +270,7 @@ struct AICutView: View {
       }
     )
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(.regularMaterial)
+    .background(AppSurface.pageBackground)
   }
 
   @ViewBuilder

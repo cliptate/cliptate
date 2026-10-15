@@ -13,10 +13,10 @@ struct StatusView: View {
   var body: some View {
     Group {
       if isVisible {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
           HStack(spacing: 8) {
             Label("Status", systemImage: "text.bubble")
-              .font(.headline)
+              .font(.caption.weight(.medium))
               .foregroundStyle(.primary)
 
             Spacer()
@@ -32,7 +32,7 @@ struct StatusView: View {
           }
 
           Text(statusText)
-            .font(.callout)
+            .font(.caption)
             .foregroundStyle(.primary)
             .fixedSize(horizontal: false, vertical: true)
 
@@ -84,7 +84,8 @@ struct StatusView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(AppSurface.pageBackground)
+        .overlay(alignment: .top) { Divider() }
       } else if let onShow {
         Button(action: onShow) {
           Label("Show Status", systemImage: "text.bubble")

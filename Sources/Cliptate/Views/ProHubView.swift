@@ -35,7 +35,7 @@ struct ProHubView: View {
             .frame(maxWidth: 820, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(Color(NSColor.controlBackgroundColor))
+                    .fill(AppSurface.cardBackground)
             )
             .padding(28)
             .frame(maxWidth: .infinity)
@@ -98,11 +98,11 @@ struct ProHubView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color(NSColor.controlBackgroundColor))
+                .fill(AppSurface.cardBackground)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color.primary.opacity(0.07), lineWidth: 1)
+                .stroke(AppSurface.border, lineWidth: 1)
         )
     }
 
@@ -130,7 +130,7 @@ struct ProHubView: View {
                 .frame(width: 38, height: 38)
                 .background(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.accentColor.opacity(0.12))
+                        .fill(AppSurface.selectedFill)
                 )
 
             VStack(alignment: .leading, spacing: 2) {
@@ -315,11 +315,11 @@ struct ProHubView: View {
         .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.primary.opacity(0.05))
+                .fill(AppSurface.subtleFill)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .stroke(Color.primary.opacity(0.07), lineWidth: 1)
+                .stroke(AppSurface.border, lineWidth: 1)
         )
     }
 

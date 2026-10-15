@@ -29,7 +29,7 @@ struct SegmentsPanelInteractionTests {
   @Test("row translations respect translationPlacement config for above and below")
   func rowTranslationsRespectPlacementConfig() throws {
     let root = projectRoot()
-    let path = root.appendingPathComponent("Sources/Cliptate/Views/SegmentsPanelView.swift")
+    let path = root.appendingPathComponent("Sources/Cliptate/Views/SegmentRowView.swift")
     let content = try String(contentsOf: path, encoding: .utf8)
 
     // SegmentRowView must read config via @EnvironmentObject to access translationPlacement
@@ -39,8 +39,8 @@ struct SegmentsPanelInteractionTests {
     #expect(content.contains("config.translationPlacement == .above"))
     // Must render translation conditionally below original text
     #expect(content.contains("config.translationPlacement == .below"))
-    // Must contain the translationEditor call
-    #expect(content.contains("translationEditor(for: resolvedTranslation)"))
+    // The translation editor is a dedicated view with its own focus state.
+    #expect(content.contains("SegmentTranslationEditor("))
   }
 
   private func projectRoot() -> URL {

@@ -10,6 +10,7 @@ import SwiftUI
 struct CustomPromptDialog: View {
   @Binding var isPresented: Bool
   @State private var promptText: String = ""
+  @FocusState private var isPromptFocused: Bool
   let onConfirm: (String?) -> Void
   let onCancel: (() -> Void)?
 
@@ -31,14 +32,17 @@ struct CustomPromptDialog: View {
         "You can provide a custom prompt to guide the AI in correcting the transcription. This can include specific instructions or context to improve accuracy. Leave it blank to apply the default instructions."
       )
       .font(.subheadline)
-      .foregroundColor(.secondary)
+      .foregroundStyle(.secondary)
 
       TextEditor(text: $promptText)
         .frame(minHeight: 120)
-        .border(Color.gray.opacity(0.3), width: 1)
-        .padding(.horizontal)
+        .scrollContentBackground(.hidden)
+        .padding(8)
+        .focused($isPromptFocused)
+        .appInputSurface(isFocused: isPromptFocused)
 
       HStack(spacing: 12) {
+        Spacer()
         Button("Cancel") {
           isPresented = false
           onCancel?()
@@ -51,10 +55,12 @@ struct CustomPromptDialog: View {
           onConfirm(trimmed.isEmpty ? nil : trimmed)
         }
         .keyboardShortcut(.defaultAction)
+        .buttonStyle(.borderedProminent)
       }
     }
-    .padding()
+    .padding(24)
     .frame(width: 500)
+    .background(AppSurface.pageBackground)
   }
 }
 
