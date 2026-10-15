@@ -1,7 +1,7 @@
+import CliptateCore
 import Foundation
 import Testing
 
-@testable import Cliptate
 
 /// Verifies that TTSPresetSpeaker descriptions and family subtitles are properly
 /// localizable — non-empty, English-key-based, and safe to display in any locale.

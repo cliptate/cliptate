@@ -1,10 +1,10 @@
 import Foundation
 
 @MainActor
-enum FillerWordFilter {
+public enum FillerWordFilter {
   private static let regexCache = NSCache<NSString, NSRegularExpression>()
 
-  static func filterSegments(_ segments: [Segment], fillerWords: Set<String>) -> [Segment] {
+  public static func filterSegments(_ segments: [Segment], fillerWords: Set<String>) -> [Segment] {
     guard !segments.isEmpty, !fillerWords.isEmpty,
       let regex = makeRegex(for: fillerWords)
     else {
@@ -28,7 +28,7 @@ enum FillerWordFilter {
     }
   }
 
-  static func filter(text: String, fillerWords: Set<String>) -> String {
+  public static func filter(text: String, fillerWords: Set<String>) -> String {
     guard !text.isEmpty, !fillerWords.isEmpty,
       let regex = makeRegex(for: fillerWords)
     else {

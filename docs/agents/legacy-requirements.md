@@ -16,7 +16,7 @@ swift test --filter speakerIdRoundTrips
 ./scripts/build-and-run.sh --verify
 ```
 
-The SwiftPM app product is `CliptateApp`; the bundler produces `Cliptate Dev.app` in Debug.
+The SwiftPM app product is `Cliptate`; the bundler produces `Cliptate Dev.app` in Debug.
 
 ## High-level architecture
 

@@ -6,11 +6,11 @@ import Foundation
 /// split after that word to form a new segment boundary.
 ///
 /// Segments without word timings are passed through unchanged.
-enum SegmentSplitBySentence {
+public enum SegmentSplitBySentence {
   // MARK: - Public API
 
   /// Apply sentence-based splitting to a list of segments.
-  static func apply(segments: [Segment]) -> [Segment] {
+  public static func apply(segments: [Segment]) -> [Segment] {
     guard !segments.isEmpty else { return [] }
     var result: [Segment] = []
     result.reserveCapacity(segments.count)

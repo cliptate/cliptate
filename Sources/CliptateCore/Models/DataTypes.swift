@@ -104,7 +104,7 @@ public struct Segment: Sendable, Identifiable, Codable {
 /// Build a deterministic child ID from the parent segment's ID and the child's timing.
 /// Ensures the same pipeline run always produces the same segment IDs.
 extension Segment {
-  static func deterministicChildId(parentId: String, startTime: TimeInterval, endTime: TimeInterval) -> String {
+  public static func deterministicChildId(parentId: String, startTime: TimeInterval, endTime: TimeInterval) -> String {
     let startMs = Int((startTime * 1000).rounded())
     let endMs = Int((endTime * 1000).rounded())
     return "\(parentId):\(startMs)-\(endMs)"
@@ -475,7 +475,7 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
     }
   }
 
-  var isWhisperModel: Bool {
+  public var isWhisperModel: Bool {
     switch self {
     case .whisperTiny, .whisperBase, .whisperSmall, .whisperMedium, .whisperLargeV3, .whisperLargeV3Turbo:
       return true
@@ -484,7 +484,7 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
   }
 
   /// Check if this model is a Parakeet model
-  var isParakeetModel: Bool {
+  public var isParakeetModel: Bool {
     switch self {
     case .parakeetV2, .parakeetV3: return true
     default: return false
@@ -492,12 +492,12 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
   }
 
   /// Check if this model is a Qwen3 ASR model
-  var isQwen3Model: Bool {
+  public var isQwen3Model: Bool {
     isQwen3ASRModel || isQwen3AlignerModel
   }
 
   /// Check if this model is a FireRed ASR model
-  var isFireRedASRModel: Bool {
+  public var isFireRedASRModel: Bool {
     switch self {
     case .fireRedASR2:
       return true
@@ -506,14 +506,14 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
     }
   }
 
-  var isNemotronASRModel: Bool {
+  public var isNemotronASRModel: Bool {
     switch self {
     case .nemotronASR358bit, .nemotronASR35bf16, .nemotronASREnglish8bit: return true
     default: return false
     }
   }
 
-  var isCohereTranscribeModel: Bool {
+  public var isCohereTranscribeModel: Bool {
     switch self {
     case .cohereTranscribe03FP16, .cohereTranscribe038bit, .cohereTranscribe034bit:
       return true
@@ -523,7 +523,7 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
   }
 
   /// Check if this model is a Qwen3 ASR (speech recognition) model
-  var isQwen3ASRModel: Bool {
+  public var isQwen3ASRModel: Bool {
     switch self {
     case .qwen3ASR, .qwen3ASR06B4bit, .qwen3ASR06B5bit, .qwen3ASR06B6bit, .qwen3ASR06Bbf16,
       .qwen3ASR17B4bit, .qwen3ASR17B5bit, .qwen3ASR17B6bit, .qwen3ASR17B8bit, .qwen3ASR17Bbf16:
@@ -533,7 +533,7 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
   }
 
   /// Check if this model is a Qwen3 ForcedAligner model
-  var isQwen3AlignerModel: Bool {
+  public var isQwen3AlignerModel: Bool {
     switch self {
     case .qwen3ForcedAligner, .qwen3ForcedAligner06B5bit, .qwen3ForcedAligner06B6bit,
       .qwen3ForcedAligner06B8bit, .qwen3ForcedAligner06Bbf16:
@@ -542,7 +542,7 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
     }
   }
 
-  var isSortformerVADModel: Bool {
+  public var isSortformerVADModel: Bool {
     switch self {
     case .sortformerStreaming, .sortformerOffline:
       return true
@@ -551,7 +551,7 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
     }
   }
 
-  var isSileroVADModel: Bool {
+  public var isSileroVADModel: Bool {
     switch self {
     case .sileroVAD:
       return true
@@ -560,11 +560,11 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
     }
   }
 
-  var isVADModel: Bool {
+  public var isVADModel: Bool {
     isSortformerVADModel || isSileroVADModel
   }
 
-  var isTTSModel: Bool {
+  public var isTTSModel: Bool {
     switch self {
     case .qwen3TTS06B4bit, .qwen3TTS06B8bit, .qwen3TTS06Bbf16,
          .qwen3TTS17B4bit, .qwen3TTS17B8bit, .qwen3TTS17Bbf16,
@@ -881,38 +881,8 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
   }
 }
 
-/// Access level helpers for model variants
+/// Model catalog groupings shared by application and command-line clients.
 extension ModelVariant {
-  /// Access level classification for this model variant
-  public var accessLevel: ModelAccessLevel {
-    guard SubscriptionPolicy.isBillingEnabled else { return .free }
-    switch self {
-    case .parakeetV3,
-      .qwen3ASR17B4bit, .qwen3ASR17B5bit, .qwen3ASR17B6bit, .qwen3ASR17B8bit,
-      .qwen3ASR17Bbf16,
-      .fireRedASR2,
-      .cohereTranscribe03FP16, .cohereTranscribe038bit, .cohereTranscribe034bit,
-      .sortformerStreaming, .sortformerOffline:
-      return .pro
-    default:
-      return .free
-    }
-  }
-  /// Indicates whether the model requires a Pro subscription
-  public var requiresProSubscription: Bool {
-    accessLevel.requiresSubscription
-  }
-
-  /// Convenience list of all free models
-  public static var freeModels: [ModelVariant] {
-    allCases.filter { !$0.requiresProSubscription }
-  }
-
-  /// Convenience list of all Pro models
-  public static var proModels: [ModelVariant] {
-    allCases.filter(\.requiresProSubscription)
-  }
-
   /// All Qwen3 ForcedAligner model variants
   public static var alignerModels: [ModelVariant] {
     allCases.filter { $0.isQwen3AlignerModel && !$0.isHiddenFromSelection }
@@ -1019,25 +989,4 @@ public enum TranscriberType: String, CaseIterable, Identifiable, Codable, Sendab
     }
   }
 
-  public func createTranscriber(model: ModelVariant = .parakeetV3) -> Transcriber {
-    switch self {
-    case .whisper:
-      let whisperModel = model.isWhisperModel ? model : .whisperLargeV3Turbo
-      return MLXWhisperTranscriber(model: whisperModel)
-    case .parakeet:
-      let parakeetModel = model.isParakeetModel ? model : .parakeetV2
-      return MLXParakeetTranscriber(model: parakeetModel)
-    case .qwen3:
-      let qwenModel = model.isQwen3Model ? model : .qwen3ASR
-      return Qwen3ASRTranscriber(model: qwenModel)
-    case .fireRed:
-      let fireRedModel = model.isFireRedASRModel ? model : .fireRedASR2
-      return FireRedASRTranscriber(model: fireRedModel)
-    case .nemotron:
-      return NemotronASRTranscriber(model: model.isNemotronASRModel ? model : .nemotronASR358bit)
-    case .cohere:
-      let cohereModel = model.isCohereTranscribeModel ? model : .cohereTranscribe03FP16
-      return CohereTranscribeASRTranscriber(model: cohereModel)
-    }
-  }
 }

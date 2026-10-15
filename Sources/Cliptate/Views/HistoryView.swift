@@ -1,3 +1,4 @@
+import CliptateCore
 import AppKit
 import AVFoundation
 import SwiftUI

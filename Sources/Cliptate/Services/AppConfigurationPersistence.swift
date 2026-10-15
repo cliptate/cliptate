@@ -2,9 +2,7 @@ import Combine
 import Foundation
 import os.log
 
-#if canImport(CliptateCLIKit)
-import CliptateCLIKit
-#endif
+import CliptateCore
 
 @MainActor
 final class AppConfigurationPersistence: ObservableObject {

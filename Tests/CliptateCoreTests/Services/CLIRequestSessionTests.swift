@@ -1,11 +1,7 @@
 @preconcurrency import Network
 import XCTest
 
-#if canImport(CliptateCLIKit)
-  import CliptateCLIKit
-#else
-  @testable import Cliptate
-#endif
+import CliptateCore
 
 @MainActor
 final class CLIRequestSessionTests: XCTestCase {

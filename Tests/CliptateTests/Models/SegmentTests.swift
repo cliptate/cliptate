@@ -1,3 +1,4 @@
+import CliptateCore
 import CoreGraphics
 import Foundation
 import Testing

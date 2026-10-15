@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 enum ModelPreparationError: LocalizedError, Equatable {

@@ -3,16 +3,20 @@ import Foundation
 /// 提供对 Segment 进行拆分的工具。
 /// 基于 words 之间的空白间隔进行智能分割。
 /// 设计目标：输入一组 segments，输出拆分后的新 segments（保持时间连续且不重叠）。
-enum SegmentSplit {
-  struct Options {
+public enum SegmentSplit {
+  public struct Options {
     /// 空白间隔阈值（秒）：当两个连续 word 之间的间隔超过此阈值时，在该位置分割 segment。
     /// <= 0 表示不启用分割。
-    var splitThreshold: TimeInterval = 0
+    public var splitThreshold: TimeInterval = 0
+
+    public init(splitThreshold: TimeInterval = 0) {
+      self.splitThreshold = splitThreshold
+    }
   }
 
   /// 执行拆分：
   /// 检测 segment 中 words 之间的空白间隔，如果间隔超过阈值则在该位置分割。
-  static func apply(segments: [Segment], options: Options) -> [Segment] {
+  public static func apply(segments: [Segment], options: Options) -> [Segment] {
     guard !segments.isEmpty else { return [] }
     guard options.splitThreshold > 0 else { return segments }
     

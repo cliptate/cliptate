@@ -45,8 +45,8 @@ For development:
 ```sh
 CLIPTATE_APP_STORE=NO ./scripts/build-and-run.sh build
 ".build/app/Build/Products/Debug/Cliptate Dev.app/Contents/Helpers/cliptate" --help
-swift build --product cliptate
-CLIPTATE_APP=/path/to/Cliptate.app swift run cliptate dictionary list
+swift build --product CliptateCLI
+CLIPTATE_APP=/path/to/Cliptate.app swift run CliptateCLI dictionary list
 ```
 
 `CLIPTATE_APP` selects a particular app bundle; otherwise the embedded helper uses

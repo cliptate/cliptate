@@ -1,8 +1,6 @@
 import CryptoKit
 import Foundation
-#if canImport(CliptateCLIKit)
-  import CliptateCLIKit
-#endif
+import CliptateCore
 
 /// Pure projection and pagination of retained sessions. No inference or file access.
 enum HistoryQuery {

@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 struct AICutProgressPresentation: Equatable {

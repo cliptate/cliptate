@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Speech activity segmenter backed by the Sortformer model (post-processing / offline).

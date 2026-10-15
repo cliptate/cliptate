@@ -81,9 +81,9 @@ class BundleAssemblyTests(unittest.TestCase):
         work = Path(directory)
         bin_path = work / "bin"
         bin_path.mkdir()
-        for name in ["CliptateApp", "cliptate"]:
+        for name in ["Cliptate", "CliptateCLI"]:
             (bin_path / name).write_bytes(name.encode())
-        for name in ["Cliptate_CliptateTests", "AudioKit_AudioKit", "mlx-swift_Cmlx"]:
+        for name in ["Cliptate_CliptateTests", "Cliptate_CliptateCoreTests", "AudioKit_AudioKit", "mlx-swift_Cmlx"]:
             bundle = bin_path / f"{name}.bundle/Contents/Resources"
             bundle.mkdir(parents=True)
             (bundle / ("default.metallib" if name == "mlx-swift_Cmlx" else "fixture")).write_bytes(b"resource")
@@ -127,17 +127,20 @@ class BundleAssemblyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             app, signed, calls = self.assemble(directory, "NO")
             self.assertTrue((app / "Contents/Helpers/cliptate").is_file())
-            self.assertEqual((app / "Contents/MacOS/Cliptate Dev").read_bytes(), b"CliptateApp")
-            self.assertEqual((app / "Contents/Helpers/cliptate").read_bytes(), b"cliptate")
+            self.assertEqual((app / "Contents/MacOS/Cliptate Dev").read_bytes(), b"Cliptate")
+            self.assertEqual((app / "Contents/Helpers/cliptate").read_bytes(), b"CliptateCLI")
             self.assertTrue((app / "Contents/Resources/de.lproj/Localizable.strings").is_file())
             self.assertTrue((app / "Contents/Resources/AudioKit_AudioKit.bundle").is_dir())
             self.assertFalse((app / "Contents/Resources/Cliptate_CliptateTests.bundle").exists())
+            self.assertFalse((app / "Contents/Resources/Cliptate_CliptateCoreTests.bundle").exists())
             self.assertTrue((app / "Contents/Frameworks/Sparkle.framework/Versions/Current").is_symlink())
             self.assertTrue(signed[-1]["com.apple.security.get-task-allow"])
             self.assertFalse(signed[-1].get("com.apple.security.app-sandbox", False))
             self.assertTrue(any("@executable_path/../Frameworks" in args for args, _ in calls))
             builds = [kwargs["env"]["CLIPTATE_APP_STORE"] for args, kwargs in calls if "--product" in args]
             self.assertEqual(builds, ["NO", "NO"])
+            products = [args[args.index("--product") + 1] for args, _ in calls if "--product" in args]
+            self.assertEqual(products, ["Cliptate", "CliptateCLI"])
 
     def test_store_release_has_no_helper_or_debugging_permissions(self):
         with tempfile.TemporaryDirectory() as directory:

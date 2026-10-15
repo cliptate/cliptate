@@ -1,7 +1,7 @@
+import CliptateCore
 import Foundation
 import Testing
 
-@testable import Cliptate
 
 @Suite("TranscriptSession history payload fields")
 struct TranscriptSessionHistoryTests {

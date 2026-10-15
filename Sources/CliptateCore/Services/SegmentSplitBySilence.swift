@@ -6,12 +6,12 @@ import Foundation
 /// split into separate segments at that point.
 ///
 /// This is the reusable version of the logic originally in `Qwen3ASRTranscriber.buildSegmentsFromWordTimings`.
-enum SegmentSplitBySilence {
-  struct Options: Sendable {
+public enum SegmentSplitBySilence {
+  public struct Options: Sendable {
     /// Gap threshold in seconds. Gaps above this force a split between words.
-    var splitThreshold: Double = 0.3
+    public var splitThreshold: Double = 0.3
 
-    init(splitThreshold: Double = 0.3) {
+    public init(splitThreshold: Double = 0.3) {
       self.splitThreshold = splitThreshold
     }
   }
@@ -22,7 +22,7 @@ enum SegmentSplitBySilence {
   ///
   /// Each input segment's word-level timings are used to detect silence gaps.
   /// Segments without word timings are passed through unchanged.
-  static func apply(segments: [Segment], options: Options) -> [Segment] {
+  public static func apply(segments: [Segment], options: Options) -> [Segment] {
     guard !segments.isEmpty else { return [] }
     var result: [Segment] = []
     result.reserveCapacity(segments.count)

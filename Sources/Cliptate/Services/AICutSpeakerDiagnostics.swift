@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Result of speaker capability diagnostics for the AI Cut workflow.

@@ -494,8 +494,8 @@ public struct MLXTTSModelDefinition: Identifiable, Sendable, Equatable, Hashable
     }
 }
 
-enum TTSScriptMetrics {
-    static func estimatedSpeechDuration(for text: String) -> Double {
+public enum TTSScriptMetrics {
+    public static func estimatedSpeechDuration(for text: String) -> Double {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return 0 }
 

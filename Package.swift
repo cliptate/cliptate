@@ -24,12 +24,13 @@ let package = Package(
         .macOS(.v15)
     ],
     products: [
-        // Keep app and CLI filenames distinct on case-insensitive macOS volumes.
+        // App and CLI filenames remain distinct on case-insensitive macOS volumes.
         .executable(
-            name: "CliptateApp",
+            name: "Cliptate",
             targets: ["Cliptate"]
         ),
-        .executable(name: "cliptate", targets: ["CliptateCommand"])
+        .executable(name: "CliptateCLI", targets: ["CliptateCLI"]),
+        .library(name: "CliptateCore", targets: ["CliptateCore"])
     ],
     dependencies: [
         .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0"),
@@ -49,13 +50,13 @@ let package = Package(
         .package(url: "https://github.com/huggingface/swift-huggingface.git", from: "0.8.0"),
     ],
     targets: [
-        .target(name: "CliptateCLIKit", path: "Sources/Cliptate/CLIShared"),
-        .executableTarget(name: "CliptateCommand", dependencies: ["CliptateCLIKit"],
+        .target(name: "CliptateCore"),
+        .executableTarget(name: "CliptateCLI", dependencies: ["CliptateCore"],
                           linkerSettings: releaseLinkerSettings),
         .executableTarget(
             name: "Cliptate",
             dependencies: [
-                "CliptateCLIKit",
+                "CliptateCore",
                 "KeyboardShortcuts",
                 .product(name: "Sparkle", package: "Sparkle"),
                 .product(name: "LaunchAtLogin", package: "LaunchAtLogin-Modern"),
@@ -77,7 +78,6 @@ let package = Package(
                 "Info.plist",
                 "Cliptate.entitlements",
                 "Cliptate-Direct.entitlements",
-                "CLIShared",
             ],
             resources: [
                 .process("Assets.xcassets"),
@@ -86,9 +86,10 @@ let package = Package(
             swiftSettings: channelSwiftSettings,
             linkerSettings: releaseLinkerSettings
         ),
+        .testTarget(name: "CliptateCoreTests", dependencies: ["CliptateCore"]),
         .testTarget(
             name: "CliptateTests",
-            dependencies: ["Cliptate", "CliptateCLIKit"],
+            dependencies: ["Cliptate", "CliptateCore"],
             path: "Tests/CliptateTests",
             resources: [
                 .copy("Resources")

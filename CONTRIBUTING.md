@@ -42,8 +42,11 @@ chore(release): prepare v1.1.0
 
 ## Code and resources
 
-Application code belongs in `Sources/Cliptate`. SwiftPM discovers tests automatically
-in `Tests/CliptateTests`. Historical Xcode UI
+Application code belongs in `Sources/Cliptate`, the command-line entry point in
+`Sources/CliptateCLI`, and shared data and processing in `Sources/CliptateCore`.
+Both executables depend on Core; Core must not depend on either executable.
+SwiftPM discovers app tests in `Tests/CliptateTests` and independent library tests
+in `Tests/CliptateCoreTests`. Historical Xcode UI
 placeholders are preserved in `Tests/Legacy/UITests`.
 Keep scripts independent of the current working directory and machine-specific paths.
 

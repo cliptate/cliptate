@@ -1,8 +1,8 @@
 import Foundation
 
 /// Builds display text from word timings while preserving per-word punctuation.
-enum WordTimingTextComposer {
-  static func composeText(from words: [WordTiming]) -> String {
+public enum WordTimingTextComposer {
+  public static func composeText(from words: [WordTiming]) -> String {
     var text = ""
     var lastToken = ""
 
@@ -24,7 +24,7 @@ enum WordTimingTextComposer {
     return text.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
-  static func endsWithSentencePunctuation(_ word: WordTiming) -> Bool {
+  public static func endsWithSentencePunctuation(_ word: WordTiming) -> Bool {
     SegmentationRules.shouldSplitAfter(word: word)
   }
 

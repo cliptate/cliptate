@@ -1,7 +1,22 @@
 # Architecture
 
-Cliptate is a native SwiftUI macOS application built as a SwiftPM executable target.
-The application lives in `Sources/Cliptate`; unit tests import that same module.
+Cliptate uses three SwiftPM modules with matching product names:
+
+- `CliptateCore` (`Sources/CliptateCore`) is the shared library for transcription data,
+  language and model metadata, transcript sessions, segment processing, and CLI
+  parsing, formatting, transport, and request sessions. It depends only on system
+  frameworks and does not import the application or its inference/UI dependencies.
+- `Cliptate` (`Sources/Cliptate`) is the SwiftUI app executable. It depends on Core
+  and owns UI, configuration, inference runtimes, billing, updates, and OS adapters.
+  Concrete transcriber construction and model access policy stay in this module.
+- `CliptateCLI` (`Sources/CliptateCLI`) is the command-line executable. It depends
+  only on Core and sends inference requests to the app, sharing its model lifecycle.
+  The app bundle installs this executable as `Contents/Helpers/cliptate`.
+
+`CliptateCoreTests` depends only on Core; `CliptateTests` covers the app and its
+integration with Core. The executable filenames also remain distinct on
+case-insensitive macOS filesystems.
+
 `scripts/app_bundle.py` assembles resources, Metal shaders, embedded code, and signing
 into a distributable `.app`. `config/app.json` owns version and update defaults;
 `Package.swift` and the root lockfile own the single dependency graph. [CONTEXT.md](../../CONTEXT.md) defines the domain vocabulary.
@@ -14,7 +29,7 @@ into a distributable `.app`. `config/app.json` owns version and update defaults;
 - **Configuration:** `AppConfiguration` owns settings. `ConfigurationRuntime` orders
   restoration, presets, persistence, and warmup.
 - **Command line:** `CliptateCommand` owns parsing, terminal output, and file writes;
-  the lightweight `CliptateCLIKit` target owns the CLI request session through
+  the shared `CliptateCore` library owns the CLI request session through
   `CLIRequestClient` and `CLIRequestServer`, alongside the wire protocol and formatters.
   The client owns authenticated startup retries; the server owns one-use credentials,
   transcription and TTS admission, ordered progress and terminal events, and disconnect cleanup.

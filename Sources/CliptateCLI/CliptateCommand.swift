@@ -2,9 +2,7 @@ import AppKit
 import Darwin
 import Foundation
 
-#if canImport(CliptateCLIKit)
-  import CliptateCLIKit
-#endif
+import CliptateCore
 
 @main
 struct CliptateCommand {

@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Runs a VAD -> ASR batch transcription flow without forced alignment.

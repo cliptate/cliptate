@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Unified post-ASR processing: dictionary bias → speaker annotation (graceful fallback).

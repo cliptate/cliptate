@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Minimal protocol for any ASR model that can transcribe a chunk of 16kHz mono audio.

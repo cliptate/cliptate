@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Billing is available only in App Store builds. Direct distribution is fully free.

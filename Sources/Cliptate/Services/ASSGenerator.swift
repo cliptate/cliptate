@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 public struct ASSStyleOptions: Sendable {

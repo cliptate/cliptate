@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Abstracts the Voice Activity Detection stage of the transcription pipeline.

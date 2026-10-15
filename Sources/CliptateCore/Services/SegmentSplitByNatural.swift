@@ -7,13 +7,13 @@ import NaturalLanguage
 /// scoring each by `nextTokenWeight / (1 + distanceFromCenter × 0.5)`.
 /// The winning break point is mapped to the nearest word-timing boundary
 /// when `words` is present; otherwise timing is interpolated by char ratio.
-enum SegmentSplitByNatural {
+public enum SegmentSplitByNatural {
 
-  struct Options: Sendable {
+  public struct Options: Sendable {
     /// Maximum characters per segment. Values <= 0 disable splitting.
-    var maxChars: Int = 50
+    public var maxChars: Int = 50
 
-    init(maxChars: Int = 50) {
+    public init(maxChars: Int = 50) {
       self.maxChars = maxChars
     }
   }
@@ -23,7 +23,7 @@ enum SegmentSplitByNatural {
   /// Apply NL-based splitting to a list of segments.
   /// Recursively splits any segment whose text exceeds `maxChars` until all
   /// segments are within the limit (or no further split point can be found).
-  static func apply(segments: [Segment], options: Options) -> [Segment] {
+  public static func apply(segments: [Segment], options: Options) -> [Segment] {
     guard !segments.isEmpty, options.maxChars > 0 else { return segments }
     var result: [Segment] = []
     result.reserveCapacity(segments.count)

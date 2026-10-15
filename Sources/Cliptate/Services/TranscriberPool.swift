@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// 键：区分不同转写器实例（类型 + 模型）

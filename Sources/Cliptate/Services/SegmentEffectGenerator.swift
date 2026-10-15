@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 enum SegmentEffectGenerator {

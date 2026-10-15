@@ -1,8 +1,6 @@
 import Foundation
 
-#if canImport(CliptateCLIKit)
-  import CliptateCLIKit
-#endif
+import CliptateCore
 
 /// Distribution configuration is separate from the APP_STORE accessibility capability gate.
 struct AppUpdateConfiguration {

@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Resolves model and precondition requirements for audio dubbing export.

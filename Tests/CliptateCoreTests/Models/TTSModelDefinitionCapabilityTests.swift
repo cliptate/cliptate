@@ -1,6 +1,6 @@
+import CliptateCore
 import Testing
 
-@testable import Cliptate
 
 /// Verifies that each Qwen3 TTS model family exposes the correct synthesis capabilities
 /// through `MLXTTSModelDefinition`. These properties drive which voice-mode tabs are

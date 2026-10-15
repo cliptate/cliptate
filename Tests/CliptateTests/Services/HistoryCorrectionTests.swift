@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-import CliptateCLIKit
+import CliptateCore
 
 @testable import Cliptate
 

@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Abstracts a single streaming transcription session (mic-to-text).

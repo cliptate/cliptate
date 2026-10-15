@@ -1,3 +1,4 @@
+import CliptateCore
 import Testing
 @testable import Cliptate
 

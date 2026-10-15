@@ -1,8 +1,6 @@
 import Combine
 import Foundation
-#if canImport(CliptateCLIKit)
-  import CliptateCLIKit
-#endif
+import CliptateCore
 
 @MainActor
 final class HistoryRuntime: ObservableObject {

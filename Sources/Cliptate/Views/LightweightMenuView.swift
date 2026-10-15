@@ -1,3 +1,4 @@
+import CliptateCore
 import SwiftUI
 
 /// Menu bar menu shown in lightweight mode (and always available as a status item).

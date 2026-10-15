@@ -1,9 +1,7 @@
 import Darwin
 import Foundation
 
-#if canImport(CliptateCLIKit)
-  import CliptateCLIKit
-#endif
+import CliptateCore
 
 /// Copies legacy sandbox data once; never removes originals or replaces direct-build data.
 enum DirectAppDataMigration {

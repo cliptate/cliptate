@@ -101,7 +101,7 @@ def copy_resources(bin_path, resources):
     # SwiftPM accessors search Bundle.main.resourceURL; exclude test fixtures left
     # by earlier swift test runs in the same output directory.
     for bundle in sorted(bin_path.glob("*.bundle")):
-        if bundle.name == "Cliptate_CliptateTests.bundle":
+        if bundle.name in {"Cliptate_CliptateTests.bundle", "Cliptate_CliptateCoreTests.bundle"}:
             continue
         shutil.copytree(bundle, resources / bundle.name, symlinks=True)
 
@@ -181,9 +181,9 @@ def build_app(values, destination, identity):
     env = {**os.environ, "CLIPTATE_APP_STORE": values["CLIPTATE_APP_STORE"]}
     command = [ROOT / "scripts/swift-safe.sh", "build", "--package-path", ROOT,
                "--configuration", values["CONFIGURATION"].lower(), "--force-resolved-versions"]
-    run(*command, "--product", "CliptateApp", env=env)
+    run(*command, "--product", "Cliptate", env=env)
     if values["CLIPTATE_APP_STORE"] == "NO":
-        run(*command, "--product", "cliptate", env=env)
+        run(*command, "--product", "CliptateCLI", env=env)
     bin_path = Path(run(*command, "--show-bin-path", env=env, capture=True).strip())
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".bundle-", dir=destination.parent) as temporary:
@@ -193,7 +193,7 @@ def build_app(values, destination, identity):
         executable = app / "Contents/MacOS" / values["PRODUCT_NAME"]
         executable.parent.mkdir(parents=True)
         resources.mkdir()
-        shutil.copy2(bin_path / "CliptateApp", executable)
+        shutil.copy2(bin_path / "Cliptate", executable)
         relocate(executable)
         copy_resources(bin_path, resources)
         info = info_plist(values)
@@ -212,7 +212,7 @@ def build_app(values, destination, identity):
         if values["CLIPTATE_APP_STORE"] == "NO":
             helper = app / "Contents/Helpers/cliptate"
             helper.parent.mkdir()
-            shutil.copy2(bin_path / "cliptate", helper)
+            shutil.copy2(bin_path / "CliptateCLI", helper)
             binaries.append(helper)
         if values["CONFIGURATION"] == "Release":
             for binary in binaries:

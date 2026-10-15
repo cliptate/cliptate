@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Shared pure helper that maps VAD speaker ranges onto ASR segments by maximum overlap.

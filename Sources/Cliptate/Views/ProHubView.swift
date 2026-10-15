@@ -1,3 +1,4 @@
+import CliptateCore
 import SwiftUI
 
 #if os(macOS)

@@ -1,3 +1,4 @@
+import CliptateCore
 import AVFoundation
 import AVKit
 import SwiftAssRenderer  // 恢复 ASS 字幕功能

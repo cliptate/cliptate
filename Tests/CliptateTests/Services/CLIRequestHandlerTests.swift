@@ -2,9 +2,7 @@ import XCTest
 
 @testable import Cliptate
 
-#if canImport(CliptateCLIKit)
-  import CliptateCLIKit
-#endif
+import CliptateCore
 
 final class CLIRequestHandlerTests: XCTestCase {
   @MainActor

@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// 默认字幕样式配置

@@ -1,3 +1,4 @@
+import CliptateCore
 import AVFoundation
 import CoreGraphics
 import Foundation
@@ -260,15 +261,7 @@ final class StreamingAudioCaptureModule {
     chunkScratchBuffer = Array(repeating: 0, count: samplesPerChunk)
 
     removeInputTapIfNeeded()
-    let capturedToken = sessionToken
-    inputNode.installTap(onBus: 0, bufferSize: 4096, format: tapFormat) { [weak self] buffer, _ in
-      // The audio thread reuses tap buffers; own the samples before handing them to an async task.
-      guard let buffer = Self.copyPCMBuffer(buffer) else { return }
-      Task { @MainActor [weak self] in
-        guard let self, self.sessionToken == capturedToken else { return }
-        await self.processBuffer(buffer, format: buffer.format)
-      }
-    }
+    installInputTap(on: inputNode, format: tapFormat, sessionToken: sessionToken)
     isTapInstalled = true
 
     audioEngine.prepare()
@@ -279,6 +272,21 @@ final class StreamingAudioCaptureModule {
       )
     }
     logger.notice("🎤 Audio pipeline started (chunk=\(String(format: "%.1f", self.configuration.chunkDuration))s)")
+  }
+
+  // AVFAudio invokes the tap on its own queue. Creating it outside MainActor
+  // prevents an inherited actor check from trapping before the explicit hop below.
+  private nonisolated func installInputTap(
+    on inputNode: AVAudioNode, format: AVAudioFormat, sessionToken capturedToken: UInt64
+  ) {
+    inputNode.installTap(onBus: 0, bufferSize: 4096, format: format) { [weak self] buffer, _ in
+      // The audio thread reuses tap buffers; own the samples before handing them to an async task.
+      guard let buffer = Self.copyPCMBuffer(buffer) else { return }
+      Task { @MainActor [weak self] in
+        guard let self, self.sessionToken == capturedToken else { return }
+        await self.processBuffer(buffer, format: buffer.format)
+      }
+    }
   }
 
   private func processBuffer(_ buffer: AVAudioPCMBuffer, format: AVAudioFormat) async {
@@ -647,6 +655,11 @@ final class StreamingAudioCaptureModule {
     self.engine = engine
     self.dictionaryContext = dictionaryContext
     self.streamingVAD = streamingVAD
+  }
+
+  /// Exercise the same callback installed on the microphone input node.
+  func testInstallInputTap(on node: AVAudioNode, format: AVAudioFormat) {
+    installInputTap(on: node, format: format, sessionToken: sessionToken)
   }
 
   func testProcessBuffer(_ buffer: AVAudioPCMBuffer) async {

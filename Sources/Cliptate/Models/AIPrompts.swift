@@ -1,3 +1,4 @@
+import CliptateCore
 enum AIPrompts {
     /// System prompt for dictation clean-up mode.
     static let dictationSystemPrompt = """

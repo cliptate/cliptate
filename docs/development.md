@@ -29,8 +29,14 @@ swift test
 ./scripts/run.sh
 ```
 
-SwiftPM builds the SwiftUI app executable (`CliptateApp`) and CLI (`cliptate`), and runs unit tests against
-that same app module. `scripts/build-and-run.sh` assembles and signs the actual
+SwiftPM builds the SwiftUI app executable (`Cliptate`), the command-line executable
+(`CliptateCLI`), and the shared library (`CliptateCore`). Both executables depend on
+Core. Core owns transcription data, model metadata, segment processing, and the CLI
+protocol/session. UI, configuration, inference runtimes, and distribution adapters
+live in the app. `CliptateCoreTests` tests the library independently; `CliptateTests`
+covers application behavior and integration. The bundler installs `CliptateCLI` as
+`Contents/Helpers/cliptate`, preserving the terminal command name.
+`scripts/build-and-run.sh` assembles and signs the actual
 `.app` using `scripts/app_bundle.py`; there is no Xcode project or second dependency
 graph. Full Xcode remains required for the SDK and resource/Metal compiler tools.
 Open `Package.swift` for IDE editing; use the script to run the bundled application.

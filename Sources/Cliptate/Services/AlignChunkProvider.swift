@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Abstracts the forced-alignment stage: maps an existing text transcript

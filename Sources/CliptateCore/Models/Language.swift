@@ -218,7 +218,7 @@ public enum Language: String, CaseIterable, Identifiable, Codable, Sendable {
   }
 
   // 支持翻译的常用语言（限制翻译选项）
-  static let translationSupported: [Language] = [
+  public static let translationSupported: [Language] = [
     .english, .chinese, .spanish, .french, .german, .italian, .portuguese,
     .russian, .japanese, .korean, .arabic, .hindi, .dutch, .swedish,
     .norwegian, .danish, .finnish, .polish, .czech, .hungarian, .romanian,

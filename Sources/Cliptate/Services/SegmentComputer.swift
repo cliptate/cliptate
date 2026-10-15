@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Pure-function segment processing pipeline.

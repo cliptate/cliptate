@@ -2,9 +2,7 @@ import AppKit
 import Foundation
 @preconcurrency import Network
 
-#if canImport(CliptateCLIKit)
-  import CliptateCLIKit
-#endif
+import CliptateCore
 
 /// Only direct builds create a listener. The App Store variant remains inert.
 @MainActor

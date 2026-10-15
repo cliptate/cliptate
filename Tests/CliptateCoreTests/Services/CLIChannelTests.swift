@@ -1,11 +1,8 @@
 @preconcurrency import Network
 import XCTest
 
-@testable import Cliptate
 
-#if canImport(CliptateCLIKit)
-  import CliptateCLIKit
-#endif
+import CliptateCore
 
 final class CLIChannelTests: XCTestCase {
   func testLaunchCredentialsRoundTripAndSeparateClientServerProofs() throws {

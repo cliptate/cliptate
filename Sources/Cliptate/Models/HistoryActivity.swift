@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Minimal activity metadata, independent of transcript and audio retention.

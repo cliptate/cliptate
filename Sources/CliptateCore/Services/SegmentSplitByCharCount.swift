@@ -7,13 +7,13 @@ import Foundation
 /// and start a new group.
 ///
 /// Segments without word timings are passed through unchanged.
-enum SegmentSplitByCharCount {
+public enum SegmentSplitByCharCount {
 
-  struct Options: Sendable {
+  public struct Options: Sendable {
     /// Maximum character count per segment. Values <= 0 disable splitting.
-    var maxChars: Int = 50
+    public var maxChars: Int = 50
 
-    init(maxChars: Int = 50) {
+    public init(maxChars: Int = 50) {
       self.maxChars = maxChars
     }
   }
@@ -21,7 +21,7 @@ enum SegmentSplitByCharCount {
   // MARK: - Public API
 
   /// Apply character-count-based splitting to a list of segments.
-  static func apply(segments: [Segment], options: Options) -> [Segment] {
+  public static func apply(segments: [Segment], options: Options) -> [Segment] {
     guard !segments.isEmpty else { return [] }
     guard options.maxChars > 0 else { return segments }
     var result: [Segment] = []

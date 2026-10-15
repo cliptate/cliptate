@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Orchestrates a complete VAD → ASR → Align batch transcription pipeline.

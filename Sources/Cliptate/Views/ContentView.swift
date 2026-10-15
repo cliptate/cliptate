@@ -1,3 +1,4 @@
+import CliptateCore
 import AVFoundation
 import AppKit
 import CoreGraphics

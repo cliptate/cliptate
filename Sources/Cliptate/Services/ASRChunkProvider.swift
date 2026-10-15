@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Abstracts the ASR (automatic speech recognition) stage: transcribes a

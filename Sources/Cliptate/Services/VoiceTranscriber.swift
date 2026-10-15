@@ -4,9 +4,7 @@ import CoreAudio
 import CoreGraphics
 import Foundation
 
-#if canImport(CliptateCLIKit)
-  import CliptateCLIKit
-#endif
+import CliptateCore
 import os.log
 
 #if canImport(os.signpost)

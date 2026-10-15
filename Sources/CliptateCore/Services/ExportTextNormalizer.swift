@@ -1,7 +1,7 @@
 import Foundation
 
-enum ExportTextNormalizer {
-  static func normalize(text: String, keepPunctuation: Bool) -> String {
+public enum ExportTextNormalizer {
+  public static func normalize(text: String, keepPunctuation: Bool) -> String {
     guard !keepPunctuation else {
       return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
@@ -12,7 +12,7 @@ enum ExportTextNormalizer {
       .trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
-  static func normalize(segments: [Segment], keepPunctuation: Bool) -> [Segment] {
+  public static func normalize(segments: [Segment], keepPunctuation: Bool) -> [Segment] {
     guard !keepPunctuation else { return segments }
     return segments.map { segment in
       var normalizedTranslation: SegmentTranslation? = nil
@@ -36,7 +36,7 @@ enum ExportTextNormalizer {
     }
   }
 
-  static func normalize(
+  public static func normalize(
     translations: [String: SegmentTranslation],
     keepPunctuation: Bool
   ) -> [String: SegmentTranslation] {

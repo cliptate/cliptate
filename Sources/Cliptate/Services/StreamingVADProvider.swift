@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 /// Abstracts the streaming VAD component injected into streaming ASR modules.

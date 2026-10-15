@@ -1,3 +1,4 @@
+import CliptateCore
 import AVFoundation
 import Foundation
 import Testing
@@ -81,6 +82,36 @@ struct StreamingAudioCaptureModuleAsyncTests {
       onInterimText: onInterimText
     )
     return StreamingAudioCaptureModule(configuration: config, callbacks: callbacks)
+  }
+
+  @Test("Microphone tap accepts background audio callbacks and owns reused buffers")
+  func microphoneTapAcceptsBackgroundCallbacks() async throws {
+    let levels = AsyncStream<CGFloat>.makeStream()
+    defer { levels.continuation.finish() }
+    let module = makeModule(onAudioLevel: { levels.continuation.yield($0) })
+    module.testConfigure(engine: MockStreamingASREngine(), language: .english)
+    let buffer = try speechBuffer()
+    let node = CapturingAudioTapNode()
+    module.testInstallInputTap(on: node, format: buffer.format)
+    let tap = BackgroundAudioTap(callback: try #require(node.callback))
+
+    await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+      DispatchQueue(label: "CliptateTests.audioTap").async {
+        tap.invoke(buffer)
+        // AVFAudio reuses this storage as soon as the callback returns.
+        buffer.floatChannelData?[0].update(repeating: 0, count: Int(buffer.frameLength))
+        continuation.resume()
+      }
+    }
+
+    var iterator = levels.stream.makeAsyncIterator()
+    let level = await iterator.next()
+    #expect(level == 0.5)
+    await module.testDrainPendingWork()
+    _ = try await module.stop()
+    let capture = try #require(module.takeFinalizedDictationCapture())
+    #expect(capture.samples.count == 8000)
+    #expect(capture.samples.allSatisfy { $0 == 0.5 })
   }
 
   // MARK: - Async Transcription Tests
@@ -474,7 +505,7 @@ struct StreamingAudioCaptureModuleAsyncTests {
     let source = try streamingAudioCaptureModuleSource()
     let preferredOutputIndex = try #require(source.range(of: "let preferredOutputFormat = inputNode.outputFormat(forBus: 0)"))
     let resolvedFormatIndex = try #require(source.range(of: "Self.resolvedTapFormat"))
-    let installTapIndex = try #require(source.range(of: "inputNode.installTap"))
+    let installTapIndex = try #require(source.range(of: "installInputTap(on: inputNode"))
     let startIndex = try #require(source.range(of: "try audioEngine.start()"))
 
     #expect(preferredOutputIndex.lowerBound < resolvedFormatIndex.lowerBound)
@@ -680,5 +711,26 @@ private actor DelayedSpeechVAD: StreamingVADProvider {
     try await Task.sleep(for: .milliseconds(20))
     concurrentFeeds -= 1
     return SortformerSpeechActivity(speechSampleRanges: [0..<samples.count])
+  }
+}
+
+/// AVFAudio invokes this Objective-C block on its own audio queue.
+private struct BackgroundAudioTap: @unchecked Sendable {
+  let callback: AVAudioNodeTapBlock
+
+  func invoke(_ buffer: AVAudioPCMBuffer) {
+    #expect(!Thread.isMainThread)
+    callback(buffer, AVAudioTime(sampleTime: 0, atRate: buffer.format.sampleRate))
+  }
+}
+
+private final class CapturingAudioTapNode: AVAudioMixerNode, @unchecked Sendable {
+  var callback: AVAudioNodeTapBlock?
+
+  override func installTap(
+    onBus bus: AVAudioNodeBus, bufferSize: AVAudioFrameCount, format: AVAudioFormat?,
+    block tapBlock: @escaping AVAudioNodeTapBlock
+  ) {
+    callback = tapBlock
   }
 }

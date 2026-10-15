@@ -1,3 +1,4 @@
+import CliptateCore
 import Foundation
 
 extension Notification.Name {

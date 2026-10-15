@@ -1,11 +1,7 @@
 import Foundation
 import Testing
 
-#if canImport(CliptateCLIKit)
-  import CliptateCLIKit
-#else
-  @testable import Cliptate
-#endif
+import CliptateCore
 
 @Suite("Development app isolation")
 struct AppIdentityTests {

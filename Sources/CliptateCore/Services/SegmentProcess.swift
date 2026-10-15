@@ -3,9 +3,9 @@ import Foundation
 /// 统一的 Segment 处理管线，可扩展多种操作（padding / split / merge ...）。
 /// 用法：SegmentProcess.process(segments:totalDuration:operations:)
 /// 默认按 operations 顺序执行。
-enum SegmentProcess {
+public enum SegmentProcess {
   /// 可用处理操作
-  enum Operation {
+  public enum Operation {
     case padding(leftMs: Int, rightMs: Int)
     case split(SegmentSplit.Options)
     case splitBySilence(SegmentSplitBySilence.Options)
@@ -15,7 +15,7 @@ enum SegmentProcess {
   }
 
   /// 主入口
-  static func process(segments: [Segment], totalDuration: TimeInterval?, operations: [Operation])
+  public static func process(segments: [Segment], totalDuration: TimeInterval?, operations: [Operation])
     -> [Segment]
   {
     guard !segments.isEmpty else { return [] }

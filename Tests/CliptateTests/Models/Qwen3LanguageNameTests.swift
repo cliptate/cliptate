@@ -1,7 +1,8 @@
+import CliptateCore
+@testable import Cliptate
 import Foundation
 import Testing
 
-@testable import Cliptate
 
 @Suite("Qwen3 language name mapping")
 struct Qwen3LanguageNameTests {

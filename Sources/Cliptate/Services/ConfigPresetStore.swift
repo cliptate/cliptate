@@ -1,8 +1,6 @@
 import Foundation
 
-#if canImport(CliptateCLIKit)
-  import CliptateCLIKit
-#endif
+import CliptateCore
 import SwiftUI
 
 // MARK: - ConfigPreset Models
