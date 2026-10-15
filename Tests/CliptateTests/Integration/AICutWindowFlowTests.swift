@@ -138,7 +138,7 @@ struct AICutWindowFlowTests {
 
     #expect(
       message
-        == "Please wait for the current AI Cut transcription to finish cancelling before starting another import."
+        == "Please wait for the current File Transcription to finish cancelling before starting another import."
     )
   }
 
@@ -149,7 +149,7 @@ struct AICutWindowFlowTests {
       hasPendingTranscriptionTask: true
     )
 
-    #expect(message == "Close the current AI Cut editor before importing more videos.")
+    #expect(message == "Close the current File Transcription editor before importing more videos.")
   }
 
   @Test("transcription task guard ignores stale finished generations")

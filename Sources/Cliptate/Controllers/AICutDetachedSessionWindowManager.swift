@@ -89,17 +89,18 @@ final class AICutDetachedSessionWindowManager {
   }
 
   private func sessionTitle(for urls: [URL]) -> String {
-    guard let first = urls.first else { return "AI Cut Session" }
+    guard let first = urls.first else { return String(localized: "File Transcription Session") }
     if urls.count == 1 {
-      return "AI Cut — \(first.lastPathComponent)"
+      return String(localized: "File Transcription: \(first.lastPathComponent)")
     }
-    return "AI Cut — \(first.lastPathComponent) +\(urls.count - 1)"
+    return String(localized: "File Transcription: \(first.lastPathComponent) +\(urls.count - 1)")
   }
 
   private func preferredSessionFrame() -> NSRect {
     if let sourceWindow = NSApp.windows
       .filter({
-        $0.title != "AI Cut Progress" && $0.title != "AI Cut Editor" && $0.isVisible
+        $0.title != AICutWindowCoordinator.progressWindowTitle
+          && $0.title != AICutWindowCoordinator.editorWindowTitle && $0.isVisible
       })
       .max(by: { lhs, rhs in
         lhs.frame.width * lhs.frame.height < rhs.frame.width * rhs.frame.height

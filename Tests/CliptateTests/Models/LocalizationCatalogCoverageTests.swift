@@ -81,7 +81,7 @@ struct LocalizationCatalogCoverageTests {
       "AI Enhance",
       "Clipboard Context",
       "Window Context",
-      "Language list matches the active Voice To Text ASR model.",
+      "Language list matches the active Voice Dictation ASR model.",
       "Language changed automatically from %@ to %@.",
       "%lld supported languages",
       "All languages",
@@ -89,6 +89,25 @@ struct LocalizationCatalogCoverageTests {
 
     let missingKeys = requiredKeys.filter { strings[$0] == nil }
     #expect(missingKeys.isEmpty, "Missing UI localization keys: \(missingKeys)")
+  }
+
+  @Test("voice feature names are consistent across supported languages")
+  func voiceFeatureNames() throws {
+    let strings = try Self.catalogStrings()
+    let names = [
+      "File Transcription": ["zh-Hans": "文件转录", "ja": "ファイル文字起こし", "ko": "파일 전사", "de": "Dateitranskription"],
+      "Voice Dictation": ["zh-Hans": "语音听写", "ja": "音声入力", "ko": "음성 받아쓰기", "de": "Sprachdiktat"],
+      "Voice Generation": ["zh-Hans": "语音生成", "ja": "音声生成", "ko": "음성 생성", "de": "Sprachgenerierung"],
+    ]
+    for (key, translations) in names {
+      let entry = strings[key] as? [String: Any]
+      let localizations = entry?["localizations"] as? [String: Any]
+      for (locale, expected) in translations {
+        let localized = localizations?[locale] as? [String: Any]
+        let unit = localized?["stringUnit"] as? [String: Any]
+        #expect(unit?["value"] as? String == expected, "Unexpected \(locale) name for \(key)")
+      }
+    }
   }
 
   @Test("subscription action labels use Chinese in zh-Hans")
@@ -188,7 +207,7 @@ struct LocalizationCatalogCoverageTests {
       "Enable the permissions below to unlock dictation and assistant features.",
       "Keyboard Shortcuts",
       "Set up quick toggles for dictation and assistant modes.",
-      "Manage in Voice To Text",
+      "Manage in Voice Dictation",
       "Set up shortcut",
       "Microphone Access",
       "Screen Recording",

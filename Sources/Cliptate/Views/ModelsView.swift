@@ -522,7 +522,7 @@ struct ModelsView: View {
       }
 
       Text(
-        "Shared ASR models used by AI Cut and Voice To Text are released after this idle period."
+        "Shared ASR models used by File Transcription and Voice Dictation are released after this idle period."
       )
       .font(.caption)
       .foregroundStyle(.secondary)

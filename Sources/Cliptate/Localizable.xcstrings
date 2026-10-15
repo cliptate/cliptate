@@ -1,6 +1,238 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "File Transcription Editor": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件转录编辑器"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル文字起こしエディタ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일 전사 편집기"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dateitranskriptionseditor"
+          }
+        }
+      }
+    },
+    "File Transcription Progress": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件转录进度"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル文字起こしの進捗"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일 전사 진행 상황"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortschritt der Dateitranskription"
+          }
+        }
+      }
+    },
+    "File Transcription Session": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件转录会话"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル文字起こしセッション"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일 전사 세션"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dateitranskriptionssitzung"
+          }
+        }
+      }
+    },
+    "File Transcription: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件转录：%@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル文字起こし：%@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일 전사: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dateitranskription: %@"
+          }
+        }
+      }
+    },
+    "File Transcription: %@ +%lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件转录：%@ +%lld"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル文字起こし：%@ +%lld"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일 전사: %@ +%lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dateitranskription: %@ +%lld"
+          }
+        }
+      }
+    },
+    "Usage Statistics": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用统计"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用状況"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사용 통계"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nutzungsstatistik"
+          }
+        }
+      }
+    },
+    "Dictation shortcut": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "听写快捷键"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音声入力のショートカット"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "받아쓰기 단축키"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diktierkurzbefehl"
+          }
+        }
+      }
+    },
+    "Assistant shortcut": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "助手快捷键"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アシスタントのショートカット"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "도우미 단축키"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assistenten-Kurzbefehl"
+          }
+        }
+      }
+    },
     "Back to History": {
       "comment": "Native UI navigation, dictionary, and language controls",
       "extractionState": "manual",
@@ -241,14 +473,13 @@
         }
       }
     },
-    "Language list matches the active Voice To Text ASR model.": {
-      "comment": "Native UI navigation, dictionary, and language controls",
+    "Language list matches the active Voice Dictation ASR model.": {
       "extractionState": "manual",
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "语言列表与当前语音转文字模型相匹配。"
+            "value": "语言列表与当前语音听写模型相匹配。"
           }
         },
         "ja": {
@@ -260,13 +491,13 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "언어 목록은 현재 음성 입력 모델에 맞게 표시됩니다."
+            "value": "언어 목록은 현재 음성 받아쓰기 모델에 맞게 표시됩니다."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Sprachen entsprechen dem aktiven Spracherkennungsmodell."
+            "value": "Die Sprachen entsprechen dem aktiven Sprachdiktatmodell."
           }
         }
       }
@@ -4902,61 +5133,31 @@
         }
       }
     },
-    "AI Cut" : {
-      "comment" : "Sidebar navigation label for AI Cut section",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "KI-Schnitt"
+    "File Transcription editor closed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件转录编辑器已关闭。"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI カット"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル文字起こしエディタを閉じました。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 컷"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일 전사 편집기가 닫혔습니다."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 剪辑"
-          }
-        }
-      }
-    },
-    "AI Cut editor closed." : {
-      "comment" : "AI Cut status message",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI Cut editor closed."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI カットエディターが閉じられました。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 컷 에디터가 닫혔습니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 剪辑编辑器已关闭。"
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dateitranskriptionseditor geschlossen."
           }
         }
       }
@@ -8668,13 +8869,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Clear File Transcription History"
+            "value" : "Verlauf der Dateitranskription löschen"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ファイル転写履歴をクリア"
+            "value" : "ファイル文字起こしの履歴を消去"
           }
         },
         "ko" : {
@@ -8720,34 +8921,34 @@
         }
       }
     },
-    "Clear Text To Sound History" : {
-      "comment" : "Button to clear Text To Sound section history",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Clear Text To Sound History"
+    "Clear Voice Generation History": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlauf der Sprachgenerierung löschen"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "テキストを音声にの履歴をクリア"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音声生成の履歴を消去"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "텍스트를 소리로 기록 지우기"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "음성 생성 기록 지우기"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除文字转语音历史记录"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除语音生成历史记录"
           }
         }
-      }
+      },
+      "extractionState": "manual"
     },
     "Clearing..." : {
       "localizations" : {
@@ -8862,31 +9063,31 @@
         }
       }
     },
-    "Close the current AI Cut editor before importing more videos." : {
-      "comment" : "Blocker: editor already open",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close the current AI Cut editor before importing more videos."
+    "Close the current File Transcription editor before importing more videos.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请关闭当前文件转录编辑器后再导入更多视频。"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "さらに動画をインポートする前に現在の AI カットエディターを閉じてください。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "さらに動画を読み込む前に、現在のファイル文字起こしエディタを閉じてください。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "더 많은 동영상을 가져오기 전에 현재 AI 컷 에디터를 닫으세요."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동영상을 더 가져오기 전에 현재 파일 전사 편집기를 닫으세요."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在导入更多视频之前，请关闭当前的 AI 剪辑编辑器。"
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schließe den aktuellen Dateitranskriptionseditor, bevor du weitere Videos importierst."
           }
         }
       }
@@ -11096,31 +11297,31 @@
         }
       }
     },
-    "Download AI models for transcription and text-to-speech" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Download AI models for transcription and text-to-speech"
+    "Download AI models for transcription and text-to-speech": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KI-Modelle für Transkription und Sprachgenerierung laden"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "転写とテキスト読み上げ用の AI モデルをダウンロード"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字起こしと音声生成用の AI モデルをダウンロード"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "전사 및 텍스트 음성 변환을 위한 AI 모델 다운로드"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "텍스트 변환 및 음성 생성용 AI 모델 다운로드"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下载用于转录和文字转语音的 AI 模型"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载用于转录和语音生成的 AI 模型"
           }
         }
       }
@@ -13885,31 +14086,31 @@
         }
       }
     },
-    "File Transcription" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "File Transcription"
+    "File Transcription": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件转录"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ファイル転写"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル文字起こし"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "파일 전사"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일 전사"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "文件转录"
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dateitranskription"
           }
         }
       }
@@ -14256,31 +14457,31 @@
         }
       }
     },
-    "Finish or cancel the current AI Cut import batch before starting another one." : {
-      "comment" : "Blocker: batch transcription already in progress",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Finish or cancel the current AI Cut import batch before starting another one."
+    "Finish or cancel the current File Transcription import batch before starting another one.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请完成或取消当前文件转录导入批次后，再开始新的批次。"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "別のバッチを開始する前に現在の AI カットインポートバッチを完了またはキャンセルしてください。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しいバッチを開始する前に、現在のファイル文字起こしの読み込みを完了またはキャンセルしてください。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "다른 배치를 시작하기 전에 현재 AI 컷 가져오기 배치를 완료하거나 취소하세요."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 일괄 작업을 시작하기 전에 현재 파일 전사 가져오기를 완료하거나 취소하세요."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请完成或取消当前 AI 剪辑导入批次，然后再开始另一个。"
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beende oder storniere den aktuellen Dateiimport, bevor du einen weiteren startest."
           }
         }
       }
@@ -16180,31 +16381,31 @@
         }
       }
     },
-    "Intelligent Video Editing" : {
-      "comment" : "AI Cut sidebar description",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Intelligenter Videoschnitt"
+    "Transcribe files and edit subtitles": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转录文件并编辑字幕"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "インテリジェント動画編集"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイルの文字起こしと字幕編集"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "지능형 동영상 편집"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일을 전사하고 자막 편집"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "智能视频剪辑"
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dateien transkribieren und Untertitel bearbeiten"
           }
         }
       }
@@ -18085,32 +18286,31 @@
         }
       }
     },
-    "Manage in Voice To Text" : {
-      "comment" : "Button to open voice to text settings",
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In Sprach-zu-Text verwalten"
+    "Manage in Voice Dictation": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Sprachdiktat verwalten"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音声入力で管理"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音声入力で管理"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "음성 텍스트 변환에서 관리"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "음성 받아쓰기에서 관리"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在语音转文字中管理"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在语音听写中管理"
           }
         }
       }
@@ -21165,30 +21365,31 @@
         }
       }
     },
-    "Open in AI Cut" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open in AI Cut"
+    "Open in File Transcription": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在文件转录中打开"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI Cut で開く"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル文字起こしで開く"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI Cut에서 열기"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일 전사에서 열기"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 AI Cut 中打开"
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Dateitranskription öffnen"
           }
         }
       }
@@ -22313,31 +22514,31 @@
         }
       }
     },
-    "Please wait for the current AI Cut transcription to finish cancelling before starting another import." : {
-      "comment" : "Blocker: transcription cancellation in progress",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Please wait for the current AI Cut transcription to finish cancelling before starting another import."
+    "Please wait for the current File Transcription to finish cancelling before starting another import.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请等待当前文件转录取消完成后，再开始新的导入。"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "別のインポートを開始する前に現在の AI カット転写のキャンセルが完了するまでお待ちください。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しい読み込みを開始する前に、現在のファイル文字起こしのキャンセルが完了するまでお待ちください。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "다른 가져오기를 시작하기 전에 현재 AI 컷 전사 취소가 완료되기를 기다리세요."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새로 가져오기 전에 현재 파일 전사 취소가 완료될 때까지 기다리세요."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请等待当前 AI 剪辑转录取消完成，然后再开始另一个导入。"
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warte, bis die aktuelle Dateitranskription abgebrochen wurde, bevor du einen weiteren Import startest."
           }
         }
       }
@@ -22543,31 +22744,31 @@
         }
       }
     },
-    "Preload text to speech model" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Preload text to speech model"
+    "Preload text to speech model": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modell für Sprachgenerierung vorladen"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "テキスト読み上げモデルをプリロード"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音声生成モデルを事前読み込み"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "텍스트 음성 변환 모델 사전 로드"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "음성 생성 모델 미리 로드"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "预加载文字转语音模型"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预加载语音生成模型"
           }
         }
       }
@@ -22771,31 +22972,31 @@
         }
       }
     },
-    "Preparing AI Cut session..." : {
-      "comment" : "Initial status when opening a detached AI Cut window",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Preparing AI Cut session..."
+    "Preparing File Transcription session...": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在准备文件转录会话…"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI カットセッションを準備中..."
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル文字起こしセッションを準備中…"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 컷 세션 준비 중..."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일 전사 세션 준비 중…"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在准备 AI 剪辑会话..."
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dateitranskriptionssitzung wird vorbereitet…"
           }
         }
       }
@@ -24211,30 +24412,31 @@
         }
       }
     },
-    "Re-open the source video in AI Cut editor" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Re-open the source video in AI Cut editor"
+    "Re-open the source video in the File Transcription editor": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在文件转录编辑器中重新打开源视频"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI Cut エディターでソース動画を再度開く"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル文字起こしエディタで元の動画を再度開く"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI Cut 에디터에서 소스 동영상 다시 열기"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일 전사 편집기에서 원본 동영상 다시 열기"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 AI Cut 编辑器中重新打开源视频"
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quellvideo im Dateitranskriptionseditor erneut öffnen"
           }
         }
       }
@@ -27285,30 +27487,31 @@
         }
       }
     },
-    "Shared ASR models used by AI Cut and Voice To Text are released after this idle period." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shared ASR models used by AI Cut and Voice To Text are released after this idle period."
+    "Shared ASR models used by File Transcription and Voice Dictation are released after this idle period.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件转录与语音听写共用的语音识别模型将在此空闲时间后释放。"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI Cut と Voice To Text で共有される ASR モデルはこのアイドル期間後に解放されます。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル文字起こしと音声入力で共有する音声認識モデルは、この待機時間後に解放されます。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI Cut 및 Voice To Text에서 공유되는 ASR 모델은 이 유휴 기간 후에 해제됩니다."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파일 전사와 음성 받아쓰기에서 공유하는 음성 인식 모델은 이 유휴 시간이 지나면 해제됩니다."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI Cut 和 Voice To Text 共用的 ASR 模型将在此空闲期后释放。"
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemeinsame Spracherkennungsmodelle für Dateitranskription und Sprachdiktat werden nach dieser Leerlaufzeit freigegeben."
           }
         }
       }
@@ -29643,32 +29846,31 @@
         }
       }
     },
-    "Text To Sound" : {
-      "comment" : "Sidebar navigation label for Text To Sound section",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Text zu Sprache"
+    "Voice Generation": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprachgenerierung"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "テキストを音声に"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音声生成"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "텍스트를 소리로"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "음성 생성"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "文字转语音"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语音生成"
           }
         }
       }
@@ -33373,33 +33575,34 @@
         }
       }
     },
-    "Voice Dictation" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voice Dictation"
+    "Voice Dictation": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprachdiktat"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音声ディクテーション"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音声入力"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "음성 받아쓰기"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "음성 받아쓰기"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "语音听写"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语音听写"
           }
         }
-      }
+      },
+      "extractionState": "manual"
     },
     "Voice Dubbing" : {
       "comment" : "Dubbing enable toggle group box label",
@@ -33543,59 +33746,31 @@
         }
       }
     },
-    "Voice To Text" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sprache zu Text"
+    "Voice To Text with Qwen3 uses this VAD model to detect speech before streaming chunk transcription.": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprachdiktat mit Qwen3 nutzt dieses VAD-Modell zur Spracherkennung vor der Transkription von Streaming-Abschnitten."
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音声テキスト変換"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qwen3 を使用した音声入力では、この VAD モデルで音声を検出してからストリーミング文字起こしを行います。"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "음성 텍스트 변환"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qwen3를 사용하는 음성 받아쓰기는 스트리밍 청크 변환 전에 이 VAD 모델로 음성을 감지합니다."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "语音转文字"
-          }
-        }
-      }
-    },
-    "Voice To Text with Qwen3 uses this VAD model to detect speech before streaming chunk transcription." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voice To Text with Qwen3 uses this VAD model to detect speech before streaming chunk transcription."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Qwen3 を使用した音声テキスト変換はストリーミングチャンク転写の前にこの VAD モデルを使用して音声を検出します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Qwen3를 사용한 음성 텍스트 변환은 스트리밍 청크 전사 전에 이 VAD 모델을 사용하여 음성을 감지합니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用 Qwen3 的语音转文字使用此 VAD 模型在流式块转录之前检测语音。"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 Qwen3 的语音听写会使用此 VAD 模型，在流式分块转录前检测语音。"
           }
         }
       }

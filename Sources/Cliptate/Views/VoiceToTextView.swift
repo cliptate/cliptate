@@ -61,6 +61,8 @@ struct VoiceToTextView: View {
   @State private var historyErrorMessage: String?
   @State private var lastCountedSessionID: UUID?
   @State private var showingUsageStatsResetDialog = false
+  @State private var isUsageExpanded = false
+  @State private var isIndicatorExpanded = false
   @AppStorage("historyShowSpeaker") private var historyShowSpeaker = true
   @AppStorage("historyShowTimestamp") private var historyShowTimestamp = true
 
@@ -187,11 +189,8 @@ struct VoiceToTextView: View {
   }
 
   private var primaryLayout: some View {
-    GeometryReader { proxy in
-      responsiveLayout(isCompact: proxy.size.width < 900)
-        .padding(16)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    }
+    mainPanel
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     .background(AppSurface.pageBackground)
     .appPageHeader {
       AppPageHeader {
@@ -288,37 +287,21 @@ struct VoiceToTextView: View {
     }
   }
 
-  @ViewBuilder
-  private func responsiveLayout(isCompact: Bool) -> some View {
-    mainPanel
-  }
-
   private var mainPanel: some View {
     ScrollView {
-      mainPanelContent
-        .padding(.bottom, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-  }
-
-  private var mainPanelContent: some View {
-    VStack(alignment: .leading, spacing: 0) {
-      VStack(alignment: .leading, spacing: 20) {
-        controls
-      }
+      controls
+        .frame(maxWidth: 960, alignment: .leading)
+        .padding(24)
+        .frame(maxWidth: .infinity, alignment: .top)
     }
   }
 
   private var header: some View {
     HStack(alignment: .center, spacing: 12) {
-      VStack(alignment: .leading, spacing: 2) {
-        Text("Voice To Text")
-          .font(.title2.weight(.semibold))
-          .accessibilityAddTraits(.isHeader)
-        Text("Dictate and transcribe audio in real time")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
+      AppPageTitle(
+        title: "Voice Dictation",
+        subtitle: String(localized: "Dictate and transcribe audio in real time")
+      )
 
       Spacer()
 
@@ -365,7 +348,7 @@ struct VoiceToTextView: View {
   }
 
   private var controls: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: 20) {
       warmupErrorLabel
 
       if let issue = transcriber.inputIssue {
@@ -375,18 +358,6 @@ struct VoiceToTextView: View {
           onDismiss: { transcriber.dismissInputIssue() }
         )
       }
-
-      usageStatsCards
-
-      // Shortcuts Section
-      shortcutModesSection
-
-      MicIndicatorStyleSettingsView(
-        selection: $config.micIndicatorStyle
-      )
-
-      Divider()
-        .padding(.vertical, 2)
 
       modelConfigurationCard
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -398,11 +369,37 @@ struct VoiceToTextView: View {
           refreshSelectedModelStatus()
           requestWarmupForSelectedModel(force: false, reason: .voiceToTextSelection)
         }
+
+      shortcutModesSection
+
+      VStack(alignment: .leading, spacing: 16) {
+        DisclosureGroup(isExpanded: $isIndicatorExpanded) {
+          MicIndicatorStyleSettingsView(selection: $config.micIndicatorStyle)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 12)
+        } label: {
+          HStack {
+            Text("Dictation Indicator")
+            Spacer()
+            Text(config.micIndicatorStyle.displayName)
+              .foregroundStyle(.secondary)
+          }
+        }
+
+        Divider()
+
+        DisclosureGroup("Usage Statistics", isExpanded: $isUsageExpanded) {
+          usageStatsCards
+            .padding(.top, 12)
+        }
+      }
+      .padding(16)
+      .background(AppSurface.cardBackground, in: RoundedRectangle(cornerRadius: 12))
     }
   }
 
   private var modelConfigurationCard: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: 14) {
       HStack {
         Text("Model Configuration")
           .font(.headline)
@@ -410,17 +407,16 @@ struct VoiceToTextView: View {
         Button {
           NotificationCenter.default.post(name: .openModelsLibrary, object: nil)
         } label: {
-          Label("Manage in Models", systemImage: "square.and.arrow.up")
-            .font(.caption)
+          Text("Manage in Models")
         }
         .buttonStyle(.bordered)
         .accessibilityLabel("Open Models page")
       }
 
-      Text(
-        "\(config.activeVoiceToTextTranscriberType.displayName) • \(config.activeVoiceToTextModelVariant.displayName)"
-      )
-        .font(.subheadline.weight(.medium))
+      LabeledContent("Model") {
+        Text(config.activeVoiceToTextModelVariant.displayName)
+          .textSelection(.enabled)
+      }
 
       ModelAwareLanguageSelectionView(
         title: String(localized: "Language"),
@@ -431,7 +427,7 @@ struct VoiceToTextView: View {
             model: config.activeVoiceToTextModelVariant
           )
         },
-        helpText: String(localized: "Language list matches the active Voice To Text ASR model.")
+        helpText: String(localized: "Language list matches the active Voice Dictation ASR model.")
       )
 
       switch selectedModelStatus {
@@ -453,9 +449,8 @@ struct VoiceToTextView: View {
           .foregroundStyle(.orange)
       }
     }
-    .padding(12)
-    .background(AppSurface.cardBackground)
-    .cornerRadius(8)
+    .padding(16)
+    .background(AppSurface.cardBackground, in: RoundedRectangle(cornerRadius: 12))
   }
 
   @ViewBuilder
@@ -472,7 +467,7 @@ struct VoiceToTextView: View {
 
     return VStack(alignment: .leading, spacing: 8) {
       LazyVGrid(
-        columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())],
+        columns: [GridItem(.adaptive(minimum: 220), alignment: .topLeading)],
         alignment: .leading,
         spacing: 8
       ) {
@@ -488,7 +483,6 @@ struct VoiceToTextView: View {
         }
         .buttonStyle(.borderless)
         .disabled(!stats.hasHistory)
-        .opacity(stats.hasHistory ? 1 : 0.4)
         .help("Clear all saved voice usage totals")
 
         Spacer()
@@ -500,7 +494,7 @@ struct VoiceToTextView: View {
   private func statsCardsContent(for stats: VoiceUsageStats) -> some View {
     usageStatCard(
       icon: "mic.fill",
-      tint: .accentColor,
+      tint: .secondary,
       title: "Total Voice Input",
       primary: formattedDurationText(stats.totalDuration),
       secondary: stats.sessionCount > 0
@@ -511,7 +505,7 @@ struct VoiceToTextView: View {
     let averageSpeed = stats.averageWordsPerMinute
     usageStatCard(
       icon: "character.cursor.ibeam",
-      tint: .accentColor,
+      tint: .secondary,
       title: "Generated Text",
       primary: String(localized: "\(formattedCount(stats.totalWords)) words", comment: "Voice stats: total word count"),
       secondary: averageSpeed > 0
@@ -521,7 +515,7 @@ struct VoiceToTextView: View {
 
     usageStatCard(
       icon: "bolt.fill",
-      tint: .accentColor,
+      tint: .secondary,
       title: "Time Saved",
       primary: formattedDurationText(stats.savedSeconds),
       secondary: String(localized: "Estimated 20 words/min composition typing", comment: "Voice stats: time saved estimation note")
@@ -548,16 +542,8 @@ struct VoiceToTextView: View {
         .font(.caption2)
         .foregroundStyle(.secondary)
     }
-    .padding(14)
+    .padding(.vertical, 8)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
-        .fill(AppSurface.cardBackground)
-    )
-    .overlay(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
-        .strokeBorder(AppSurface.border, lineWidth: 1)
-    )
   }
 
   private var shortcutModesSection: some View {
@@ -565,13 +551,15 @@ struct VoiceToTextView: View {
       Text("Shortcut Modes")
         .font(.headline)
 
-      HStack(alignment: .top, spacing: 0) {
-        // Dictation Mode
+      LazyVGrid(
+        columns: [GridItem(.adaptive(minimum: 320), alignment: .topLeading)],
+        alignment: .leading,
+        spacing: 16
+      ) {
         VStack(alignment: .leading, spacing: 8) {
-          Label("Dictation", systemImage: "bolt.horizontal.fill")
-            .font(.subheadline)
+          Label("Dictation", systemImage: "mic")
+            .font(.headline)
             .fontWeight(.semibold)
-            .foregroundStyle(Color.accentColor)
 
           Picker("Key", selection: Binding(
             get: { shortcutManager.dictationPreset },
@@ -582,6 +570,7 @@ struct VoiceToTextView: View {
             }
           }
           .labelsHidden()
+          .accessibilityLabel("Dictation shortcut")
           .frame(maxWidth: .infinity, alignment: .leading)
 
           Text("Tap to enter, Space to handsfree. AI Enhance uses context to improve accuracy.")
@@ -589,25 +578,22 @@ struct VoiceToTextView: View {
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
 
-          VStack(alignment: .leading, spacing: 6) {
+          Divider().padding(.vertical, 4)
+
+          VStack(alignment: .leading, spacing: 10) {
             alignedToggle("AI Enhance", binding: $config.voiceToTextDictationAIEnhanceEnabled)
             alignedToggle("Clipboard Context", binding: $config.aiIncludeClipboardContext)
             alignedToggle("Window Context", binding: $config.aiIncludeWindowContext)
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(AppSurface.cardBackground)
-        .cornerRadius(8)
+        .padding(16)
+        .background(AppSurface.cardBackground, in: RoundedRectangle(cornerRadius: 12))
 
-        Spacer().frame(width: 12)
-
-        // Assistant Mode
         VStack(alignment: .leading, spacing: 8) {
-          Label("Assistant", systemImage: "wand.and.stars")
-            .font(.subheadline)
+          Label("Assistant", systemImage: "text.bubble")
+            .font(.headline)
             .fontWeight(.semibold)
-            .foregroundStyle(Color.accentColor)
 
           Picker("Key", selection: Binding(
             get: { shortcutManager.assistantPreset },
@@ -618,6 +604,7 @@ struct VoiceToTextView: View {
             }
           }
           .labelsHidden()
+          .accessibilityLabel("Assistant shortcut")
           .frame(maxWidth: .infinity, alignment: .leading)
 
           Text("Voice assistant. Tap to enter, Space to handsfree. AI Enhance uses context to improve responses.")
@@ -625,7 +612,9 @@ struct VoiceToTextView: View {
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
 
-          VStack(alignment: .leading, spacing: 6) {
+          Divider().padding(.vertical, 4)
+
+          VStack(alignment: .leading, spacing: 10) {
             alignedToggle("AI Enhance", binding: $config.voiceToTextAssistantAIEnhanceEnabled)
             alignedToggle(
               "Clipboard Context",
@@ -638,9 +627,8 @@ struct VoiceToTextView: View {
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(AppSurface.cardBackground)
-        .cornerRadius(8)
+        .padding(16)
+        .background(AppSurface.cardBackground, in: RoundedRectangle(cornerRadius: 12))
       }
 
       // Phase indicator
@@ -683,13 +671,6 @@ struct VoiceToTextView: View {
         .cornerRadius(8)
       }
     }
-    .padding(16)
-    .background(AppSurface.pageBackground.opacity(0.5))
-    .cornerRadius(12)
-    .overlay(
-      RoundedRectangle(cornerRadius: 12)
-        .stroke(AppSurface.border, lineWidth: 1)
-    )
   }
 
   @ViewBuilder

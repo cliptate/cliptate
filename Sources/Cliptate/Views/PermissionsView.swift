@@ -141,7 +141,7 @@ struct PermissionsView: View {
             state: manager.hasShortcut ? .granted : .pending,
             buttonTitle: manager.hasShortcut
               ? String(
-                localized: "Manage in Voice To Text",
+                localized: "Manage in Voice Dictation",
                 comment: "Button to open voice to text settings"
               )
               : String(localized: "Set up shortcut", comment: "Button to configure shortcuts"),

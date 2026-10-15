@@ -20,6 +20,9 @@ enum AppSection: String, CaseIterable, Identifiable {
 
   var label: LocalizedStringKey {
     switch self {
+    case .aiCut: return "File Transcription"
+    case .voiceToText: return "Voice Dictation"
+    case .ttsStudio: return "Voice Generation"
     case .permissions: return "Getting Started"
     case .pro: return SubscriptionPolicy.isBillingEnabled ? "Pro" : "Free Access"
     case .setting: return "Settings"
@@ -43,7 +46,7 @@ enum AppSection: String, CaseIterable, Identifiable {
 
   var description: String {
     switch self {
-    case .aiCut: return String(localized: "Intelligent Video Editing", comment: "AI Cut sidebar description")
+    case .aiCut: return String(localized: "Transcribe files and edit subtitles")
     case .voiceToText: return String(localized: "Real-time dictation", comment: "Voice To Text sidebar description")
     case .history: return String(localized: "Transcript archives", comment: "History sidebar description")
     case .ttsStudio: return String(localized: "Generate narration clips", comment: "TTS Studio sidebar description")
@@ -287,6 +290,12 @@ struct ContentView: View {
           ProHubView()
         }
       }
+      // Keep a page's fitting size from enlarging the native navigation split view.
+      .frame(
+        minWidth: 0, maxWidth: .infinity,
+        minHeight: 0, maxHeight: .infinity,
+        alignment: .topLeading
+      )
       .background(AppSurface.pageBackground)
     }
     .navigationSplitViewStyle(.balanced)

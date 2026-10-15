@@ -6,9 +6,6 @@ struct MicIndicatorStyleSettingsView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
-      Label("Dictation Indicator", systemImage: "waveform")
-        .font(.headline)
-
       Text("Choose the appearance of the floating indicator. Changes apply immediately.")
         .font(.caption)
         .foregroundStyle(.secondary)
@@ -22,8 +19,6 @@ struct MicIndicatorStyleSettingsView: View {
       }
       .frame(maxWidth: 560, alignment: .leading)
     }
-    .padding(12)
-    .background(AppSurface.subtleFill, in: RoundedRectangle(cornerRadius: 12))
   }
 
   private func styleCard(_ style: MicIndicatorStyle) -> some View {

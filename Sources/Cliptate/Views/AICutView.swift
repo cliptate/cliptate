@@ -741,7 +741,7 @@ struct AICutView: View {
     selectedVideoURLs = []
     videoStates = [:]
     flowModel.cancelImport()
-    statusText = String(localized: "AI Cut editor closed.", comment: "AI Cut status message")
+    statusText = String(localized: "File Transcription editor closed.")
     onSessionEnded?()
   }
 
@@ -3691,15 +3691,15 @@ enum AICutImportGuard {
     hasPendingTranscriptionTask: Bool
   ) -> String? {
     if phase == .transcribing || phase == .readyToEdit {
-      return String(localized: "Finish or cancel the current AI Cut import batch before starting another one.", comment: "Blocker: batch transcription already in progress")
+      return String(localized: "Finish or cancel the current File Transcription import batch before starting another one.", comment: "Blocker: batch transcription already in progress")
     }
 
     if phase == .editing {
-      return String(localized: "Close the current AI Cut editor before importing more videos.", comment: "Blocker: editor already open")
+      return String(localized: "Close the current File Transcription editor before importing more videos.", comment: "Blocker: editor already open")
     }
 
     if hasPendingTranscriptionTask {
-      return String(localized: "Please wait for the current AI Cut transcription to finish cancelling before starting another import.", comment: "Blocker: transcription cancellation in progress")
+      return String(localized: "Please wait for the current File Transcription to finish cancelling before starting another import.", comment: "Blocker: transcription cancellation in progress")
     }
 
     return nil

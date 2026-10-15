@@ -3,6 +3,9 @@ import SwiftUI
 
 @MainActor
 final class AICutWindowCoordinator: ObservableObject {
+  static var editorWindowTitle: String { String(localized: "File Transcription Editor") }
+  static var progressWindowTitle: String { String(localized: "File Transcription Progress") }
+
   enum TransitionEvent: Equatable {
     case closeProgressWindow
     case runBeforeOpenAction
@@ -109,7 +112,7 @@ final class AICutWindowCoordinator: ObservableObject {
 
   func presentProgressWindow(content: AnyView, onCancelRequest: @escaping () -> Void) {
     let window = progressWindow ?? makeWindow(
-      title: "AI Cut Progress",
+      title: Self.progressWindowTitle,
       size: NSSize(width: 520, height: 360)
     )
 
@@ -137,7 +140,7 @@ final class AICutWindowCoordinator: ObservableObject {
       }
     }
 
-    update(window: window, title: "AI Cut Progress", content: content)
+    update(window: window, title: Self.progressWindowTitle, content: content)
     if !window.isVisible {
       // Capture the current app window BEFORE the progress window steals key focus.
       // This frame is used by preferredEditorFrame() when the editor opens later.
@@ -155,7 +158,7 @@ final class AICutWindowCoordinator: ObservableObject {
     editorContentHost.content = content
     guard let editorWindow else { return }
     ensureEditorHosting(in: editorWindow)
-    editorWindow.title = "AI Cut Editor"
+    editorWindow.title = Self.editorWindowTitle
   }
 
   func transitionFromProgressToEditor(
@@ -194,7 +197,7 @@ final class AICutWindowCoordinator: ObservableObject {
   ) {
     editorWindowCloseHandler = onCloseRequest
     if editorWindow == nil {
-      let window = makeWindow(title: "AI Cut Editor", frame: preferredEditorFrame())
+      let window = makeWindow(title: Self.editorWindowTitle, frame: preferredEditorFrame())
       window.minSize = NSSize(width: 1100, height: 720)
       let delegate = WindowDelegateProxy()
       delegate.willCloseHandler = { [weak self] in
@@ -210,7 +213,7 @@ final class AICutWindowCoordinator: ObservableObject {
         editorContentHost.content = content
         ensureEditorHosting(in: editorWindow)
       }
-      editorWindow.title = "AI Cut Editor"
+      editorWindow.title = Self.editorWindowTitle
     }
     if suppressWindowPresentationForTesting {
       editorWindow?.orderOut(nil)
@@ -278,7 +281,7 @@ final class AICutWindowCoordinator: ObservableObject {
 
   private func preferredEditorFrame() -> NSRect {
     // Return the CONTENT RECT for the new editor window (makeWindow uses contentRect:).
-    let excluded: Set<String> = ["AI Cut Editor", "AI Cut Progress"]
+    let excluded: Set<String> = [Self.editorWindowTitle, Self.progressWindowTitle]
 
     // Prefer the explicitly-captured source window (set before progress window
     // stole key focus). Fall back to the current key/main window, then scan all
@@ -373,7 +376,7 @@ extension AICutWindowCoordinator {
     testingProbe = TestingProbe()
     testingProbe?.reset()
     editorFrameSourceWindow = sourceWindow
-    progressWindow = makeWindow(title: "AI Cut Progress", size: NSSize(width: 520, height: 360))
+    progressWindow = makeWindow(title: Self.progressWindowTitle, size: NSSize(width: 520, height: 360))
   }
 
   func transitionFromProgressToEditorForTesting(

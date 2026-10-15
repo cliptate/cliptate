@@ -6,6 +6,16 @@ import Testing
 
 @Suite("Content navigation")
 struct ContentNavigationTests {
+  @Test("renamed voice destinations preserve restored navigation identifiers")
+  func voiceDestinationNames() {
+    #expect(AppSection.aiCut.label == LocalizedStringKey("File Transcription"))
+    #expect(AppSection(rawValue: "AI Cut") == .aiCut)
+    #expect(AppSection.voiceToText.label == LocalizedStringKey("Voice Dictation"))
+    #expect(AppSection.ttsStudio.label == LocalizedStringKey("Voice Generation"))
+    #expect(AppSection(rawValue: "Voice To Text") == .voiceToText)
+    #expect(AppSection(rawValue: "Text To Sound") == .ttsStudio)
+  }
+
   @Test("sidebar groups keep creation, library, and app destinations together")
   func sidebarGroups() {
     #expect(AppSidebarGroup.create.sections(requiresGettingStarted: false) == [.aiCut, .voiceToText, .ttsStudio])

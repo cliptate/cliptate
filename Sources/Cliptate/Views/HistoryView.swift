@@ -21,7 +21,7 @@ struct HistoryView: View {
     case all = "All"
     case dictation = "Dictation"
     case fileTranscription = "File"
-    case ttsSynthesis = "Text To Sound"
+    case ttsSynthesis = "Voice Generation"
 
     var systemImage: String {
       switch self {
@@ -231,7 +231,7 @@ struct HistoryView: View {
             historyRuntime.removeAll(source: .ttsSynthesis)
             pruneSelectedIfNeeded()
           } label: {
-            Label("Clear Text To Sound History", systemImage: "waveform.slash")
+            Label("Clear Voice Generation History", systemImage: "waveform.slash")
           }
           Divider()
           Button(role: .destructive) {
@@ -801,12 +801,12 @@ private struct HistoryDetailView: View {
         Button {
           openInAICut()
         } label: {
-          Label("Open in AI Cut", systemImage: "film.stack")
+          Label("Open in File Transcription", systemImage: "film.stack")
             .font(.caption.weight(.medium))
         }
         .buttonStyle(.bordered)
         .controlSize(.small)
-        .help("Re-open the source video in AI Cut editor")
+        .help("Re-open the source video in the File Transcription editor")
 
         Button {
           retranscribeFile()

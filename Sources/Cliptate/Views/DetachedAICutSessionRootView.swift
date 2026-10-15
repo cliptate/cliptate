@@ -11,7 +11,7 @@ struct DetachedAICutSessionRootView: View {
   @State private var videoStates: [URL: VideoState] = [:]
   @State private var isTranscribing = false
   @State private var isExporting = false
-  @State private var statusText = String(localized: "Preparing AI Cut session...", comment: "Initial status when opening a detached AI Cut window")
+  @State private var statusText = String(localized: "Preparing File Transcription session...")
   @State private var isInitializingModel = false
   @State private var modelDownloadProgress: ModelDownloadProgress?
   @State private var batchTranscriptionProgress: (current: Int, total: Int)?
