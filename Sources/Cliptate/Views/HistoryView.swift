@@ -164,7 +164,24 @@ struct HistoryView: View {
   }
 
   private var compactLayout: some View {
-    listPanel
+    VStack(spacing: 0) {
+      if selectedSessionID != nil {
+        HStack {
+          Button {
+            selectedSessionID = nil
+          } label: {
+            Label("Back to History", systemImage: "chevron.backward")
+          }
+          .keyboardShortcut(.escape, modifiers: [])
+          Spacer()
+        }
+        .padding(12)
+        Divider()
+        detailPanel
+      } else {
+        listPanel
+      }
+    }
   }
 
   // MARK: - List panel
@@ -299,39 +316,33 @@ struct HistoryView: View {
   }
 
   private var sessionList: some View {
-    ScrollView {
-      LazyVStack(alignment: .leading, spacing: 0, pinnedViews: .sectionHeaders) {
-        ForEach(groupedSessions, id: \.label) { group in
-          Section {
-            ForEach(group.sessions) { session in
-              HistoryRowView(
-                session: session,
-                isSelected: session.id == selectedSessionID,
-                onSelect: { selectedSessionID = session.id },
-                onCopy: { copySession(session) },
-                onDelete: {
+    List(selection: $selectedSessionID) {
+      ForEach(groupedSessions, id: \.label) { group in
+        Section(group.label) {
+          ForEach(group.sessions) { session in
+            HistoryRowView(session: session)
+              .tag(session.id)
+              .accessibilityIdentifier("history.session.\(session.id)")
+              .contextMenu {
+                Button {
+                  copySession(session)
+                } label: {
+                  Label("Copy transcript", systemImage: "doc.on.doc")
+                }
+                Button(role: .destructive) {
                   sessionToDelete = session
                   showingDeleteConfirmation = true
+                } label: {
+                  Label("Delete record", systemImage: "trash")
                 }
-              )
-              .padding(.horizontal, 10)
-              .padding(.vertical, 3)
-            }
-          } header: {
-            Text(group.label)
-              .font(.caption2.weight(.semibold))
-              .foregroundStyle(.tertiary)
-              .textCase(.uppercase)
-              .tracking(0.5)
-              .padding(.horizontal, 14)
-              .padding(.vertical, 5)
-              .frame(maxWidth: .infinity, alignment: .leading)
-              .background(.ultraThinMaterial)
+              }
           }
         }
       }
-      .padding(.bottom, 16)
     }
+    .listStyle(.inset)
+    .scrollContentBackground(.hidden)
+    .accessibilityLabel("History")
   }
 
   // MARK: - Detail panel
@@ -496,6 +507,7 @@ private struct FilterChip: View {
     }
     .buttonStyle(.plain)
     .onHover { isHovered = $0 }
+    .accessibilityAddTraits(isSelected ? [.isSelected] : [])
   }
 }
 
@@ -503,12 +515,6 @@ private struct FilterChip: View {
 
 private struct HistoryRowView: View {
   let session: TranscriptSession
-  let isSelected: Bool
-  let onSelect: () -> Void
-  let onCopy: () -> Void
-  let onDelete: () -> Void
-
-  @State private var isHovered = false
 
   private var effectiveSource: SessionSource { session.source ?? .voiceDictation }
 
@@ -521,53 +527,24 @@ private struct HistoryRowView: View {
         metaRow
       }
       Spacer(minLength: 0)
-      if isHovered || isSelected {
-        actionButtons
-          .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .trailing)))
-      }
     }
-    .padding(.horizontal, 10)
-    .padding(.vertical, 9)
-    .background(rowBackground)
-    .overlay(rowBorder)
-    .contentShape(RoundedRectangle(cornerRadius: 10))
-    .onTapGesture(perform: onSelect)
-    .onHover { isHovered = $0 }
-    .animation(.easeInOut(duration: 0.12), value: isHovered)
-  }
-
-  @ViewBuilder
-  private var rowBackground: some View {
-    RoundedRectangle(cornerRadius: 10)
-      .fill(
-        isSelected
-          ? AppSurface.selectedFill
-          : (isHovered ? AppSurface.hoverFill : AppSurface.cardBackground)
-      )
-  }
-
-  private var rowBorder: some View {
-    RoundedRectangle(cornerRadius: 10)
-      .stroke(
-        isSelected ? AppSurface.selectedBorder : AppSurface.border,
-        lineWidth: isSelected ? 1.2 : 1
-      )
+    .padding(.vertical, 6)
+    .accessibilityElement(children: .combine)
   }
 
   private var sourceIcon: some View {
-    let (icon, tint): (String, Color) = {
+    let icon: String = {
       switch effectiveSource {
-      case .voiceDictation: return ("mic.fill", .accentColor)
-      case .fileTranscription: return ("doc.text.fill", .accentColor)
-      case .ttsSynthesis: return ("waveform", .accentColor)
+      case .voiceDictation: return "mic.fill"
+      case .fileTranscription: return "doc.text.fill"
+      case .ttsSynthesis: return "waveform"
       }
     }()
     return Image(systemName: icon)
       .font(.caption.weight(.semibold))
-      .foregroundStyle(tint)
+      .foregroundStyle(.secondary)
       .frame(width: 28, height: 28)
-      .background(tint.opacity(0.12))
-      .clipShape(RoundedRectangle(cornerRadius: 7))
+      .accessibilityHidden(true)
   }
 
   private var titleRow: some View {
@@ -627,47 +604,24 @@ private struct HistoryRowView: View {
   private var metaRow: some View {
     HStack(spacing: 5) {
       if let type = session.transcriberType {
-        badge(type.displayName, tint: .secondary)
+        badge(type.displayName)
       }
       if let lang = session.language {
-        badge(lang.displayName, tint: .secondary)
+        badge(lang.displayName)
       }
       let words = voiceTextWordCount(in: session.combinedText)
       if words > 0 {
-        badge("\(words)w", tint: .secondary)
+        badge("\(words)w")
       }
     }
   }
 
-  private func badge(_ text: String, tint: Color) -> some View {
+  private func badge(_ text: String) -> some View {
     Text(text)
       .font(.caption2.weight(.medium))
       .padding(.horizontal, 5)
       .padding(.vertical, 2)
-      .background(tint.opacity(0.09))
-      .foregroundStyle(tint)
-      .clipShape(Capsule())
-  }
-
-  private var actionButtons: some View {
-    VStack(spacing: 4) {
-      Button(action: onCopy) {
-        Image(systemName: "doc.on.doc")
-          .font(.caption.weight(.semibold))
-          .foregroundStyle(.secondary)
-      }
-      .buttonStyle(.plain)
-      .help(String(localized: "Copy transcript", comment: "History: copy row button tooltip"))
-
-      Button(role: .destructive, action: onDelete) {
-        Image(systemName: "trash")
-          .font(.caption.weight(.semibold))
-          .foregroundStyle(.red)
-      }
-      .buttonStyle(.plain)
-      .help(String(localized: "Delete record", comment: "History: delete row button tooltip"))
-    }
-    .padding(.leading, 4)
+      .foregroundStyle(.secondary)
   }
 }
 

@@ -428,38 +428,7 @@ struct ModelsView: View {
 
   private var filterBar: some View {
     HStack(spacing: 12) {
-      // Category chips
-      HStack(spacing: 6) {
-        ForEach(ModelCategory.allCases) { category in
-          let style = Self.categoryStyle(for: category)
-          let isSelected = selectedCategory == category
-          Button {
-            selectedCategoryBinding.wrappedValue = category
-          } label: {
-            HStack(spacing: 5) {
-              Image(systemName: category.icon)
-                .font(.system(size: 11, weight: .semibold))
-              Text(category.displayName)
-                .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
-            }
-            .foregroundStyle(isSelected ? style.accent.color : Color.secondary)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 7)
-            .background(
-              Capsule()
-                .fill(isSelected ? AppSurface.selectedFill : Color.clear)
-            )
-            .overlay(
-              Capsule()
-                .stroke(
-                  isSelected ? AppSurface.selectedBorder : AppSurface.border,
-                  lineWidth: 1
-                )
-            )
-          }
-          .buttonStyle(.plain)
-        }
-      }
+      categoryPicker
 
       Spacer()
 
@@ -492,6 +461,7 @@ struct ModelsView: View {
         )
       }
       .buttonStyle(.plain)
+      .accessibilityAddTraits(showDownloadedOnly ? [.isSelected] : [])
     }
     .padding(.horizontal, 24)
     .padding(.vertical, 10)
@@ -680,37 +650,14 @@ struct ModelsView: View {
   }
 
   private var categoryPicker: some View {
-    HStack(spacing: 8) {
+    Picker("Model category", selection: selectedCategoryBinding) {
       ForEach(ModelCategory.allCases) { category in
-        let style = Self.categoryStyle(for: category)
-        let isSelected = selectedCategory == category
-        Button {
-          selectedCategoryBinding.wrappedValue = category
-        } label: {
-          HStack(spacing: 6) {
-            Image(systemName: category.icon)
-            Text(category.displayName)
-          }
-          .font(.system(size: 12, weight: isSelected ? .semibold : .medium))
-          .padding(.horizontal, 12)
-          .padding(.vertical, 7)
-          .background(
-            Capsule()
-              .fill(isSelected ? AppSurface.selectedFill : Color.clear)
-          )
-          .overlay(
-            Capsule()
-              .stroke(
-                isSelected ? style.accent.color.opacity(0.28) : AppSurface.border,
-                lineWidth: 1
-              )
-          )
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(isSelected ? style.accent.color : Color.secondary)
+        Text(category.displayName).tag(category)
       }
     }
-    .accessibilityLabel("Model category")
+    .pickerStyle(.segmented)
+    .labelsHidden()
+    .fixedSize()
   }
 
   private var asrProviderPicker: some View {
@@ -739,6 +686,7 @@ struct ModelsView: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(selectedASRProvider == provider ? [.isSelected] : [])
       }
       Spacer()
     }
@@ -770,6 +718,7 @@ struct ModelsView: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(selectedTTSProvider == provider ? [.isSelected] : [])
       }
       Spacer()
     }

@@ -9,7 +9,7 @@ struct TTSSynthesisView: View {
     @EnvironmentObject private var config: AppConfiguration
     @SceneStorage("ContentView.selectedSection") private var selectedSectionStorage: String = "AI Cut"
 
-    @State private var inputText: String = Self.defaultSample
+    @State private var inputText: String = ""
     @State private var isSynthesizing = false
     @State private var statusMessage: String?
     @State private var errorMessage: String?
@@ -422,10 +422,6 @@ struct TTSSynthesisView: View {
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 12) {
-                Text("Speaker")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
                 Picker("Speaker", selection: $config.ttsPresetSpeaker) {
                     Text("Default").tag("")
                     Divider()
@@ -1262,8 +1258,6 @@ struct TTSSynthesisView: View {
         return "\(prefix)-\(formatter.string(from: Date())).wav"
     }
 
-    private static let defaultSample =
-        "Introducing Cliptate — a macOS-native app that transcribes videos, filters out filler words, and exports studio-ready subtitles. Paste your launch script here to hear how it sounds."
 }
 
 private final class TTSPlaybackDelegate: NSObject, AVAudioPlayerDelegate {

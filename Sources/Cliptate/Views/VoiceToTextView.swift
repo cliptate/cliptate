@@ -423,7 +423,7 @@ struct VoiceToTextView: View {
         .font(.subheadline.weight(.medium))
 
       ModelAwareLanguageSelectionView(
-        title: "Language",
+        title: String(localized: "Language"),
         selectedLanguage: $config.voiceToTextLanguage,
         contextProvider: {
           .asr(
@@ -431,7 +431,7 @@ struct VoiceToTextView: View {
             model: config.activeVoiceToTextModelVariant
           )
         },
-        helpText: "Language list matches the active Voice To Text ASR model."
+        helpText: String(localized: "Language list matches the active Voice To Text ASR model.")
       )
 
       switch selectedModelStatus {
@@ -1021,7 +1021,7 @@ struct VoiceToTextView: View {
     EmptyView()
   }
 
-  private func alignedToggle(_ title: String, binding: Binding<Bool>) -> some View {
+  private func alignedToggle(_ title: LocalizedStringKey, binding: Binding<Bool>) -> some View {
     Toggle(isOn: binding) {
       HStack(spacing: 4) {
         Text(title)

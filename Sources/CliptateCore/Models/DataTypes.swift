@@ -817,25 +817,25 @@ public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable 
     case .parakeetV2:
       return String(localized: "English only", comment: "Language support indicator: model only supports English")
     case .parakeetV3:
-      return "25 supported languages"
+      return String(localized: "\(25) supported languages")
     case _ where self.isQwen3ASRModel:
-      return "52 supported languages"
+      return String(localized: "\(52) supported languages")
     case _ where self.isFireRedASRModel:
       return NSLocalizedString("Chinese dialects, English, mixed speech, lyrics", comment: "FireRed language summary")
     case _ where self.isCohereTranscribeModel:
-      return "14 supported languages"
+      return String(localized: "\(14) supported languages")
     case .nemotronASREnglish8bit:
       return String(localized: "English only")
     case .nemotronASR358bit, .nemotronASR35bf16:
       return String(localized: "Multilingual · automatic language detection")
     case _ where self.isQwen3AlignerModel:
-      return "11 supported languages"
+      return String(localized: "\(11) supported languages")
     case _ where self.isSortformerVADModel:
       return NSLocalizedString("Language independent", comment: "Sortformer language summary")
     case _ where self.isSileroVADModel:
       return NSLocalizedString("Language independent", comment: "Silero VAD language summary")
     default:
-      return "All languages"
+      return String(localized: "All languages")
     }
   }
 

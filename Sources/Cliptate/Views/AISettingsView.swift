@@ -151,13 +151,12 @@ struct AISettingsView: View {
   private struct AppearanceOption: Identifiable {
     let id: String
     let label: LocalizedStringKey
-    let icon: String
   }
 
   private let appearanceOptions: [AppearanceOption] = [
-    .init(id: "system", label: "Auto", icon: "circle.lefthalf.filled"),
-    .init(id: "light", label: "Light", icon: "sun.max"),
-    .init(id: "dark", label: "Dark", icon: "moon"),
+    .init(id: "system", label: "Auto"),
+    .init(id: "light", label: "Light"),
+    .init(id: "dark", label: "Dark"),
   ]
 
   private var appearanceSection: some View {
@@ -166,38 +165,15 @@ struct AISettingsView: View {
       subtitle: "Choose how Cliptate looks.",
       systemImage: "paintbrush"
     ) {
-      HStack(spacing: 6) {
+      Picker("Appearance", selection: $appAppearanceMode) {
         ForEach(appearanceOptions) { option in
-          Button {
-            appAppearanceMode = option.id
-            AppearanceManager.apply(mode: option.id)
-          } label: {
-            Label(option.label, systemImage: option.icon)
-              .font(.caption)
-              .lineLimit(1)
-              .frame(maxWidth: .infinity)
-              .padding(.vertical, 6)
-              .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                  .fill(
-                    appAppearanceMode == option.id
-                      ? AppSurface.selectedFill
-                      : AppSurface.subtleFill
-                  )
-              )
-              .overlay(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                  .stroke(
-                    appAppearanceMode == option.id ? AppSurface.selectedBorder : Color.clear,
-                    lineWidth: 1.5
-                  )
-              )
-              .foregroundStyle(
-                appAppearanceMode == option.id ? Color.accentColor : Color.primary
-              )
-          }
-          .buttonStyle(.plain)
+          Text(option.label).tag(option.id)
         }
+      }
+      .pickerStyle(.segmented)
+      .labelsHidden()
+      .onChange(of: appAppearanceMode) { _, mode in
+        AppearanceManager.apply(mode: mode)
       }
     }
   }

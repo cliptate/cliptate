@@ -69,6 +69,28 @@ struct LocalizationCatalogCoverageTests {
     )
   }
 
+  @Test("native navigation and dictation controls have localization entries")
+  func nativeUIControlKeys() throws {
+    let strings = try Self.catalogStrings()
+    let requiredKeys = [
+      "Back to History",
+      "1 entry",
+      "%lld entries",
+      "Changes are saved automatically.",
+      "Remove %@",
+      "AI Enhance",
+      "Clipboard Context",
+      "Window Context",
+      "Language list matches the active Voice To Text ASR model.",
+      "Language changed automatically from %@ to %@.",
+      "%lld supported languages",
+      "All languages",
+    ]
+
+    let missingKeys = requiredKeys.filter { strings[$0] == nil }
+    #expect(missingKeys.isEmpty, "Missing UI localization keys: \(missingKeys)")
+  }
+
   @Test("subscription action labels use Chinese in zh-Hans")
   func subscriptionActionLabelsUseChineseInZhHans() throws {
     let strings = try Self.catalogStrings()

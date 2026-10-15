@@ -3,7 +3,6 @@ import SwiftUI
 struct DictionaryManagerView: View {
     @EnvironmentObject private var config: AppConfiguration
     @State private var editorText: String = ""
-    @State private var isFocused = false
 
     private var normalizedEditorEntries: [String] {
         AppConfiguration.normalizeDictionaryEntries(
@@ -51,45 +50,16 @@ struct DictionaryManagerView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            statsRow
-        }
-    }
-
-    private var statsRow: some View {
-        HStack(spacing: 12) {
-            statPill(
-                label: "\(activeEntries.count)",
-                icon: "text.badge.checkmark",
-                tint: .green,
-                subtitle: "active"
-            )
-            statPill(
-                label: "\(normalizedEditorEntries.count)",
-                icon: "pencil",
-                tint: .accentColor,
-                subtitle: "pending"
-            )
-        }
-    }
-
-    private func statPill(label: String, icon: String, tint: Color, subtitle: String) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(tint)
-            VStack(alignment: .leading, spacing: 0) {
-                Text(label)
-                    .font(.callout.weight(.bold))
-                    .foregroundStyle(.primary)
-                Text(subtitle)
-                    .font(.caption2)
+            VStack(alignment: .trailing, spacing: 3) {
+                Text(activeEntries.count == 1
+                    ? String(localized: "1 entry")
+                    : String(localized: "\(activeEntries.count) entries"))
+                    .font(.callout.monospacedDigit())
+                Text("Changes are saved automatically.")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(tint.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
     // MARK: - Editor panel
@@ -104,6 +74,8 @@ struct DictionaryManagerView: View {
                 .padding(16)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(AppSurface.inputBackground)
+                .accessibilityLabel("Custom Dictionary")
+                .accessibilityHint("One entry per line")
                 .onChange(of: editorText) { _, _ in saveChanges() }
         }
         .background(AppSurface.cardBackground)
@@ -184,6 +156,7 @@ struct DictionaryManagerView: View {
                     .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(String(localized: "Remove \(entry)", comment: "Remove a dictionary entry"))
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)

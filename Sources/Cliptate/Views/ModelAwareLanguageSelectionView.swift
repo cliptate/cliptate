@@ -14,22 +14,18 @@ struct ModelAwareLanguageSelectionView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
-        Text(title)
-          .font(.caption)
-          .foregroundStyle(.secondary)
+        Picker(title, selection: $selectedLanguage) {
+          ForEach(availableLanguages, id: \.self) { language in
+            Text(language.displayName).tag(language)
+          }
+        }
+        .pickerStyle(.menu)
+        .disabled(availableLanguages.isEmpty)
         if isLoadingLanguages {
           ProgressView()
             .controlSize(.small)
         }
       }
-
-      Picker(title, selection: $selectedLanguage) {
-        ForEach(availableLanguages, id: \.self) { language in
-          Text(language.displayName).tag(language)
-        }
-      }
-      .pickerStyle(.menu)
-      .disabled(availableLanguages.isEmpty)
 
       if let helpText {
         Text(helpText)
@@ -84,7 +80,7 @@ struct ModelAwareLanguageSelectionView: View {
       let fallback = sorted.first ?? previous
       selectedLanguage = fallback
       automaticChangeNotice =
-        "Language changed automatically from \(previous.displayName) to \(fallback.displayName)."
+        String(localized: "Language changed automatically from \(previous.displayName) to \(fallback.displayName).")
     }
   }
 }
