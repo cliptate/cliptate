@@ -15,7 +15,7 @@ help: ## Show task entry points
 resolve: ## Resolve locked Swift packages
 	swift package resolve --force-resolved-versions
 
-build: ## Build the SwiftPM library
+build: ## Build the SwiftPM app executable and CLI
 	swift build
 
 test: ## Run SwiftPM tests
@@ -24,7 +24,7 @@ test: ## Run SwiftPM tests
 automation-test: ## Test release automation without publishing
 	$(PYTHON) -m unittest discover -s Tests/Automation -v
 
-app: ## Build the Debug app with Xcode
+app: ## Assemble and sign the Debug app with SwiftPM
 	./scripts/build-and-run.sh build
 
 run: ## Build and launch Cliptate Dev

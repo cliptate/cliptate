@@ -36,10 +36,10 @@ skipped cloud steps. Later invocations reuse act's action cache in offline mode.
 
 ```bash
 make resolve          # Resolve locked packages
-make build            # SwiftPM library
+make build            # SwiftPM app executable and CLI
 make test             # SwiftPM tests
 make automation-test  # Offline release regression checks
-make app              # Xcode Debug app
+make app              # SwiftPM Debug app bundle
 make run              # Launch Cliptate Dev
 make dmg              # Ad-hoc direct-download Release DMG
 make ci               # Full Test workflow through act

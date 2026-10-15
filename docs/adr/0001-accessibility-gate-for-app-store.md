@@ -21,17 +21,17 @@ Store binary neither requests nor links `AXIsProcessTrusted*`, `CGEvent`,
 ## Consequences
 
 - The flag direction remains **App Store when `APP_STORE` is defined**.
-  Release defaults to that condition in Xcode and SwiftPM. Debug (Cliptate Dev)
+  Release defaults to that condition in SwiftPM. Debug (Cliptate Dev)
   defaults to direct distribution so local development exercises Accessibility,
   the free feature policy, and the embedded CLI without App Sandbox.
   `CLIPTATE_APP_STORE=YES` explicitly selects the App Store channel in the build
-  script or SwiftPM; `NO` selects direct distribution. The Xcode Debug defaults
-  can also be overridden through channel settings. The capability seam itself
-  is unchanged.
+  script or SwiftPM; `NO` selects direct distribution. The bundler uses the same
+  channel for compilation, CLI embedding, and signing entitlements. The capability
+  seam itself is unchanged.
 - **Call sites never use `#if`** — they read `AccessibilityGate.isSupported` (a
   plain compile-time bool) or call its methods. Retiring the App Store channel is
-  deleting the one `#if APP_STORE` branch and the one Xcode flag; call sites are
-  untouched and `isSupported` becomes a constant `true`.
+  deleting the one `#if APP_STORE` branch and the package compilation flag; call
+  sites are untouched and `isSupported` becomes a constant `true`.
 - Default App Store builds fall back to review-safe paths: clipboard copy
   instead of text injection, local-only shortcut monitoring instead of
   `CGEventTap` or global key monitoring, and the Accessibility permission row is

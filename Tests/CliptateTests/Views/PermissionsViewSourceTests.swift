@@ -85,29 +85,6 @@ struct PermissionsViewSourceTests {
     #expect(content.contains("requestAccessibility()") == false)
   }
 
-  @Test("Xcode defaults Dev to direct distribution and Release to App Store")
-  func defaultXcodeBuildChannels() throws {
-    let content = try xcodeProjectSource()
-
-    #expect(content.contains(#"SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited) $(CLIPTATE_CHANNEL_CONDITIONS)";"#))
-    #expect(content.contains(#"SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) $(CLIPTATE_CHANNEL_CONDITIONS)";"#))
-    let configuration = try projectFileSource("config/Cliptate.xcconfig")
-    #expect(configuration.contains("CLIPTATE_CHANNEL_CONDITIONS = APP_STORE"))
-    #expect(configuration.contains("CLIPTATE_CHANNEL_CONDITIONS[config=Debug] =\n"))
-    #expect(configuration.contains("CLIPTATE_ENABLE_APP_SANDBOX[config=Debug] = NO"))
-    #expect(configuration.contains("CLIPTATE_CODE_SIGN_ENTITLEMENTS[config=Debug] = $(SRCROOT)/Sources/Cliptate/Cliptate-Direct.entitlements"))
-    #expect(configuration.contains("CLIPTATE_CLI_URL_SCHEME[config=Debug] = cliptate-dev-cli\n"))
-  }
-
-  @Test("generated Xcode app Info.plist declares no non-exempt encryption")
-  func generatedXcodeAppInfoPlistDeclaresNoNonExemptEncryption() throws {
-    let content = try xcodeProjectSource()
-    let declaration = "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;"
-
-    #expect(content.contains(declaration))
-    #expect(content.components(separatedBy: declaration).count - 1 == 2)
-  }
-
   @Test("Swift package defaults only Release to App Store and supports explicit overrides")
   func defaultSwiftPackageBuildChannels() throws {
     let content = try packageManifestSource()
@@ -115,16 +92,6 @@ struct PermissionsViewSourceTests {
     #expect(content.contains(#".define("APP_STORE")"#))
     #expect(content.contains(#".define("APP_STORE", .when(configuration: .release))"#))
     #expect(content.contains(#"case "NO": channelSwiftSettings = []"#))
-  }
-
-  @Test("Swift package keeps macOS app entry point out of raw executable builds")
-  func swiftPackageKeepsMacOSAppEntryPointOutOfRawExecutableBuilds() throws {
-    let content = try packageManifestSource()
-
-    #expect(content.contains(".library("))
-    #expect(content.contains(".target("))
-    #expect(content.contains(#""Cliptate.swift","#))
-    // A lightweight CLI is allowed; the SwiftUI app entry still belongs to Xcode.
   }
 
   private func permissionsViewSource() throws -> String {
@@ -137,10 +104,6 @@ struct PermissionsViewSourceTests {
 
   private func micOverlaySource() throws -> String {
     try projectFileSource("Sources/Cliptate/Utilities/MicIndicatorOverlay.swift")
-  }
-
-  private func xcodeProjectSource() throws -> String {
-    try projectFileSource("Cliptate.xcodeproj/project.pbxproj")
   }
 
   private func packageManifestSource() throws -> String {

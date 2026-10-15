@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- An Apple Silicon Mac running macOS 15 or newer (the Xcode test target requires 15.5).
+- An Apple Silicon Mac running macOS 15 or newer.
 - Xcode 26 or newer with Swift 6.2 or newer and the macOS SDK.
 - Internet access for the first dependency resolution and model downloads.
 
@@ -29,13 +29,23 @@ swift test
 ./scripts/run.sh
 ```
 
-SwiftPM builds the library and runs unit tests. It deliberately excludes the `@main`
-app entry point. Use `Cliptate.xcodeproj` or the build script for the actual application
-bundle, resource compilation, sandbox entitlements, and MLX Metal integration.
+SwiftPM builds the SwiftUI app executable (`CliptateApp`) and CLI (`cliptate`), and runs unit tests against
+that same app module. `scripts/build-and-run.sh` assembles and signs the actual
+`.app` using `scripts/app_bundle.py`; there is no Xcode project or second dependency
+graph. Full Xcode remains required for the SDK and resource/Metal compiler tools.
+Open `Package.swift` for IDE editing; use the script to run the bundled application.
 Debug builds produce **Cliptate Dev.app** with bundle identifier `com.cliptate.dev`.
-The shared **Cliptate Dev** Xcode scheme runs, tests, profiles, and archives this
-Debug app. Release builds retain **Cliptate.app** and the production identifier
-`com.voicepink.voicepinkpro`; CI packaging always selects Release.
+Release builds retain **Cliptate.app** and the production identifier
+`com.voicepink.voicepinkpro`; CI packaging always selects Release. Products are in
+`.build/app/Build/Products/<configuration>`; `APP_BUILD_DIR` overrides the products
+root. Existing `DERIVED_DATA_PATH` overrides still select `<path>/Build/Products`.
+
+The bundler compiles asset catalogs and string catalogs into the main app resources,
+copies dependency resource bundles and Sparkle, embeds the CLI for direct builds,
+and signs nested code before the application. It removes build-machine framework
+search paths and adds a path relative to the app executable. Swift Build can compile
+MLX shaders itself; for SwiftPM's native backend the bundler compiles the pinned
+MLX package's prepared Metal sources into `mlx-swift_Cmlx.bundle`.
 
 ### Preserve installed privacy permissions during development
 
@@ -55,8 +65,8 @@ accidentally supplies the production feed and signing key.
 
 The build script automatically selects a single available **Apple Development**
 identity, keeping development consent stable across rebuilds. If multiple identities
-are available, select one with `CODE_SIGN_IDENTITY` and `DEVELOPMENT_TEAM`. For IDE
-launches, set `CLIPTATE_DEVELOPMENT_TEAM` in the ignored `config/Local.xcconfig`.
+are available, select one with `CODE_SIGN_IDENTITY` and `DEVELOPMENT_TEAM`. You can
+also set `CLIPTATE_DEVELOPMENT_TEAM` in the ignored `config/Local.json`.
 Without a certificate the script falls back to ad-hoc signing and disables Hardened
 Runtime; this works for public source builds, but development consent can reset
 after rebuilding. See Apple's
@@ -92,7 +102,7 @@ again in System Settings; development does not copy production consent.
 ## DMG packages and CI downloads
 
 The **Test** workflow (`.github/workflows/ci.yml`) resolves the locked dependencies,
-builds the SwiftPM library, verifies license notices, and runs unit tests on every
+builds the SwiftPM executables, verifies license notices, and runs unit tests on every
 push (all branches and tags) and pull request. It also supports manual runs.
 New pushes do not cancel tests for earlier commits.
 
@@ -101,15 +111,15 @@ the macOS build, Xcode/Swift versions, and dependency inputs. Test runs cache th
 SwiftPM `.build` directory per commit and can restore the latest build with the
 same manifest and lockfile. Unchanged dependency products can be reused; fresh
 checkout timestamps may still cause project sources to recompile. Locked resolution,
-library builds, and all tests still run on cache hits.
+executable builds, and all tests still run on cache hits.
 
-Packaging caches only SwiftPM downloads/state and Xcode's `SourcePackages`, keyed
-by both lockfiles, the manifest, and the Xcode project. It builds and signs the app
-on every run. Signing credentials, update configuration, app bundles, and installers
+Packaging caches only SwiftPM downloads/state, keyed by the manifest and the
+single root `Package.resolved`. It builds and signs the app on every run.
+Signing credentials, update configuration, app bundles, and installers
 are outside the cached paths. Test and release caches use separate keys and paths.
 The first run for new dependency inputs or a changed toolchain populates the cache;
 later runs benefit from it. Compare the cache restore/save, resolution, and build
-step durations in Actions to measure the net improvement. Increment the `v1` cache
+step durations in Actions to measure the net improvement. Increment the cache version
 prefix in the relevant workflow to discard old entries if needed.
 
 The independent **Package and release** workflow (`.github/workflows/package.yml`)
@@ -348,10 +358,10 @@ App-Specific Passwords**. Enter it directly into the repository secret or a trus
 local setup terminal; do not put it in chat, logs, shell history, or source files.
 Test runs do not consume signing credentials.
 
-Release builds disable Xcode's base entitlement injection for the app and embedded CLI
-so neither carries the debugging-only `com.apple.security.get-task-allow` permission.
-Signed packaging checks the actual app entitlements before creating the DMG;
-Debug builds retain Xcode's normal debugger configuration.
+The bundler adds `com.apple.security.get-task-allow` only in Debug. Release app
+and CLI signatures omit it. Signed packaging checks the actual app entitlements
+before creating the DMG. Hardened Runtime and secure timestamps are enabled for
+certificate-backed signatures and omitted for ad-hoc builds.
 
 The package workflow imports exactly one matching Developer ID identity into a
 temporary keychain, builds with Hardened Runtime and a secure timestamp, signs
@@ -383,24 +393,24 @@ For focused checks:
 
 ```bash
 swift test --filter SegmentTests
-xcodebuild -project Cliptate.xcodeproj -scheme Cliptate \
-  -destination 'platform=macOS' CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
-  DEVELOPMENT_TEAM= test
+./scripts/build-and-run.sh --verify
 ```
 
-Hardware/model tests may require downloaded models. UI launch tests are opt-in
-with `RUN_UI_SMOKE_TESTS=1`; the unit-test scheme does not run the UI target.
+Hardware/model tests may require downloaded models. `--verify` launches the built
+app after the privacy identity check and verifies that its process stays running.
+The former Xcode UI test placeholders are preserved in `Tests/Legacy/UITests`;
+SwiftPM does not provide an XCUITest application runner.
 Tests omitted from the original SwiftPM source list are preserved in `Tests/Legacy`;
 some document removed RevenueCat hooks or obsolete model expectations. See the
 [legacy test inventory](../Tests/Legacy/README.md).
 
-`Package.resolved` files are checked in for reproducible dependency selection.
-When updating a dependency, update both the SwiftPM manifest and Xcode reference,
-resolve both graphs, run `python3 scripts/update-dependency-notices.py`, and run the builds and tests.
+The root `Package.resolved` is checked in for reproducible dependency selection.
+When updating a dependency, update `Package.swift`, resolve the graph, run
+`python3 scripts/update-dependency-notices.py`, and run the builds and tests.
 MLX Audio Swift 0.1.5, MLX Swift 0.32.3, and MLX Swift LM 3.32.3 are pinned to
 exact versions for compatibility; update that inference graph as a unit.
-Combine Schedulers 1.2.0 and XCTest Dynamic Overlay 1.11.0 are pinned in both build
-graphs because later releases select different IssueReporting package identities
+Combine Schedulers 1.2.0 and XCTest Dynamic Overlay 1.11.0 are pinned in the package
+graph because later releases select different IssueReporting package identities
 with Swift 6.3 and Swift 6.4.
 CI explicitly selects Xcode 26.6 on the macOS 26 Apple Silicon runner. Keep locked
 resolution enabled so a clean checkout verifies the complete dependency graph.
@@ -412,7 +422,7 @@ without a subscription, purchase, or RevenueCat SDK key. These builds do not
 initialize billing, show upgrade promotions, or present paywalls. GitHub Release
 and Nightly packages explicitly select this channel.
 
-Default Xcode and SwiftPM Debug builds select the free direct channel. Release
+Default SwiftPM Debug builds select the free direct channel. Release
 builds retain `APP_STORE` and the existing subscription policy. Public source
 builds contain no RevenueCat SDK key, so App Store billing stays unconfigured
 until you provide one.
@@ -429,9 +439,8 @@ The option removes `APP_STORE`, disables App Sandbox, and enables the existing A
 capabilities described in [ADR 0001](adr/0001-accessibility-gate-for-app-store.md).
 For an App Store build, set it to `YES` (or omit it for Release). Explicit `YES`
 also restores the App Store entitlements, App Sandbox, and disabled CLI URL in
-Debug. When building directly in Xcode, Debug already selects the direct channel;
-see `config/Local.xcconfig.example` for per-configuration channel overrides.
-App Store builds remain sandboxed.
+Debug. Channel selection is passed to SwiftPM and used for bundle permissions by
+the same build invocation. App Store builds remain sandboxed.
 Direct builds copy missing configuration and history from the previous sandbox
 container once without removing originals or replacing current direct-build data.
 
@@ -443,13 +452,19 @@ CLI product connects to the app rather than linking the inference libraries.
 To connect your own RevenueCat application:
 
 ```bash
-cp config/Local.xcconfig.example config/Local.xcconfig
+cp config/Local.json.example config/Local.json
 ```
 
 Set `CLIPTATE_REVENUECAT_API_KEY` to your public Apple SDK key. The ignored local
-configuration is consumed by both Debug and Release builds. The same environment
-variable can override the key when launching a development build from a terminal
-or an Xcode scheme. Secret REST keys must never be embedded in an app.
+JSON configuration is consumed by both Debug and Release bundles. Environment
+variables override local settings. Existing scalar billing/update/team settings in
+`config/Local.xcconfig` are read for compatibility, with `Local.json` taking
+precedence. Secret REST keys must never be embedded in an app.
+
+`config/app.json` owns the source marketing version, build number, and shared
+update defaults. Environment overrides such as `CURRENT_PROJECT_VERSION` keep CI
+and local release numbering unchanged. Dev identity and updater isolation remain
+fixed independently of local configuration.
 
 App Store distribution requires your own signing configuration, store products,
 and RevenueCat application. Developer ID distribution requires signing configuration
@@ -464,15 +479,13 @@ before changing the gate.
 ## Repository layout
 
 ```text
-Cliptate.xcodeproj/       macOS application and test targets
-Package.swift            SwiftPM library and automatically discovered unit tests
+Package.swift            SwiftPM app, CLI, and automatically discovered unit tests
 Sources/Cliptate/         app entry point, models, services, views, utilities, resources
 Tests/CliptateTests/      unit and integration tests, bundled fixtures
-Tests/CliptateUITests/    opt-in Xcode UI tests
 Tests/Automation/        release automation regression checks
-Tests/Legacy/            previously unselected test suites and helpers
+Tests/Legacy/            historical tests, helpers, and Xcode UI placeholders
 Tests/Fixtures/manual/   legacy manual audio sample, outside automated test resources
-config/                  shared build settings and local configuration template
+config/                  app version/defaults and local JSON configuration template
 scripts/                 build, run, and asset generation tools
 assets/                  design source images
 docs/                    development, architecture, ADRs, plans, and release notes

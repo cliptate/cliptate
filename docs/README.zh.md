@@ -116,7 +116,7 @@ CLI 使用应用当前选择的模型和配置，必要时在后台启动应用�
 
 ## 从源码构建
 
-需要 Apple Silicon、macOS 15+ 和 **Xcode 26+（Swift 6.2+）**。Xcode 测试目标要求 macOS 15.5+。
+需要 Apple Silicon、macOS 15+ 和 **Xcode 26+（Swift 6.2+）**。
 
 ```bash
 git clone https://github.com/cliptate/cliptate.git
@@ -128,9 +128,9 @@ swift test
 ./scripts/run.sh
 ```
 
-SwiftPM 构建库与 CLI 并运行单元测试。`./scripts/run.sh` 通过 Xcode 构建并启动 **Cliptate Dev.app**，使用独立的开发配置与数据。如只需构建应用，运行 `./scripts/build-and-run.sh build`。
+SwiftPM 构建应用可执行文件与 CLI，并运行单元测试。`./scripts/run.sh` 组装、签名并启动 **Cliptate Dev.app**，使用独立的开发配置与数据。如只需构建应用，运行 `./scripts/build-and-run.sh build`。
 
-`CLIPTATE_APP_STORE=NO` 选择免费的直接发行渠道，包含 CLI 和基于辅助功能的听写能力。默认源码构建保留 App Store 的能力限制与订阅行为；订阅服务需自行在本地配置。签名、模型缓存与发行配置详见[开发指南](development.md)。
+`CLIPTATE_APP_STORE=NO` 选择免费的直接发行渠道，包含 CLI 和基于辅助功能的听写能力。Debug 默认使用此渠道；Release 默认保留 App Store 的能力限制与订阅行为。App Store 订阅服务需自行在本地配置。签名、模型缓存与发行配置详见[开发指南](development.md)。
 
 ## 参与贡献与获取帮助
 

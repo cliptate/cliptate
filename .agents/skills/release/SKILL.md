@@ -16,7 +16,7 @@ description: Prepare and publish Cliptate macOS version releases, verify install
 ## 1. 准备版本与说明
 
 1. 核对目标源码与上一个正式版本的差异。使用实际历史和发布状态确定前一版本，排除滚动 `nightly`；不要依赖标签的字典排序。保留工作区中不属于发布任务的改动，避免将未完成或他人的修改带入发布提交。
-2. 检查 `Cliptate.xcodeproj/project.pbxproj` 中的版本设置，将应用的 Debug/Release `MARKETING_VERSION` 与目标标签去掉 `v` 后的版本对齐；检查测试目标的版本设置并保持项目既有一致性。按当前发布惯例推进应用的源码 `CURRENT_PROJECT_VERSION`，保留生产 bundle identity。分发渠道仍为免费的直接下载版，使用 `CLIPTATE_APP_STORE=NO`。
+2. 检查 `config/app.json` 中的版本设置，将 `MARKETING_VERSION` 与目标标签去掉 `v` 后的版本对齐。按当前发布惯例推进应用的源码 `CURRENT_PROJECT_VERSION`，保留生产 bundle identity。分发渠道仍为免费的直接下载版，使用 `CLIPTATE_APP_STORE=NO`。
 3. CI 和本地打包会覆盖安装包的内部 build number，具体规则见 `docs/updates.md`、`docs/local-actions.md`；源码 build number 不代表最终发布包的 build number。保持包版本递增，尤其核对当前 Latest 和 Nightly 的内部版本，防止旧包或旧 CI run 覆盖更新结果。
 4. 按 `docs/release-notes/README.md` 写 `docs/release-notes/<tag>.md`。首行、五个摘要章节、日期（Asia/Shanghai）、前一版本、升级动作、限制和实际验证记录都要完整。提交清单保留真实标题与哈希，并提供版本比较链接；含特殊字符的标签按指南编码文件名。更新该目录 README 的版本索引。
 5. 功能说明来自这一版本的源码范围。需要时同步应用使用指南、CLI 文档和各语言 README。验证章节只记录已经执行的检查；签名、公证与安装验证在取得结果前保持待验证表述。

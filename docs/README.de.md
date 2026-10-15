@@ -116,7 +116,7 @@ Die CLI verwendet Modelle und Einstellungen der App und startet sie bei Bedarf i
 
 ## Aus dem Quellcode bauen
 
-Erforderlich sind Apple Silicon, macOS 15+ und **Xcode 26+ mit Swift 6.2+**. Das Xcode-Testziel benötigt macOS 15.5+.
+Erforderlich sind Apple Silicon, macOS 15+ und **Xcode 26+ mit Swift 6.2+**.
 
 ```bash
 git clone https://github.com/cliptate/cliptate.git
@@ -128,9 +128,9 @@ swift test
 ./scripts/run.sh
 ```
 
-SwiftPM baut Bibliothek und CLI und führt Unit-Tests aus. `./scripts/run.sh` baut und startet die Xcode-App **Cliptate Dev.app** mit eigenen Entwicklungseinstellungen und Daten. Zum Bauen ohne Start verwenden Sie `./scripts/build-and-run.sh build`.
+SwiftPM baut die ausführbare App und die CLI und führt Unit-Tests aus. `./scripts/run.sh` erstellt, signiert und startet die App **Cliptate Dev.app** mit eigenen Entwicklungseinstellungen und Daten. Zum Bauen ohne Start verwenden Sie `./scripts/build-and-run.sh build`.
 
-`CLIPTATE_APP_STORE=NO` wählt den kostenlosen direkten Vertriebskanal mit CLI und Diktat über Bedienungshilfen. Standard-Quellcodebuilds behalten die App-Store-Funktionsbeschränkungen und das Abonnementverhalten; die Abrechnung erfordert Ihre eigene lokale Konfiguration. Signierung, Modellcache und Vertrieb sind im [Entwicklungshandbuch](development.md) beschrieben.
+`CLIPTATE_APP_STORE=NO` wählt den kostenlosen direkten Vertriebskanal mit CLI und Diktat über Bedienungshilfen. Debug verwendet standardmäßig diesen Kanal; Release behält die App-Store-Beschränkungen und das Abonnementverhalten. Die App-Store-Abrechnung erfordert Ihre eigene lokale Konfiguration. Signierung, Modellcache und Vertrieb sind im [Entwicklungshandbuch](development.md) beschrieben.
 
 ## Mitwirken und Hilfe
 

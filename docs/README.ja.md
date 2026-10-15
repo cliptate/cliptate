@@ -116,7 +116,7 @@ CLI はアプリで選択したモデルと設定を使用し、必要に応じ�
 
 ## ソースからビルド
 
-Apple Silicon、macOS 15+、**Xcode 26+（Swift 6.2+）** が必要です。Xcode テストターゲットには macOS 15.5+ が必要です。
+Apple Silicon、macOS 15+、**Xcode 26+（Swift 6.2+）** が必要です。
 
 ```bash
 git clone https://github.com/cliptate/cliptate.git
@@ -128,9 +128,9 @@ swift test
 ./scripts/run.sh
 ```
 
-SwiftPM はライブラリと CLI をビルドし、ユニットテストを実行します。`./scripts/run.sh` は Xcode アプリ **Cliptate Dev.app** をビルドして起動します。開発用の設定とデータは独立しています。起動せずにビルドするには `./scripts/build-and-run.sh build` を使用します。
+SwiftPM はアプリの実行ファイルと CLI をビルドし、ユニットテストを実行します。`./scripts/run.sh` は **Cliptate Dev.app** を組み立て、署名して起動します。開発用の設定とデータは独立しています。起動せずにビルドするには `./scripts/build-and-run.sh build` を使用します。
 
-`CLIPTATE_APP_STORE=NO` は、CLI とアクセシビリティを使う音声入力を含む無料の直接配布チャネルを選択します。デフォルトのソースビルドは App Store の機能制限とサブスクリプション動作を維持します。課金には独自のローカル設定が必要です。署名、モデルキャッシュ、配布設定は[開発ガイド](development.md)をご覧ください。
+`CLIPTATE_APP_STORE=NO` は、CLI とアクセシビリティを使う音声入力を含む無料の直接配布チャネルを選択します。Debug はデフォルトでこのチャネルを使い、Release は App Store の制限とサブスクリプション動作を維持します。App Store の課金には独自のローカル設定が必要です。署名、モデルキャッシュ、配布設定は[開発ガイド](development.md)をご覧ください。
 
 ## 貢献とサポート
 

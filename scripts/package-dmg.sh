@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIGURATION="${CONFIGURATION:-Release}"
-DERIVED_DATA_PATH="${DERIVED_DATA_PATH:-$ROOT_DIR/.build/xcode}"
+APP_BUILD_DIR="${APP_BUILD_DIR:-${DERIVED_DATA_PATH:-$ROOT_DIR/.build/app}/Build/Products}"
 if [[ "${1:-}" == --help ]]; then
   echo "usage: $0 [Cliptate.app path] [output directory]"
   exit 0
@@ -12,7 +12,7 @@ if [[ $# -gt 2 ]]; then
   echo "usage: $0 [Cliptate.app path] [output directory]" >&2
   exit 2
 fi
-APP_BUNDLE="${1:-$DERIVED_DATA_PATH/Build/Products/$CONFIGURATION/Cliptate.app}"
+APP_BUNDLE="${1:-$APP_BUILD_DIR/$CONFIGURATION/Cliptate.app}"
 OUTPUT_DIR="${2:-$ROOT_DIR/dist}"
 INFO_PLIST="$APP_BUNDLE/Contents/Info.plist"
 if [[ ! -f "$INFO_PLIST" ]]; then

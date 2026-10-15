@@ -2,7 +2,7 @@
 
 ## Build and test commands
 
-Use the Swift package for fast feedback, and use the Xcode project when a change depends on app lifecycle or UI behavior.
+Use the Swift package for fast feedback, and build the app bundle when a change depends on app lifecycle or UI behavior.
 
 ```bash
 swift build
@@ -12,11 +12,11 @@ swift test --filter speakerIdRoundTrips
 ```
 
 ```bash
-xcodebuild -project Cliptate.xcodeproj -scheme Cliptate build
-xcodebuild -project Cliptate.xcodeproj -scheme Cliptate test
+./scripts/build-and-run.sh build
+./scripts/build-and-run.sh --verify
 ```
 
-The shared Xcode scheme is `Cliptate`, even though the app target and product are named `Cliptate`.
+The SwiftPM app product is `CliptateApp`; the bundler produces `Cliptate Dev.app` in Debug.
 
 ## High-level architecture
 

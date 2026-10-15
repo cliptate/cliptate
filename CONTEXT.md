@@ -56,7 +56,7 @@ The single seam that owns whether macOS Accessibility-backed capabilities (focus
 _Avoid_: AX helper, permission manager, accessibility wrapper
 
 **App Store build**:
-A build of the app produced for Mac App Store distribution, distinguished by the `APP_STORE` compilation condition, in which `AccessibilityGate` reports all Accessibility capabilities unavailable so the binary neither requests nor links Accessibility APIs (App Review guideline 2.4.5). Xcode and SwiftPM Release builds define `APP_STORE` by default; Debug (Cliptate Dev) defaults to direct distribution without that condition. `CLIPTATE_APP_STORE=YES` explicitly selects the App Store channel through the build script or SwiftPM; `NO` selects direct distribution.
+A build of the app produced for Mac App Store distribution, distinguished by the `APP_STORE` compilation condition, in which `AccessibilityGate` reports all Accessibility capabilities unavailable so the binary neither requests nor links Accessibility APIs (App Review guideline 2.4.5). SwiftPM Release builds define `APP_STORE` by default; Debug (Cliptate Dev) defaults to direct distribution without that condition. `CLIPTATE_APP_STORE=YES` explicitly selects the App Store channel through the build script or SwiftPM; `NO` selects direct distribution.
 _Avoid_: MAS build, sandboxed build, store flavor
 
 ## Example dialogue

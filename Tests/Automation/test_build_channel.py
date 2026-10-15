@@ -1,108 +1,156 @@
-import os
-import plistlib
+"""Verify bundled identity, channel, update metadata, and signing permissions."""
+import json
 from pathlib import Path
-import subprocess
+import plistlib
+import sys
 import tempfile
 import unittest
-
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "scripts"))
+import app_bundle
 
 
 class BuildChannelTests(unittest.TestCase):
-    def build_arguments(self, channel=None, configuration="Debug", automatic_signing=False):
+    def values(self, channel=None, configuration="Debug", **overrides):
+        env = {"CONFIGURATION": configuration, **overrides}
+        if channel is not None:
+            env["CLIPTATE_APP_STORE"] = channel
         with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory)
-            for command, body in {
-                "xcrun": "exit 0\n",
-                "xcodebuild": ('printf "%s\\n" "$@" > "$CLIPTATE_TEST_ARGUMENTS"\n'
-                               'mkdir -p "$DERIVED_DATA_PATH/Build/Products/Debug/Cliptate Dev.app/Contents/Frameworks/Sparkle.framework"\n'),
-                "security": 'echo \'1) BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB "Apple Development: Example (TEAM123456)"\'\n',
-                "codesign": 'printf "%s\\n" "$@" >> "$CLIPTATE_TEST_ARGUMENTS"\n',
-            }.items():
-                executable = path / command
-                executable.write_text("#!/bin/bash\n" + body)
-                executable.chmod(0o755)
-            arguments_file = path / "arguments"
-            environment = os.environ.copy()
-            environment.update({
-                "PATH": str(path) + os.pathsep + environment["PATH"],
-                "CONFIGURATION": configuration,
-                "CODE_SIGN_IDENTITY": "-",
-                "DEVELOPMENT_TEAM": "",
-                "DERIVED_DATA_PATH": str(path / "derived"),
-                "CLIPTATE_TEST_ARGUMENTS": str(arguments_file),
-            })
-            environment.pop("CLIPTATE_APP_STORE", None)
-            if automatic_signing:
-                environment.pop("CODE_SIGN_IDENTITY", None)
-            if channel is not None:
-                environment["CLIPTATE_APP_STORE"] = channel
-            subprocess.run([str(ROOT / "scripts/build-and-run.sh"), "build"],
-                           env=environment, capture_output=True, check=True)
-            return arguments_file.read_text().splitlines()
+            root = Path(directory)
+            (root / "config").mkdir()
+            (root / "config/app.json").write_bytes((ROOT / "config/app.json").read_bytes())
+            return app_bundle.settings(root, env)
 
-    def test_default_debug_uses_direct_channel(self):
-        arguments = self.build_arguments()
-        self.assertIn("CLIPTATE_CHANNEL_CONDITIONS=", arguments)
-        self.assertIn("CLIPTATE_ENABLE_APP_SANDBOX=NO", arguments)
-        self.assertIn("CLIPTATE_CLI_URL_SCHEME=cliptate-dev-cli", arguments)
-        self.assertIn("CLIPTATE_CODE_SIGN_ENTITLEMENTS=" + str(
-            ROOT / "Sources/Cliptate/Cliptate-Direct.entitlements"), arguments)
+    def test_channel_defaults_and_overrides_keep_distribution_identity(self):
+        for configuration in ["Debug", "Release"]:
+            for channel in [None, "YES", "NO"]:
+                with self.subTest(configuration=configuration, channel=channel):
+                    values = self.values(channel, configuration)
+                    store = (channel or ("NO" if configuration == "Debug" else "YES")) == "YES"
+                    info = app_bundle.info_plist(values)
+                    permissions = app_bundle.entitlements(values)
+                    self.assertFalse(info["ITSAppUsesNonExemptEncryption"])
+                    self.assertEqual(info["CFBundleIdentifier"], "com.cliptate.dev" if configuration == "Debug"
+                                     else "com.voicepink.voicepinkpro")
+                    self.assertEqual(info["CFBundleExecutable"], "Cliptate Dev" if configuration == "Debug" else "Cliptate")
+                    scheme = info["CFBundleURLTypes"][0]["CFBundleURLSchemes"][0]
+                    self.assertEqual(scheme.endswith("-disabled"), store)
+                    self.assertEqual(scheme.startswith("cliptate-dev-cli"), configuration == "Debug")
+                    self.assertEqual(permissions.get("com.apple.security.app-sandbox", False), store)
+                    self.assertTrue(permissions["com.apple.security.device.audio-input"])
+                    self.assertEqual(permissions.get("com.apple.security.get-task-allow", False), configuration == "Debug")
+                    self.assertNotIn("$(", plistlib.dumps(info).decode())
+                    self.assertNotIn("$(", plistlib.dumps(permissions).decode())
 
-    def test_explicit_app_store_debug_overrides_direct_defaults(self):
-        arguments = self.build_arguments("YES")
-        self.assertIn("CLIPTATE_CHANNEL_CONDITIONS=APP_STORE", arguments)
-        self.assertIn("CLIPTATE_ENABLE_APP_SANDBOX=YES", arguments)
-        self.assertIn("CLIPTATE_CLI_URL_SCHEME=cliptate-dev-cli-disabled", arguments)
-        self.assertIn("CLIPTATE_CODE_SIGN_ENTITLEMENTS=" + str(
-            ROOT / "Sources/Cliptate/Cliptate.entitlements"), arguments)
+    def test_development_never_enables_production_updates(self):
+        values = self.values(CLIPTATE_UPDATES_ENABLED="YES")
+        self.assertEqual(app_bundle.info_plist(values)["CliptateUpdatesEnabled"], "NO")
 
-    def test_debug_selects_dev_scheme_and_passes_detected_identity_to_nested_signing(self):
-        arguments = self.build_arguments(automatic_signing=True)
-        self.assertIn("Cliptate Dev", arguments)
-        self.assertIn("CODE_SIGN_IDENTITY=" + "B" * 40, arguments)
-        self.assertIn("DEVELOPMENT_TEAM=TEAM123456", arguments)
-        self.assertIn("--sign", arguments)
-        self.assertIn("B" * 40, arguments)
+    def test_release_accepts_build_number_and_update_configuration(self):
+        values = self.values("NO", "Release", CURRENT_PROJECT_VERSION="1042.2",
+                             CLIPTATE_SPARKLE_PUBLIC_KEY="public-key")
+        info = app_bundle.info_plist(values)
+        self.assertEqual(info["CFBundleVersion"], "1042.2")
+        self.assertEqual(info["SUPublicEDKey"], "public-key")
+        self.assertTrue(info["SUFeedURL"].startswith("https://"))
+        self.assertNotIn("com.apple.security.get-task-allow", app_bundle.entitlements(values, helper=True))
 
-    def test_release_keeps_the_production_scheme(self):
-        arguments = self.build_arguments(configuration="Release")
-        self.assertIn("Cliptate", arguments)
-        self.assertNotIn("Cliptate Dev", arguments)
-        self.assertFalse(any(arg.startswith("CLIPTATE_CHANNEL_CONDITIONS=") for arg in arguments))
+    def test_invalid_channel_fails_before_building(self):
+        with self.assertRaises(ValueError):
+            self.values("invalid")
 
-    def test_direct_debug_retains_debug_and_removes_app_store(self):
-        arguments = self.build_arguments("NO")
-        self.assertIn("CLIPTATE_CHANNEL_CONDITIONS=", arguments)
-        self.assertFalse(any(arg.startswith("SWIFT_ACTIVE_COMPILATION_CONDITIONS=")
-                             for arg in arguments))
+    def test_local_configuration_and_environment_precedence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "config").mkdir()
+            (root / "config/app.json").write_bytes((ROOT / "config/app.json").read_bytes())
+            (root / "config/Local.xcconfig").write_text(
+                "CLIPTATE_REVENUECAT_API_KEY = legacy\n"
+                "CLIPTATE_UPDATE_FEED_URL = https:/$()/example.com/feed.xml\n")
+            (root / "config/Local.json").write_text(json.dumps({"CLIPTATE_REVENUECAT_API_KEY": "local"}))
+            self.assertEqual(app_bundle.settings(root, {})["CLIPTATE_REVENUECAT_API_KEY"], "local")
+            values = app_bundle.settings(root, {"CLIPTATE_REVENUECAT_API_KEY": "environment"})
+            self.assertEqual(values["CLIPTATE_REVENUECAT_API_KEY"], "environment")
+            self.assertEqual(values["CLIPTATE_UPDATE_FEED_URL"], "https://example.com/feed.xml")
 
-    def test_direct_release_removes_app_store(self):
-        self.assertIn("CLIPTATE_CHANNEL_CONDITIONS=",
-                      self.build_arguments("NO", "Release"))
 
-    def test_direct_builds_disable_sandbox_and_enable_cli(self):
-        direct_path = ROOT / "Sources/Cliptate/Cliptate-Direct.entitlements"
-        self.assertIn("CLIPTATE_CODE_SIGN_ENTITLEMENTS=" + str(direct_path),
-                      self.build_arguments("NO", "Release"))
-        self.assertNotIn("CLIPTATE_CODE_SIGN_ENTITLEMENTS=" + str(direct_path),
-                         self.build_arguments("YES"))
-        self.assertFalse(any(arg.startswith("CODE_SIGN_ENTITLEMENTS=")
-                             for arg in self.build_arguments("NO", "Release")))
-        direct = plistlib.loads(direct_path.read_bytes())
-        store = plistlib.loads((ROOT / "Sources/Cliptate/Cliptate.entitlements").read_bytes())
-        self.assertFalse(direct.get("com.apple.security.app-sandbox", False))
-        self.assertTrue(store["com.apple.security.app-sandbox"])
-        self.assertTrue(direct["com.apple.security.device.audio-input"])
-        self.assertIn("CLIPTATE_ENABLE_APP_SANDBOX=NO", self.build_arguments("NO"))
-        self.assertIn("CLIPTATE_CLI_URL_SCHEME=cliptate-dev-cli", self.build_arguments("NO"))
-        self.assertIn("CLIPTATE_CLI_URL_SCHEME=cliptate-cli", self.build_arguments("NO", "Release"))
-        self.assertIn("CLIPTATE_ENABLE_APP_SANDBOX=YES", self.build_arguments("YES"))
+class BundleAssemblyTests(unittest.TestCase):
+    def assemble(self, directory, channel, configuration="Debug", fail_signing=False):
+        work = Path(directory)
+        bin_path = work / "bin"
+        bin_path.mkdir()
+        for name in ["CliptateApp", "cliptate"]:
+            (bin_path / name).write_bytes(name.encode())
+        for name in ["Cliptate_CliptateTests", "AudioKit_AudioKit", "mlx-swift_Cmlx"]:
+            bundle = bin_path / f"{name}.bundle/Contents/Resources"
+            bundle.mkdir(parents=True)
+            (bundle / ("default.metallib" if name == "mlx-swift_Cmlx" else "fixture")).write_bytes(b"resource")
+        (bin_path / "Sparkle.framework/Versions/B").mkdir(parents=True)
+        (bin_path / "Sparkle.framework/Versions/Current").symlink_to("B")
+        values = BuildChannelTests().values(channel, configuration)
+        destination = work / "output" / (values["PRODUCT_NAME"] + ".app")
+        destination.mkdir(parents=True)
+        (destination / "previous").touch()
+        signed = []
+        calls = []
 
-    def test_local_release_can_load_ad_hoc_signed_frameworks(self):
-        self.assertIn("ENABLE_HARDENED_RUNTIME=NO",
-                      self.build_arguments("NO", "Release"))
+        def command(*arguments, **kwargs):
+            args = [str(item) for item in arguments]
+            calls.append((args, kwargs))
+            if "--show-bin-path" in args:
+                return str(bin_path)
+            if args[0] == "otool":
+                return "cmd LC_RPATH\n cmdsize 80\n path /temporary/build (offset 12)"
+            if "actool" in args:
+                Path(args[args.index("--output-partial-info-plist") + 1]).write_bytes(plistlib.dumps({"CFBundleIconFile": "AppIcon"}))
+            if "xcstringstool" in args:
+                resources = Path(args[-1])
+                (resources / "de.lproj").mkdir()
+                (resources / "de.lproj/Localizable.strings").touch()
+            if args[0] == "codesign" and "--entitlements" in args:
+                signed.append(plistlib.loads(Path(args[args.index("--entitlements") + 1]).read_bytes()))
+                if fail_signing:
+                    raise ValueError("signing failed")
+            return ""
+
+        with patch.object(app_bundle, "run", side_effect=command):
+            if fail_signing:
+                with self.assertRaisesRegex(ValueError, "signing failed"):
+                    app_bundle.build_app(values, destination, "-")
+            else:
+                app_bundle.build_app(values, destination, "-")
+        return destination, signed, calls
+
+    def test_direct_bundle_contains_runtime_resources_helper_and_relative_framework_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            app, signed, calls = self.assemble(directory, "NO")
+            self.assertTrue((app / "Contents/Helpers/cliptate").is_file())
+            self.assertEqual((app / "Contents/MacOS/Cliptate Dev").read_bytes(), b"CliptateApp")
+            self.assertEqual((app / "Contents/Helpers/cliptate").read_bytes(), b"cliptate")
+            self.assertTrue((app / "Contents/Resources/de.lproj/Localizable.strings").is_file())
+            self.assertTrue((app / "Contents/Resources/AudioKit_AudioKit.bundle").is_dir())
+            self.assertFalse((app / "Contents/Resources/Cliptate_CliptateTests.bundle").exists())
+            self.assertTrue((app / "Contents/Frameworks/Sparkle.framework/Versions/Current").is_symlink())
+            self.assertTrue(signed[-1]["com.apple.security.get-task-allow"])
+            self.assertFalse(signed[-1].get("com.apple.security.app-sandbox", False))
+            self.assertTrue(any("@executable_path/../Frameworks" in args for args, _ in calls))
+            builds = [kwargs["env"]["CLIPTATE_APP_STORE"] for args, kwargs in calls if "--product" in args]
+            self.assertEqual(builds, ["NO", "NO"])
+
+    def test_store_release_has_no_helper_or_debugging_permissions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            app, signed, calls = self.assemble(directory, "YES", "Release")
+            self.assertFalse((app / "Contents/Helpers").exists())
+            self.assertTrue(signed[-1]["com.apple.security.app-sandbox"])
+            self.assertNotIn("com.apple.security.get-task-allow", signed[-1])
+            self.assertTrue(any("strip" in args for args, _ in calls))
+
+    def test_failed_signing_preserves_previous_working_bundle(self):
+        with tempfile.TemporaryDirectory() as directory:
+            app, _, _ = self.assemble(directory, "NO", fail_signing=True)
+            self.assertTrue((app / "previous").is_file())
 
 
 if __name__ == "__main__":

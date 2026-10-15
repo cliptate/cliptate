@@ -120,7 +120,7 @@ The CLI uses the app's selected models and configuration, launching the app in t
 
 ## Build from source
 
-Requires Apple Silicon, macOS 15+, and **Xcode 26+ with Swift 6.2+**. The Xcode test target requires macOS 15.5+.
+Requires Apple Silicon, macOS 15+, and **Xcode 26+ with Swift 6.2+**.
 
 ```bash
 git clone https://github.com/cliptate/cliptate.git
@@ -132,9 +132,9 @@ swift test
 ./scripts/run.sh
 ```
 
-SwiftPM builds the library and CLI and runs unit tests. `./scripts/run.sh` builds and launches the actual Xcode application as **Cliptate Dev.app** with separate development settings and data. To build the app without launching it, use `./scripts/build-and-run.sh build`.
+SwiftPM builds the app executable and CLI and runs unit tests. `./scripts/run.sh` assembles, signs, and launches the application as **Cliptate Dev.app** with separate development settings and data. To build the app without launching it, use `./scripts/build-and-run.sh build`.
 
-`CLIPTATE_APP_STORE=NO` selects the free direct-distribution channel, including the CLI and Accessibility-backed dictation. Default source builds retain App Store capability restrictions and subscription behavior; billing requires your own local configuration. See the [development guide](docs/development.md) for signing, model caches, and distribution setup.
+`CLIPTATE_APP_STORE=NO` selects the free direct-distribution channel, including the CLI and Accessibility-backed dictation. Debug defaults to this channel; Release defaults to App Store restrictions and subscription behavior. App Store billing requires your own local configuration. See the [development guide](docs/development.md) for signing, model caches, and distribution setup.
 
 ## Contribute and get help
 

@@ -42,8 +42,9 @@ chore(release): prepare v1.1.0
 
 ## Code and resources
 
-Application code belongs in `Sources/Cliptate`, unit tests in `Tests/CliptateTests`,
-and UI tests in `Tests/CliptateUITests`. SwiftPM discovers unit tests automatically.
+Application code belongs in `Sources/Cliptate`. SwiftPM discovers tests automatically
+in `Tests/CliptateTests`. Historical Xcode UI
+placeholders are preserved in `Tests/Legacy/UITests`.
 Keep scripts independent of the current working directory and machine-specific paths.
 
 Every new UI string needs a localization entry in `Localizable.xcstrings` for

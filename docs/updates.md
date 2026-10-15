@@ -118,10 +118,10 @@ Debug builds use the independent `com.cliptate.dev` identity and disable the
 production updater, even when a feed and key are configured. Use Release and
 compatible Developer ID signing for end-to-end production upgrade testing.
 
-Copy `config/Local.xcconfig.example` to the ignored `config/Local.xcconfig` and set
+Copy `config/Local.json.example` to the ignored `config/Local.json` and set
 `CLIPTATE_SPARKLE_PUBLIC_KEY` to the public key for your feed. Optionally set
-`CLIPTATE_UPDATE_FEED_URL` to your own HTTPS appcast. In xcconfig files, write the
-URL as `https:/$()/example.com/appcast.xml` so `//` does not start a comment.
+`CLIPTATE_UPDATE_FEED_URL` to your own HTTPS appcast using an ordinary JSON URL
+such as `https://example.com/appcast.xml`.
 The build script also accepts those settings as environment variables, plus
 `CURRENT_PROJECT_VERSION` for testing a newer build.
 
@@ -131,7 +131,7 @@ build; a detected App Store receipt also disables the updater. For an App Store
 submission, omit the Sparkle package/framework and its temporary Mach lookup
 entitlements from that distribution target, as required by Sparkle's
 [sandbox integration instructions](https://sparkle-project.org/documentation/sandboxing/).
-The current Xcode target packages direct-download releases.
+The current bundler packages direct-download releases.
 
 To test a full update, install an older signed and notarized build in Applications,
 publish a newer signed build to the same feed, then choose **Check for Updates…**.

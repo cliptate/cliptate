@@ -116,7 +116,7 @@ CLI는 앱에서 선택한 모델과 설정을 사용하며, 필요하면 앱을
 
 ## 소스에서 빌드
 
-Apple Silicon, macOS 15+, **Xcode 26+(Swift 6.2+)**가 필요합니다. Xcode 테스트 타깃은 macOS 15.5+가 필요합니다.
+Apple Silicon, macOS 15+, **Xcode 26+(Swift 6.2+)**가 필요합니다.
 
 ```bash
 git clone https://github.com/cliptate/cliptate.git
@@ -128,9 +128,9 @@ swift test
 ./scripts/run.sh
 ```
 
-SwiftPM은 라이브러리와 CLI를 빌드하고 단위 테스트를 실행합니다. `./scripts/run.sh`는 Xcode 앱 **Cliptate Dev.app**을 빌드하고 실행하며, 개발용 설정과 데이터를 별도로 사용합니다. 실행 없이 빌드하려면 `./scripts/build-and-run.sh build`를 사용하세요.
+SwiftPM은 앱 실행 파일과 CLI를 빌드하고 단위 테스트를 실행합니다. `./scripts/run.sh`는 **Cliptate Dev.app**을 구성하고 서명한 뒤 실행하며, 개발용 설정과 데이터를 별도로 사용합니다. 실행 없이 빌드하려면 `./scripts/build-and-run.sh build`를 사용하세요.
 
-`CLIPTATE_APP_STORE=NO`는 CLI와 손쉬운 사용 기반 받아쓰기를 포함하는 무료 직접 배포 채널을 선택합니다. 기본 소스 빌드는 App Store 기능 제한과 구독 동작을 유지하며, 결제에는 별도의 로컬 설정이 필요합니다. 서명, 모델 캐시, 배포 설정은 [개발 가이드](development.md)를 참고하세요.
+`CLIPTATE_APP_STORE=NO`는 CLI와 손쉬운 사용 기반 받아쓰기를 포함하는 무료 직접 배포 채널을 선택합니다. Debug는 기본적으로 이 채널을 사용하고, Release는 App Store 기능 제한과 구독 동작을 유지합니다. App Store 결제에는 별도의 로컬 설정이 필요합니다. 서명, 모델 캐시, 배포 설정은 [개발 가이드](development.md)를 참고하세요.
 
 ## 기여 및 도움말
 

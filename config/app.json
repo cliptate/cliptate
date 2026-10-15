@@ -1,0 +1,8 @@
+{
+  "MARKETING_VERSION": "1.3",
+  "CURRENT_PROJECT_VERSION": "26",
+  "CLIPTATE_REVENUECAT_API_KEY": "",
+  "CLIPTATE_SPARKLE_PUBLIC_KEY": "",
+  "CLIPTATE_UPDATE_FEED_URL": "https://github.com/cliptate/cliptate/releases/latest/download/appcast.xml",
+  "CLIPTATE_UPDATES_ENABLED": "YES"
+}

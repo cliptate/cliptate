@@ -38,13 +38,13 @@ jobs:
         with:
           # This job only writes SwiftPM products to .build; never share it with signed packaging.
           path: .build
-          key: swiftpm-test-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.cache-key }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-${{ github.sha }}
+          key: swiftpm-test-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.cache-key }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-${{ github.sha }}
           # Reuse the latest build with the same toolchain and locked dependency graph.
           restore-keys: |
-            swiftpm-test-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.cache-key }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-
+            swiftpm-test-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.cache-key }}-${{ hashFiles('Package.swift', 'Package.resolved') }}-
       - name: Resolve locked Swift packages
         run: swift package resolve --force-resolved-versions
-      - name: Build library
+      - name: Build SwiftPM executables
         run: swift build
       - name: Verify dependency notices
         run: python3 scripts/update-dependency-notices.py --check
@@ -55,4 +55,4 @@ jobs:
           LIBDISPATCH_COOPERATIVE_POOL_STRICT: '1'
         run: swift test --skip-build --filter LoginItemSettingsTests
       - name: Check dependency locks remain unchanged
-        run: git diff --exit-code -- Package.resolved Cliptate.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+        run: git diff --exit-code -- Package.resolved

@@ -5,6 +5,7 @@ from pathlib import Path
 import plistlib
 import subprocess
 import tempfile
+import sys
 import unittest
 
 
@@ -26,7 +27,7 @@ class DevelopmentPermissionIdentityTests(unittest.TestCase):
                 }))
             commands = {
                 "xcrun": "exit 0\n",
-                "xcodebuild": "exit 0\n",
+                "python3": f'if [[ "$1" == */build-app.py ]]; then exit 0; fi\nexec "{sys.executable}" "$@"\n',
                 "open": 'touch "$CLIPTATE_TEST_LAUNCHED"\n',
                 "lldb": 'touch "$CLIPTATE_TEST_LAUNCHED"\n',
                 "log": "exit 0\n",

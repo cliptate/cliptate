@@ -44,7 +44,7 @@ For development:
 
 ```sh
 CLIPTATE_APP_STORE=NO ./scripts/build-and-run.sh build
-.build/xcode/Build/Products/Debug/Cliptate.app/Contents/Helpers/cliptate --help
+".build/app/Build/Products/Debug/Cliptate Dev.app/Contents/Helpers/cliptate" --help
 swift build --product cliptate
 CLIPTATE_APP=/path/to/Cliptate.app swift run cliptate dictionary list
 ```

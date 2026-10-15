@@ -1,4 +1,5 @@
 """Check workflow wiring; release decisions are tested through release_policy."""
+import json
 from pathlib import Path
 import sys
 import unittest
@@ -36,9 +37,9 @@ class ReleaseChannelTests(unittest.TestCase):
         self.assertIn("if: ${{ !env.ACT && steps.source.outputs.generate-appcast == 'true' }}", upload)
 
     def test_source_builds_keep_stable_feed(self):
-        configuration = (ROOT / "config/Cliptate.xcconfig").read_text()
-        self.assertIn("CLIPTATE_UPDATE_FEED_URL = https:/$()/github.com/cliptate/cliptate/releases/latest/download/appcast.xml",
-                      configuration)
+        configuration = json.loads((ROOT / "config/app.json").read_text())
+        self.assertEqual(configuration["CLIPTATE_UPDATE_FEED_URL"],
+                         "https://github.com/cliptate/cliptate/releases/latest/download/appcast.xml")
 
     def test_notes_are_checked_before_building(self):
         workflow = WORKFLOW.read_text()

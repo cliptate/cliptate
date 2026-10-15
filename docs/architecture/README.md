@@ -1,9 +1,10 @@
 # Architecture
 
-Cliptate is a native SwiftUI macOS application with an independently testable SwiftPM
-library target. The application lives in `Sources/Cliptate`; Xcode builds its real
-entry point, while SwiftPM excludes that entry point and exposes the remaining code
-to unit tests. [CONTEXT.md](../../CONTEXT.md) defines the domain vocabulary.
+Cliptate is a native SwiftUI macOS application built as a SwiftPM executable target.
+The application lives in `Sources/Cliptate`; unit tests import that same module.
+`scripts/app_bundle.py` assembles resources, Metal shaders, embedded code, and signing
+into a distributable `.app`. `config/app.json` owns version and update defaults;
+`Package.swift` and the root lockfile own the single dependency graph. [CONTEXT.md](../../CONTEXT.md) defines the domain vocabulary.
 
 ## Main boundaries
 

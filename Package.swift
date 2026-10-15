@@ -2,7 +2,7 @@
 import PackageDescription
 import Foundation
 
-// Match Xcode: Dev/Debug defaults to direct distribution, Release to App Store.
+// Dev/Debug defaults to direct distribution, Release to App Store.
 // An explicit override selects the same channel for either configuration.
 let channelSwiftSettings: [SwiftSetting]
 switch ProcessInfo.processInfo.environment["CLIPTATE_APP_STORE"] {
@@ -18,8 +18,9 @@ let package = Package(
         .macOS(.v15)
     ],
     products: [
-        .library(
-            name: "Cliptate",
+        // Keep app and CLI filenames distinct on case-insensitive macOS volumes.
+        .executable(
+            name: "CliptateApp",
             targets: ["Cliptate"]
         ),
         .executable(name: "cliptate", targets: ["CliptateCommand"])
@@ -44,7 +45,7 @@ let package = Package(
     targets: [
         .target(name: "CliptateCLIKit", path: "Sources/Cliptate/CLIShared"),
         .executableTarget(name: "CliptateCommand", dependencies: ["CliptateCLIKit"]),
-        .target(
+        .executableTarget(
             name: "Cliptate",
             dependencies: [
                 "CliptateCLIKit",
@@ -69,7 +70,6 @@ let package = Package(
                 "Info.plist",
                 "Cliptate.entitlements",
                 "Cliptate-Direct.entitlements",
-                "Cliptate.swift",
                 "CLIShared",
             ],
             resources: [

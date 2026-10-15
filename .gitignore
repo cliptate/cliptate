@@ -13,6 +13,7 @@ default.profraw
 
 # Local configuration, credentials, and model downloads.
 config/Local.xcconfig
+config/Local.json
 .env
 .env.*
 !.env.example

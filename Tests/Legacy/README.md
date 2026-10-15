@@ -1,7 +1,6 @@
 # Previously unselected tests
 
-These 12 Swift files are archived outside the active SwiftPM package and Xcode
-unit-test target.
+These files are archived outside the active SwiftPM test target.
 Some use retired test hooks, old model catalog expectations, or pre-Swift-6 isolation
 assumptions (the Paywall view test fails strict concurrency compilation).
 
@@ -23,3 +22,7 @@ Archived paths:
 - `Services/RevenueCatManagerTests.swift`
 - `TestSupport/SubscriptionTestUtilities.swift`
 - `Views/PaywallViewTests.swift`
+
+`UITests/` preserves two Xcode UI test placeholders from the removed application
+project. They require an XCUITest runner and are not run by SwiftPM. Use
+`./scripts/build-and-run.sh --verify` for the current bundled-app launch check.
