@@ -53,6 +53,10 @@ struct TTSSynthesisView: View {
 
     @FocusState private var isEditorFocused: Bool
 
+    private var trimmedInput: String {
+        inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     private var ttsLanguageBinding: Binding<Language> {
         Binding(
             get: {
@@ -256,6 +260,16 @@ struct TTSSynthesisView: View {
 
             // Bottom row: Generate button pinned to bottom-right of the script card
             HStack {
+                if let errorMessage {
+                    Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else if trimmedInput.isEmpty {
+                    Text("Enter some text to synthesize.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
                 Spacer()
                 Button(action: { isSynthesizing ? cancelSynthesis() : generateAudio(shouldExport: false) }) {
                     HStack(spacing: 6) {
@@ -273,7 +287,7 @@ struct TTSSynthesisView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(isSynthesizing ? .red : .accentColor)
-                .disabled(!isEngineReady && !isSynthesizing)
+                .disabled(!isSynthesizing && (!isEngineReady || trimmedInput.isEmpty))
                 .animation(.easeInOut(duration: 0.2), value: isSynthesizing)
             }
             .padding(.horizontal, 12)
@@ -660,16 +674,6 @@ struct TTSSynthesisView: View {
             }
             .padding(.horizontal, 4)
         }
-        if let errorMessage {
-            HStack {
-                Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
-                    .lineLimit(2)
-                Spacer()
-            }
-            .padding(.horizontal, 4)
-        }
     }
 
     private var previewCard: some View {
@@ -884,9 +888,10 @@ struct TTSSynthesisView: View {
             return
         }
         guard !isSynthesizing else { return }
-        let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = trimmedInput
         guard !trimmed.isEmpty else {
             errorMessage = String(localized: "Enter some text to synthesize.", comment: "Error shown when the text input is empty")
+            isEditorFocused = true
             return
         }
 

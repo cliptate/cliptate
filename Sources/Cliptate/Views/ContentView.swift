@@ -259,12 +259,12 @@ struct ContentView: View {
       set: { newValue in currentSection = newValue }
     )
 
-    NavigationSplitView {
+    HStack(spacing: 0) {
       AppSidebar(
         selection: selectionBinding,
         requiresGettingStarted: permissionStatusManager.requiresGettingStarted
       )
-    } detail: {
+      .frame(width: 240)
       Group {
         switch currentSection {
         case .home, .none:
@@ -295,16 +295,16 @@ struct ContentView: View {
           ProHubView()
         }
       }
-      // Keep a page's fitting size from enlarging the native navigation split view.
+      // Keep a page's fitting size from enlarging the application window.
       .frame(
         minWidth: 0, maxWidth: .infinity,
         minHeight: 0, maxHeight: .infinity,
         alignment: .topLeading
       )
-      .background(AppSurface.pageBackground)
+      .padding(.top, 8)
+      .background(AppSurface.contentBackground)
     }
-    .navigationSplitViewStyle(.balanced)
-    .toolbar(removing: .title)
+    .ignoresSafeArea(.container, edges: .top)
     .onReceive(NotificationCenter.default.publisher(for: .openModelsLibrary)) { _ in
       currentSection = .models
     }

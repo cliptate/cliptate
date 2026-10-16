@@ -1,0 +1,30 @@
+[
+  {
+    "name": "sidebar toggle removed",
+    "passed": true
+  },
+  {
+    "name": "sidebar visible",
+    "passed": true
+  },
+  {
+    "name": "Voice Dictation navigation and no sidebar toggle",
+    "passed": true
+  },
+  {
+    "name": "Models navigation and no sidebar toggle",
+    "passed": true
+  },
+  {
+    "name": "Settings navigation and no sidebar toggle",
+    "passed": true
+  },
+  {
+    "name": "keyboard navigation to Voice Generation",
+    "passed": true
+  },
+  {
+    "name": "keyboard return to Voice Dictation",
+    "passed": true
+  }
+]

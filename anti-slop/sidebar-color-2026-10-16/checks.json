@@ -1,0 +1,46 @@
+[
+  {
+    "check": "Navigate to Voice Dictation",
+    "passed": true
+  },
+  {
+    "check": "Navigate to History",
+    "passed": true
+  },
+  {
+    "check": "Navigate to Dictionary",
+    "passed": true
+  },
+  {
+    "check": "Navigate to File Transcription",
+    "passed": true
+  },
+  {
+    "check": "Navigate to Models",
+    "passed": true
+  },
+  {
+    "check": "Navigate to Voice Generation",
+    "passed": true
+  },
+  {
+    "check": "Up arrow opens dictation",
+    "passed": true
+  },
+  {
+    "check": "Down arrow opens generation",
+    "passed": true
+  },
+  {
+    "check": "Settings activates and clears old button focus",
+    "passed": true
+  },
+  {
+    "check": "Collapsed group skipped by keyboard",
+    "passed": true
+  },
+  {
+    "check": "Home navigation intact",
+    "passed": true
+  }
+]

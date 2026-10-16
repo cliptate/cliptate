@@ -753,8 +753,10 @@ private struct HistoryDetailView: View {
           }
         }
         Spacer(minLength: 8)
-        actionRow
       }
+
+      actionRow
+        .frame(maxWidth: .infinity, alignment: .trailing)
 
       // Meta badges
       metaBadges
@@ -791,103 +793,84 @@ private struct HistoryDetailView: View {
   }
 
   private var actionRow: some View {
-    HStack(spacing: 6) {
-      if effectiveSource == .fileTranscription {
-        Button {
-          openInAICut()
-        } label: {
-          Label("Open in File Transcription", systemImage: "film.stack")
-            .font(.caption.weight(.medium))
-        }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
-        .help("Re-open the source video in the File Transcription editor")
-
-        Button {
-          retranscribeFile()
-        } label: {
-          Label(
-            String(localized: "Re-transcribe", comment: "History: re-transcribe file button"),
-            systemImage: "arrow.clockwise"
-          )
-          .font(.caption.weight(.medium))
-        }
-        .buttonStyle(.bordered)
-        .tint(.accentColor)
-        .controlSize(.small)
-        .disabled(isRetranscribing)
-        .help(String(localized: "Re-transcribe with current model settings", comment: "History: re-transcribe button help"))
-
-        Button {
-          revealSourceFileInFinder()
-        } label: {
-          Image(systemName: "arrow.up.forward.square")
-            .font(.caption.weight(.medium))
-        }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
-        .help(String(localized: "Reveal source file in Finder", comment: "History: reveal file button help"))
+    ViewThatFits(in: .horizontal) {
+      HStack(spacing: 8) {
+        primaryActions
+        moreActions
       }
-
-      if effectiveSource == .voiceDictation, session.recordingURL != nil {
-        Button {
-          revealDictationRecordingInFinder()
-        } label: {
-          Image(systemName: "arrow.up.forward.square")
-            .font(.caption.weight(.medium))
-        }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
-        .help(String(localized: "Reveal recording file in Finder", comment: "History: reveal recording button help"))
+      .fixedSize(horizontal: true, vertical: false)
+      VStack(alignment: .trailing, spacing: 8) {
+        primaryActions
+        moreActions
       }
-
-      if effectiveSource == .ttsSynthesis, session.ttsAudioBookmark != nil {
-        Button {
-          toggleTTSPlayback()
-        } label: {
-          Label(
-            isPlayingAudio ? "Stop" : "Play Audio",
-            systemImage: isPlayingAudio ? "stop.fill" : "play.fill"
-          )
-          .font(.caption.weight(.medium))
-        }
-        .buttonStyle(.bordered)
-        .tint(.accentColor)
-        .controlSize(.small)
-        .help(isPlayingAudio ? "Stop audio playback" : "Play synthesized audio")
-
-        Button {
-          revealTTSAudioInFinder()
-        } label: {
-          Image(systemName: "arrow.up.forward.square")
-            .font(.caption.weight(.medium))
-        }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
-        .help("Reveal audio file in Finder")
-      }
-
-      Button {
-        copyWithToggles()
-        isCopied = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { isCopied = false }
-      } label: {
-        Label(isCopied ? "Copied!" : "Copy", systemImage: isCopied ? "checkmark" : "doc.on.doc")
-          .font(.caption.weight(.medium))
-      }
-      .buttonStyle(.bordered)
-      .tint(isCopied ? .green : .accentColor)
-      .controlSize(.small)
-      .animation(.easeInOut(duration: 0.2), value: isCopied)
-
-      Button(role: .destructive, action: onDelete) {
-        Image(systemName: "trash")
-          .font(.caption.weight(.medium))
-      }
-      .buttonStyle(.bordered)
-      .controlSize(.small)
-      .help(String(localized: "Delete this record", comment: "History: delete detail button tooltip"))
     }
+    .buttonStyle(.bordered)
+    .controlSize(.small)
+    .font(.caption.weight(.medium))
+  }
+
+  @ViewBuilder
+  private var primaryActions: some View {
+    if effectiveSource == .fileTranscription {
+      Button(action: openInAICut) {
+        Label("Open in File Transcription", systemImage: "film.stack")
+      }
+      .help("Re-open the source video in the File Transcription editor")
+    }
+
+    if effectiveSource == .ttsSynthesis, session.ttsAudioBookmark != nil {
+      Button(action: toggleTTSPlayback) {
+        Label(
+          isPlayingAudio ? String(localized: "Stop") : String(localized: "Play Audio"),
+          systemImage: isPlayingAudio ? "stop.fill" : "play.fill"
+        )
+      }
+      .help(isPlayingAudio ? String(localized: "Stop audio playback") : String(localized: "Play synthesized audio"))
+    }
+
+    Button {
+      copyWithToggles()
+      isCopied = true
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { isCopied = false }
+    } label: {
+      Label(
+        isCopied ? String(localized: "Copied!") : String(localized: "Copy"),
+        systemImage: isCopied ? "checkmark" : "doc.on.doc"
+      )
+    }
+    .tint(isCopied ? .green : .accentColor)
+    .animation(.easeInOut(duration: 0.2), value: isCopied)
+  }
+
+  private var moreActions: some View {
+    Menu {
+      if effectiveSource == .fileTranscription {
+        Button(action: retranscribeFile) {
+          Label("Re-transcribe", systemImage: "arrow.clockwise")
+        }
+        .disabled(isRetranscribing)
+        Button(action: revealSourceFileInFinder) {
+          Label("Reveal source file in Finder", systemImage: "folder")
+        }
+      }
+      if effectiveSource == .voiceDictation, session.recordingURL != nil {
+        Button(action: revealDictationRecordingInFinder) {
+          Label("Reveal recording file in Finder", systemImage: "folder")
+        }
+      }
+      if effectiveSource == .ttsSynthesis, session.ttsAudioBookmark != nil {
+        Button(action: revealTTSAudioInFinder) {
+          Label("Reveal audio file in Finder", systemImage: "folder")
+        }
+      }
+      Divider()
+      Button(role: .destructive, action: onDelete) {
+        Label("Delete this record", systemImage: "trash")
+      }
+    } label: {
+      Label("More", systemImage: "ellipsis")
+    }
+    .menuIndicator(.hidden)
   }
 
   private var metaBadges: some View {
@@ -920,6 +903,14 @@ private struct HistoryDetailView: View {
 
   // MARK: - File Transcription Display Toggles
 
+  private var hasFileTranslations: Bool {
+    guard let segments = session.aiCutSegments else { return false }
+    return filteredSegments(segments).contains {
+      guard let text = translationText(for: $0, translations: session.aiCutProcessedTranslations) else { return false }
+      return !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+  }
+
   private var fileTranscriptionToggles: some View {
     HStack(spacing: 10) {
       toggleChip(
@@ -927,21 +918,26 @@ private struct HistoryDetailView: View {
         icon: "clock",
         isOn: $showTimestamps
       )
-      toggleChip(
-        String(localized: "Speaker", comment: "History toggle: show speaker"),
-        icon: "person.wave.2",
-        isOn: $showSpeaker
-      )
-      toggleChip(
-        String(localized: "Original", comment: "History toggle: show original text"),
-        icon: "text.alignleft",
-        isOn: $showOriginalText
-      )
-      toggleChip(
-        String(localized: "Translation", comment: "History toggle: show translation"),
-        icon: "character.book.closed",
-        isOn: $showTranslation
-      )
+      if let segments = session.aiCutSegments,
+        filteredSegments(segments).contains(where: { $0.speakerId != nil }) {
+        toggleChip(
+          String(localized: "Speaker", comment: "History toggle: show speaker"),
+          icon: "person.wave.2",
+          isOn: $showSpeaker
+        )
+      }
+      if hasFileTranslations {
+        toggleChip(
+          String(localized: "Original", comment: "History toggle: show original text"),
+          icon: "text.alignleft",
+          isOn: $showOriginalText
+        )
+        toggleChip(
+          String(localized: "Translation", comment: "History toggle: show translation"),
+          icon: "character.book.closed",
+          isOn: $showTranslation
+        )
+      }
       Spacer()
     }
     .padding(.horizontal, 14)
@@ -958,11 +954,13 @@ private struct HistoryDetailView: View {
         icon: "clock",
         isOn: $showTimestamps
       )
-      toggleChip(
-        String(localized: "Speaker", comment: "History toggle: show speaker"),
-        icon: "person.wave.2",
-        isOn: $showSpeaker
-      )
+      if session.lines.contains(where: { $0.speakerId != nil }) {
+        toggleChip(
+          String(localized: "Speaker", comment: "History toggle: show speaker"),
+          icon: "person.wave.2",
+          isOn: $showSpeaker
+        )
+      }
       Spacer()
     }
     .padding(.horizontal, 14)
@@ -972,28 +970,12 @@ private struct HistoryDetailView: View {
 
   @ViewBuilder
   private func toggleChip(_ label: String, icon: String, isOn: Binding<Bool>) -> some View {
-    Button {
-      withAnimation(.easeInOut(duration: 0.12)) {
-        isOn.wrappedValue.toggle()
-      }
-    } label: {
-      HStack(spacing: 4) {
-        Image(systemName: icon)
-          .font(.caption2)
-        Text(label)
-          .font(.caption2.weight(.medium))
-      }
-      .padding(.horizontal, 8)
-      .padding(.vertical, 4)
-      .background(
-        isOn.wrappedValue
-          ? AppSurface.selectedFill
-          : AppSurface.subtleFill,
-        in: Capsule()
-      )
-      .foregroundStyle(isOn.wrappedValue ? Color.accentColor : Color.secondary)
+    Toggle(isOn: isOn) {
+      Label(label, systemImage: icon)
+        .font(.caption2.weight(.medium))
     }
-    .buttonStyle(.plain)
+    .toggleStyle(.button)
+    .controlSize(.small)
   }
 
   private var dictationLinesContent: some View {
@@ -1047,8 +1029,7 @@ private struct HistoryDetailView: View {
   private func fileTranscriptionContent(segments: [Segment]) -> some View {
     let translations = session.aiCutProcessedTranslations
     let hasSpeakers = segments.contains { $0.speakerId != nil }
-    let hasTranslations = (translations != nil && !translations!.isEmpty)
-      || segments.contains { $0.translation != nil }
+    let hasTranslations = hasFileTranslations
 
     return VStack(alignment: .leading, spacing: 8) {
       ForEach(segments, id: \.id) { segment in
@@ -1071,7 +1052,7 @@ private struct HistoryDetailView: View {
             }
           }
 
-          if showOriginalText {
+          if showOriginalText || !hasTranslations {
             Text(segment.text)
               .font(.body)
               .textSelection(.enabled)
@@ -1328,8 +1309,7 @@ private struct HistoryDetailView: View {
       let filtered = filteredSegments(segments)
       let translations = session.aiCutProcessedTranslations
       let hasSpeakers = filtered.contains { $0.speakerId != nil }
-      let hasTranslations = (translations != nil && !translations!.isEmpty)
-        || filtered.contains { $0.translation != nil }
+      let hasTranslations = hasFileTranslations
 
       var lines: [String] = []
       for segment in filtered {
@@ -1343,7 +1323,7 @@ private struct HistoryDetailView: View {
           parts.append(String(localized: "Speaker \(speaker + 1)", comment: "History: speaker label"))
         }
 
-        if showOriginalText {
+        if showOriginalText || !hasTranslations {
           parts.append(segment.text)
         }
 

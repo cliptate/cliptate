@@ -1,0 +1,127 @@
+{
+  "navigation": [
+    {
+      "page": "File Transcription",
+      "result": "PASS"
+    },
+    {
+      "page": "Voice Generation",
+      "result": "PASS"
+    },
+    {
+      "page": "Models",
+      "result": "PASS"
+    },
+    {
+      "page": "Settings",
+      "result": "PASS"
+    },
+    {
+      "page": "History",
+      "result": "PASS"
+    },
+    {
+      "page": "Dictionary",
+      "result": "PASS"
+    },
+    {
+      "page": "Voice Dictation",
+      "result": "PASS"
+    },
+    {
+      "round": 1,
+      "page": "Dictionary",
+      "result": "PASS"
+    },
+    {
+      "round": 1,
+      "page": "File Transcription",
+      "result": "PASS"
+    },
+    {
+      "round": 1,
+      "page": "Voice Generation",
+      "result": "PASS"
+    },
+    {
+      "round": 1,
+      "page": "History",
+      "result": "PASS"
+    },
+    {
+      "round": 1,
+      "page": "Models",
+      "result": "PASS"
+    },
+    {
+      "round": 1,
+      "page": "Settings",
+      "result": "PASS"
+    },
+    {
+      "round": 1,
+      "page": "Voice Dictation",
+      "result": "PASS"
+    },
+    {
+      "round": 2,
+      "page": "Dictionary",
+      "result": "PASS"
+    },
+    {
+      "round": 2,
+      "page": "File Transcription",
+      "result": "PASS"
+    },
+    {
+      "round": 2,
+      "page": "Voice Generation",
+      "result": "PASS"
+    },
+    {
+      "round": 2,
+      "page": "History",
+      "result": "PASS"
+    },
+    {
+      "round": 2,
+      "page": "Models",
+      "result": "PASS"
+    },
+    {
+      "round": 2,
+      "page": "Settings",
+      "result": "PASS"
+    },
+    {
+      "round": 2,
+      "page": "Voice Dictation",
+      "result": "PASS"
+    }
+  ],
+  "categories": [
+    {
+      "category": "VAD",
+      "result": "PASS"
+    },
+    {
+      "category": "Align",
+      "result": "PASS"
+    },
+    {
+      "category": "TTS",
+      "result": "PASS"
+    },
+    {
+      "category": "ASR",
+      "result": "PASS"
+    }
+  ],
+  "search": "no results and cleared",
+  "downloadedFilter": "filtered and restored",
+  "script": "18 character counter checked; cleared afterward",
+  "voiceModes": "clone and preset checked; preset restored",
+  "manageModels": "PASS",
+  "filePicker": "opened and canceled",
+  "settingsLanguageMenu": "opened and dismissed; English preserved"
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "check": "Context panels preserve separate values; Escape and Return dismiss",
+    "result": "PASS"
+  },
+  {
+    "check": "Usage Statistics collapse/expand",
+    "result": "PASS"
+  },
+  {
+    "check": "Dictation Indicator collapse/expand",
+    "result": "PASS"
+  },
+  {
+    "check": "Reset confirmation cancel preserves stats",
+    "result": "PASS"
+  },
+  {
+    "check": "Models link",
+    "result": "PASS"
+  },
+  {
+    "check": "Navigate Dictionary",
+    "result": "PASS"
+  },
+  {
+    "check": "Navigate File Transcription",
+    "result": "PASS"
+  },
+  {
+    "check": "Navigate Voice Dictation",
+    "result": "PASS"
+  },
+  {
+    "check": "Navigate Voice Generation",
+    "result": "PASS"
+  },
+  {
+    "check": "Navigate Voice Dictation",
+    "result": "PASS"
+  },
+  {
+    "check": "Navigate History",
+    "result": "PASS"
+  },
+  {
+    "check": "Navigate Dictionary",
+    "result": "PASS"
+  },
+  {
+    "check": "Navigate Voice Dictation",
+    "result": "PASS"
+  },
+  {
+    "check": "Final context link style opens both panels",
+    "result": "PASS"
+  },
+  {
+    "check": "Final build original sidebar regression path",
+    "result": "PASS"
+  }
+]

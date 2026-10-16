@@ -34,11 +34,11 @@ Cliptate ist eine native macOS-App, die Sprache in bearbeitbaren Text, Untertite
 
 **Die GitHub-Downloadversion ist kostenlos:** Alle Modelle und Pro-Funktionen sind ohne Abonnement oder Kauf verfügbar. Optionale Online-KI-Funktionen nutzen den von Ihnen konfigurierten Dienst.
 
-![Cliptate-Startseite für KI-Schnitt auf Deutsch mit hellgrauem Hintergrund](../assets/screenshots/home.de.jpg)
+![Cliptate-Startseite auf Deutsch mit Diktierstatistik und Aktivitätsverlauf](../assets/screenshots/home.de.jpg)
 
-*Die helle Ansicht verwendet einen hellgrauen Seitenhintergrund.*
+*Die Startseite zeigt die Diktierstatistik, die Aktivität der letzten 12 Monate und Aufzeichnungen nach Quelle.*
 
-Ziehen Sie Videos in den Importbereich oder klicken Sie darauf, um eine oder mehrere Dateien auszuwählen. Wechseln Sie über die Seitenleiste zwischen den Funktionen. **Einstellungen** sind unten jederzeit erreichbar.
+Öffnen Sie **Dateitranskription**, **Sprachdiktat** oder **Sprachgenerierung** über die Seitenleiste. **Einstellungen** sind unten jederzeit erreichbar.
 
 Die Oberfläche unterstützt Englisch, vereinfachtes Chinesisch, Japanisch, Koreanisch und Deutsch. Die Anzeigesprache lässt sich unter **Einstellungen → Sprache** ändern.
 

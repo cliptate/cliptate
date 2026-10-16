@@ -19,11 +19,13 @@ struct ContentNavigationTests {
   @Test("sidebar groups keep creation, library, and app destinations together")
   func sidebarGroups() {
     #expect(AppSidebarGroup.overview.sections(requiresGettingStarted: false) == [.home])
+    #expect(AppSidebarGroup.overview.sections(requiresGettingStarted: true) == [.home, .permissions])
     #expect(AppSidebarGroup.create.sections(requiresGettingStarted: false) == [.aiCut, .voiceToText, .ttsStudio])
     #expect(AppSidebarGroup.library.sections(requiresGettingStarted: false) == [.history, .models, .dictionary])
     let appSections: [AppSection] = SubscriptionPolicy.isBillingEnabled ? [.pro, .setting] : [.setting]
     #expect(AppSidebarGroup.app.sections(requiresGettingStarted: false) == appSections)
-    #expect(AppSidebarGroup.app.sections(requiresGettingStarted: true) == [.permissions] + appSections)
+    #expect(AppSidebarGroup.app.sections(requiresGettingStarted: true) == appSections)
+    #expect(Array(visibleAppSections(requiresGettingStarted: true).prefix(2)) == [.home, .permissions])
   }
 
   @Test("grouped sidebar includes every available destination exactly once", arguments: [false, true])

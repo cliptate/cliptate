@@ -19,14 +19,13 @@ enum AppSidebarGroup: String, CaseIterable, Identifiable {
 
   func sections(requiresGettingStarted: Bool) -> [AppSection] {
     switch self {
-    case .overview: return [.home]
+    case .overview: return [.home] + (requiresGettingStarted ? [.permissions] : [])
     case .create:
       return [.aiCut, .voiceToText, .ttsStudio]
     case .library:
       return [.history, .models, .dictionary]
     case .app:
-      return (requiresGettingStarted ? [.permissions] : [])
-        + (SubscriptionPolicy.isBillingEnabled ? [.pro] : []) + [.setting]
+      return (SubscriptionPolicy.isBillingEnabled ? [.pro] : []) + [.setting]
     }
   }
 }
@@ -35,42 +34,57 @@ struct AppSidebar: View {
   @Binding var selection: AppSection?
   let requiresGettingStarted: Bool
   @ObservedObject private var updates = AppUpdateManager.shared
+  @FocusState private var focusedSection: AppSection?
+  @State private var showsKeyboardFocus = false
 
   var body: some View {
     VStack(spacing: 0) {
-      List(selection: $selection) {
-        AppSidebarRow(section: .home, isSelected: selection == .home)
-          .tag(AppSection.home)
-          .listRowSeparator(.hidden)
-
-        ForEach([AppSidebarGroup.create, .library]) { group in
-          Section {
-            ForEach(group.sections(requiresGettingStarted: requiresGettingStarted)) { section in
-              AppSidebarRow(section: section, isSelected: selection == section)
-                .tag(section)
-                .listRowSeparator(.hidden)
-            }
-          } header: {
-            Text(group.title)
-              .font(.caption.weight(.semibold))
-              .textCase(nil)
-          }
-        }
-        if requiresGettingStarted {
-          AppSidebarRow(section: .permissions, isSelected: selection == .permissions)
-            .tag(AppSection.permissions)
-            .listRowSeparator(.hidden)
-        }
+      HStack(spacing: 10) {
+        Image(nsImage: NSApp.applicationIconImage)
+          .resizable()
+          .frame(width: 28, height: 28)
+        Text(verbatim: "Cliptate")
+          .font(.system(size: 19, weight: .semibold))
+        Spacer(minLength: 0)
       }
-      .listStyle(.sidebar)
+      .padding(.horizontal, 18)
+      .padding(.top, 48)
+      .padding(.bottom, 12)
+      .accessibilityHidden(true)
 
-      VStack(spacing: 4) {
-        Divider()
+      ScrollViewReader { proxy in
+        ScrollView {
+          VStack(alignment: .leading, spacing: 4) {
+            ForEach(AppSidebarGroup.overview.sections(requiresGettingStarted: requiresGettingStarted)) { section in
+              navigationRow(section)
+            }
+
+            ForEach([AppSidebarGroup.create, .library]) { group in
+              Text(group.title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 14)
+                .padding(.top, 16)
+                .padding(.bottom, 4)
+                .accessibilityAddTraits(.isHeader)
+
+              ForEach(group.sections(requiresGettingStarted: requiresGettingStarted)) { section in
+                navigationRow(section)
+              }
+            }
+          }
           .padding(.horizontal, 8)
           .padding(.bottom, 8)
+        }
+        .onChange(of: focusedSection) { _, section in
+          if let section { proxy.scrollTo(section) }
+        }
+      }
+
+      VStack(spacing: 4) {
         ForEach(AppSidebarGroup.app.sections(requiresGettingStarted: false)) { section in
           HStack(spacing: 4) {
-            AppSidebarFooterButton(section: section, isSelected: selection == section) {
+            AppSidebarButton(section: section, isSelected: selection == section) {
               selection = section
             }
             if section == .setting, let update = updates.availableUpdate {
@@ -79,13 +93,66 @@ struct AppSidebar: View {
           }
         }
       }
-      .padding(12)
+      .padding(8)
     }
-    .navigationSplitViewColumnWidth(min: 210, ideal: 224, max: 300)
+    .frame(maxHeight: .infinity)
+    .background {
+      AppSurface.pageBackground
+      AppSurface.subtleFill
+    }
+    .accessibilityElement(children: .contain)
+    .accessibilityLabel("Sidebar")
+    .simultaneousGesture(TapGesture().onEnded { showsKeyboardFocus = false })
+    .onKeyPress(phases: [.down, .up]) { _ in
+      showsKeyboardFocus = true
+      return .ignored
+    }
+    .onChange(of: selection) { _, section in
+      if focusedSection != section { focusedSection = nil }
+    }
+  }
+
+  private func navigationRow(_ section: AppSection) -> some View {
+    AppSidebarButton(section: section, isSelected: selection == section) {
+      selection = section
+      focusedSection = section
+    }
+    .focusable()
+    .focused($focusedSection, equals: section)
+    .focusEffectDisabled()
+    .overlay {
+      RoundedRectangle(cornerRadius: 8)
+        .strokeBorder(
+          showsKeyboardFocus && focusedSection == section
+            ? Color.primary.opacity(0.45) : Color.clear,
+          lineWidth: 1.5
+        )
+        .allowsHitTesting(false)
+    }
+    .onKeyPress(keys: [.upArrow, .downArrow]) { press in
+      showsKeyboardFocus = true
+      moveSelection(by: press.key == .upArrow ? -1 : 1)
+      return .handled
+    }
+    .id(section)
+  }
+
+  private func moveSelection(by offset: Int) {
+    let sections = [AppSidebarGroup.overview, .create, .library]
+      .flatMap { $0.sections(requiresGettingStarted: requiresGettingStarted) }
+    guard !sections.isEmpty else { return }
+    let nextIndex: Int
+    if let selection, let index = sections.firstIndex(of: selection) {
+      nextIndex = min(max(index + offset, 0), sections.count - 1)
+    } else {
+      nextIndex = 0
+    }
+    selection = sections[nextIndex]
+    focusedSection = sections[nextIndex]
   }
 }
 
-private struct AppSidebarFooterButton: View {
+private struct AppSidebarButton: View {
   let section: AppSection
   let isSelected: Bool
   let action: () -> Void
@@ -93,14 +160,14 @@ private struct AppSidebarFooterButton: View {
 
   var body: some View {
     Button(action: action) {
-      AppSidebarRow(section: section, isSelected: isSelected, showsHover: false)
+      AppSidebarRow(section: section, isSelected: isSelected)
         .padding(.horizontal, 10)
         .padding(.vertical, 4)
         .foregroundStyle(Color.primary)
         .background {
           RoundedRectangle(cornerRadius: 8)
             .fill(
-              isSelected ? AppSurface.selectedFill
+              isSelected ? Color.primary.opacity(0.08)
                 : (isHovered ? AppSurface.hoverFill : Color.clear)
             )
         }
@@ -114,30 +181,24 @@ private struct AppSidebarFooterButton: View {
 private struct AppSidebarRow: View {
   let section: AppSection
   let isSelected: Bool
-  var showsHover = true
-  @State private var isHovered = false
 
   var body: some View {
     HStack(spacing: 10) {
       Image(systemName: section.icon)
         .font(.system(size: 16, weight: .medium))
-        .symbolRenderingMode(isSelected ? .monochrome : .hierarchical)
-        .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+        .symbolRenderingMode(.hierarchical)
+        .foregroundStyle(Color.secondary)
         .frame(width: 24)
         .accessibilityHidden(true)
 
       Text(section.label)
         .font(.body.weight(isSelected ? .semibold : .regular))
+        .foregroundStyle(isSelected ? Color.primary : Color.secondary)
         .lineLimit(1)
 
       Spacer(minLength: 0)
     }
     .frame(minHeight: 34)
-    .background {
-      RoundedRectangle(cornerRadius: 6)
-        .fill(showsHover && isHovered && !isSelected ? AppSurface.hoverFill : Color.clear)
-    }
-    .onHover { isHovered = $0 }
     .contentShape(Rectangle())
     .help(section.description)
     .accessibilityElement(children: .combine)

@@ -13,6 +13,7 @@ struct VoiceToTextView: View {
   private let historyRuntime = HistoryRuntime.shared
 
   @EnvironmentObject private var config: AppConfiguration
+  @SceneStorage("ContentView.selectedSection") private var selectedSectionStorage = "Home"
   @ObservedObject private var transcriber: VoiceTranscriber
   @ObservedObject private var historyStore = HistoryRuntime.shared
   @ObservedObject private var warmupCoordinator = TranscriberWarmupCoordinator.shared
@@ -60,8 +61,6 @@ struct VoiceToTextView: View {
   @State private var historyErrorSessionID: UUID?
   @State private var historyErrorMessage: String?
   @State private var lastCountedSessionID: UUID?
-  @State private var showingUsageStatsResetDialog = false
-  @State private var isUsageExpanded = true
   @State private var isIndicatorExpanded = true
   @State private var contextSheet: ContextSheet?
   @AppStorage("historyShowSpeaker") private var historyShowSpeaker = true
@@ -120,33 +119,6 @@ struct VoiceToTextView: View {
       : String(localized: "Last assistant input • \(count) characters", comment: "Voice to text: assistant source summary, plural")
   }
 
-  private var usageStats: VoiceUsageStats {
-    var totalDuration = config.voiceToTextUsageTotalDuration
-    var totalCharacters = config.voiceToTextUsageTotalCharacters
-    var totalWords = config.voiceToTextUsageTotalWords
-    var sessionCount = config.voiceToTextUsageSessionCount
-
-    // Only add live session data when it hasn't been persisted yet.
-    // Once updateUsageStatsFromCurrentSessionIfNeeded() runs, the session's
-    // values are already in the config totals — adding them again would double-count.
-    if let liveSession = transcriber.session,
-      liveSession.id != lastCountedSessionID
-    {
-      let endDate = liveSession.endTime ?? Date()
-      totalDuration += max(0, endDate.timeIntervalSince(liveSession.startTime))
-      totalCharacters += characterCount(in: liveSession.combinedText)
-      totalWords += wordCount(in: liveSession.combinedText)
-      sessionCount += 1
-    }
-
-    return VoiceUsageStats(
-      totalDuration: totalDuration,
-      sessionCount: sessionCount,
-      totalCharacters: totalCharacters,
-      totalWords: totalWords
-    )
-  }
-
   init(transcriber: VoiceTranscriber) {
     _transcriber = ObservedObject(wrappedValue: transcriber)
   }
@@ -181,18 +153,6 @@ struct VoiceToTextView: View {
         Button("OK", role: .cancel) { dictionaryAlertMessage = nil }
       } message: {
         Text(dictionaryAlertMessage ?? "")
-      }
-      .confirmationDialog(
-        "Reset voice usage stats?",
-        isPresented: $showingUsageStatsResetDialog,
-        titleVisibility: .visible
-      ) {
-        Button("Reset statistics", role: .destructive) {
-          resetUsageStats()
-        }
-        Button("Cancel", role: .cancel) {}
-      } message: {
-        Text("This clears total duration, session count, and generated words.")
       }
       .sheet(item: $contextSheet) { target in
         switch target {
@@ -287,7 +247,7 @@ struct VoiceToTextView: View {
       // When the view is recreated (e.g. after navigating away and back),
       // @State lastCountedSessionID resets to nil. If the transcriber already
       // has a finished session whose stats were persisted, mark it as counted
-      // so the computed usageStats won't double-count it.
+      // to avoid counting it again.
       if transcriber.state == .idle,
         !transcriber.isRetranscribing,
         let session = transcriber.session,
@@ -375,24 +335,6 @@ struct VoiceToTextView: View {
 
   private var controls: some View {
     VStack(alignment: .leading, spacing: 20) {
-      HStack(alignment: .top, spacing: 16) {
-        DisclosureGroup("Usage Statistics", isExpanded: $isUsageExpanded) {
-          usageStatsCards
-            .padding(.top, 8)
-        }
-        .font(.headline)
-
-        Button(role: .destructive) {
-          showingUsageStatsResetDialog = true
-        } label: {
-          Label("Reset stats", systemImage: "arrow.counterclockwise")
-            .font(.caption)
-        }
-        .buttonStyle(.borderless)
-        .disabled(!usageStats.hasHistory)
-        .help("Clear all saved voice usage totals")
-      }
-
       warmupErrorLabel
 
       if let issue = transcriber.inputIssue {
@@ -512,79 +454,24 @@ struct VoiceToTextView: View {
     }
   }
 
-  private var usageStatsCards: some View {
-    let stats = usageStats
-
-    return LazyVGrid(
-      columns: [GridItem(.adaptive(minimum: 200), alignment: .topLeading)],
-      alignment: .leading,
-      spacing: 8
-    ) {
-      statsCardsContent(for: stats)
-    }
-  }
-
-  @ViewBuilder
-  private func statsCardsContent(for stats: VoiceUsageStats) -> some View {
-    usageStatCard(
-      icon: "mic.fill",
-      tint: .secondary,
-      title: "Total Voice Input",
-      primary: formattedDurationText(stats.totalDuration),
-      secondary: stats.sessionCount > 0
-        ? String(localized: "\(formattedCount(stats.sessionCount)) sessions", comment: "Voice stats: number of sessions")
-        : String(localized: "Waiting for first session", comment: "Voice stats: no sessions yet")
-    )
-
-    let averageSpeed = stats.averageWordsPerMinute
-    usageStatCard(
-      icon: "character.cursor.ibeam",
-      tint: .secondary,
-      title: "Generated Text",
-      primary: String(localized: "\(formattedCount(stats.totalWords)) words", comment: "Voice stats: total word count"),
-      secondary: averageSpeed > 0
-        ? String(localized: "Avg. ~\(formattedCount(Int(averageSpeed.rounded()))) words/min", comment: "Voice stats: average words per minute")
-        : String(localized: "Avg. speed pending", comment: "Voice stats: average speed not yet available")
-    )
-
-    usageStatCard(
-      icon: "bolt.fill",
-      tint: .secondary,
-      title: "Time Saved",
-      primary: formattedDurationText(stats.savedSeconds),
-      secondary: String(localized: "Estimated 20 words/min composition typing", comment: "Voice stats: time saved estimation note")
-    )
-  }
-
-  private func usageStatCard(
-    icon: String,
-    tint: Color,
-    title: LocalizedStringKey,
-    primary: String,
-    secondary: String
-  ) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Label(title, systemImage: icon)
-        .font(.caption)
-        .fontWeight(.semibold)
-        .foregroundStyle(tint)
-
-      Text(primary)
-        .font(.title2.weight(.semibold))
-        .monospacedDigit()
-
-      Text(secondary)
-        .font(.caption2)
-        .foregroundStyle(.secondary)
-    }
-    .padding(.vertical, 8)
-    .frame(maxWidth: .infinity, alignment: .leading)
-  }
-
   private var shortcutModesSection: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Shortcut Modes")
         .font(.headline)
+
+      if enhancementAvailability != .available {
+        VStack(alignment: .leading, spacing: 6) {
+          Text(enhancementAvailability == .disabled
+            ? String(localized: "AI features are off. Enable them in Settings to use enhancement.")
+            : String(localized: "AI enhancement needs a provider API key."))
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+          Button("Configure AI") { selectedSectionStorage = AppSection.setting.rawValue }
+            .buttonStyle(.link)
+            .font(.caption)
+        }
+      }
 
       VStack(alignment: .leading, spacing: 0) {
         VStack(alignment: .leading, spacing: 10) {
@@ -1055,11 +942,22 @@ struct VoiceToTextView: View {
   }
 
   private func aiEnhanceToggle(_ binding: Binding<Bool>) -> some View {
-    Toggle("AI Enhance", isOn: binding)
+    Toggle("AI Enhance", isOn: Binding(
+      get: { enhancementAvailability == .available && binding.wrappedValue },
+      set: { binding.wrappedValue = $0 }
+    ))
+    .disabled(enhancementAvailability != .available)
     .toggleStyle(.switch)
     .controlSize(.small)
     .font(.caption)
     .fixedSize(horizontal: true, vertical: false)
+  }
+
+  private var enhancementAvailability: VoiceEnhancementAvailability {
+    VoiceEnhancementAvailability(
+      aiEnabled: config.aiEnabled,
+      apiKey: config.aiProviderKeys[config.selectedAIProvider]
+    )
   }
 
   private func contextSettingsButton(
@@ -1098,24 +996,6 @@ struct VoiceToTextView: View {
 
   private func wordCount(in text: String) -> Int {
     voiceTextWordCount(in: text)
-  }
-
-  private func formattedDurationText(_ seconds: TimeInterval) -> String {
-    guard seconds > 0 else { return String(localized: "0 seconds", comment: "Duration: zero seconds") }
-    let totalSeconds = Int(seconds.rounded())
-    let hours = totalSeconds / 3600
-    let minutes = (totalSeconds % 3600) / 60
-    let secs = totalSeconds % 60
-
-    var components: [String] = []
-    if hours > 0 { components.append(String(localized: "\(hours) hr", comment: "Duration hours abbreviation")) }
-    if minutes > 0 { components.append(String(localized: "\(minutes) min", comment: "Duration minutes abbreviation")) }
-    if secs > 0 || components.isEmpty { components.append(String(localized: "\(secs) sec", comment: "Duration seconds abbreviation")) }
-    return components.joined(separator: " ")
-  }
-
-  private func formattedCount(_ value: Int) -> String {
-    value.formatted(.number.grouping(.automatic))
   }
 
   private func addDictionaryEntry() {
@@ -1260,14 +1140,6 @@ struct VoiceToTextView: View {
     config.voiceToTextUsageTotalCharacters += characters
     config.voiceToTextUsageTotalWords += words
     lastCountedSessionID = session.id
-  }
-
-  private func resetUsageStats() {
-    config.voiceToTextUsageTotalDuration = 0
-    config.voiceToTextUsageSessionCount = 0
-    config.voiceToTextUsageTotalCharacters = 0
-    config.voiceToTextUsageTotalWords = 0
-    lastCountedSessionID = transcriber.session?.id
   }
 
   private func processShortcutPostProcessingIfNeeded() {
@@ -1872,7 +1744,7 @@ private struct VoiceContextSettingsView: View {
       .controlSize(.small)
       .background(AppSurface.settingsBackground, in: RoundedRectangle(cornerRadius: 10))
 
-      Text("Context is included when AI Enhance is on.")
+      Text("Context is used only when AI features and AI Enhance are enabled and a provider API key is configured.")
         .font(.caption)
         .foregroundStyle(.secondary)
         .fixedSize(horizontal: false, vertical: true)
@@ -1881,6 +1753,22 @@ private struct VoiceContextSettingsView: View {
     .frame(width: 460)
     .background(AppSurface.contentBackground)
     .onExitCommand { dismiss() }
+  }
+}
+
+enum VoiceEnhancementAvailability: Equatable {
+  case disabled
+  case missingKey
+  case available
+
+  init(aiEnabled: Bool, apiKey: String?) {
+    if !aiEnabled {
+      self = .disabled
+    } else if apiKey?.isEmpty != false {
+      self = .missingKey
+    } else {
+      self = .available
+    }
   }
 }
 

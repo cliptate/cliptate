@@ -1,6 +1,56 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Sidebar": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Sidebar" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "侧栏" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "サイドバー" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "사이드바" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Seitenleiste" } }
+      }
+    },
+    "AI features are off. Enable them in Settings to use enhancement.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "AI features are off. Enable them in Settings to use enhancement." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "AI 功能未启用。请前往设置启用后使用增强。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "AI 機能はオフです。補正を使うには設定で有効にしてください。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "AI 기능이 꺼져 있습니다. 보정 기능을 사용하려면 설정에서 켜세요." } },
+        "de": { "stringUnit": { "state": "translated", "value": "KI-Funktionen sind deaktiviert. Aktivieren Sie sie in den Einstellungen, um die KI-Verbesserung zu nutzen." } }
+      }
+    },
+    "AI enhancement needs a provider API key.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "AI enhancement needs a provider API key." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "AI 增强需要配置服务商的 API 密钥。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "AI 補正にはプロバイダの API キーが必要です。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "AI 보정을 사용하려면 제공업체 API 키가 필요합니다." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Für die KI-Verbesserung ist ein API-Schlüssel des Anbieters erforderlich." } }
+      }
+    },
+    "Configure AI": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Configure AI" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "配置 AI" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "AI を設定" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "AI 설정" } },
+        "de": { "stringUnit": { "state": "translated", "value": "KI konfigurieren" } }
+      }
+    },
+    "Context is used only when AI features and AI Enhance are enabled and a provider API key is configured.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Context is used only when AI features and AI Enhance are enabled and a provider API key is configured." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "仅在 AI 功能和 AI 增强均已启用，并已配置服务商 API 密钥时使用上下文。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "コンテキストは、AI 機能と AI 補正が有効で、プロバイダの API キーが設定されている場合にのみ使用されます。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "AI 기능과 AI 보정이 모두 켜져 있고 제공업체 API 키가 설정된 경우에만 컨텍스트를 사용합니다." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Kontext wird nur verwendet, wenn KI-Funktionen und KI-Verbesserung aktiviert sind und ein API-Schlüssel des Anbieters hinterlegt ist." } }
+      }
+    },
     "Home": {
       "extractionState": "manual",
       "localizations": {

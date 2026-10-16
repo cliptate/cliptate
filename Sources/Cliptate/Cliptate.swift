@@ -120,8 +120,8 @@ struct CliptateApp: App {
               .environmentObject(config)
               .environmentObject(downloadStateStore)
               .environment(\.locale, appLocale)
-              .frame(minHeight: 500)
           }
+          .frame(minWidth: 900, minHeight: 500)
         }
       }
     }
@@ -131,7 +131,8 @@ struct CliptateApp: App {
       }
     }
     .defaultSize(width: 1280, height: 800)
-    .windowToolbarStyle(.unifiedCompact)
+    .windowStyle(.hiddenTitleBar)
+    .windowBackgroundDragBehavior(.enabled)
     .windowResizability(.automatic)
 
     MenuBarExtra {
