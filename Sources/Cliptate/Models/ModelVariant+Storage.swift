@@ -48,12 +48,8 @@ enum ModelStorageLayoutResolver {
   }
 
   static func modelHomeDirectory(processHome: URL, accountHome: URL?) -> URL {
-    #if APP_STORE
-      return processHome
-    #else
-      // NSHomeDirectory points into the container even for sandboxed direct builds.
-      return accountHome ?? processHome
-    #endif
+    // NSHomeDirectory points into the container even for sandboxed direct builds.
+    return accountHome ?? processHome
   }
 
   static func hubCacheRoot(environment env: [String: String]) -> URL {

@@ -12,9 +12,7 @@ import os.log
 @main
 struct CliptateApp: App {
   @NSApplicationDelegateAdaptor(CliptateApplicationDelegate.self) private var appDelegate
-  #if !APP_STORE
   @StateObject private var cliLifecycle = CLIApplicationLifecycle.shared
-  #endif
   @StateObject private var config: AppConfiguration
   @StateObject private var presetStore: ConfigPresetStore
   @StateObject private var downloadStateStore: ModelDownloadStateStore
@@ -71,25 +69,6 @@ struct CliptateApp: App {
     }
 
     if !RuntimeEnvironment.isRunningTests {
-      // App Store billing is optional; direct builds never initialize the SDK.
-      if SubscriptionPolicy.isBillingEnabled,
-        let apiKey = (ProcessInfo.processInfo.environment["CLIPTATE_REVENUECAT_API_KEY"]
-        ?? Bundle.main.object(forInfoDictionaryKey: "CliptateRevenueCatAPIKey") as? String)?
-        .trimmingCharacters(in: .whitespacesAndNewlines),
-        !apiKey.isEmpty, !apiKey.hasPrefix("$(")
-      {
-        Task {
-          do {
-            try await RevenueCatManager.shared.initialize(apiKey: apiKey)
-            Logger(subsystem: "com.Cliptate", category: "App").info(
-              "RevenueCat initialized successfully")
-          } catch {
-            Logger(subsystem: "com.Cliptate", category: "App").error(
-              "Failed to initialize RevenueCat: \(error.localizedDescription)")
-          }
-        }
-      }
-
       DispatchQueue.main.async {
         AppUpdateManager.shared.start()
       }
@@ -150,10 +129,6 @@ struct CliptateApp: App {
   }
 
   private var isCLIBackgroundLaunch: Bool {
-    #if APP_STORE
-    false
-    #else
     cliLifecycle.backgroundLaunch
-    #endif
   }
 }

@@ -25,7 +25,7 @@ enum AppSidebarGroup: String, CaseIterable, Identifiable {
     case .library:
       return [.history, .models, .dictionary]
     case .app:
-      return (SubscriptionPolicy.isBillingEnabled ? [.pro] : []) + [.setting]
+      return [.setting]
     }
   }
 }

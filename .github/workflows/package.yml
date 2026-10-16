@@ -29,7 +29,6 @@ jobs:
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
       CONFIGURATION: Release
-      CLIPTATE_APP_STORE: 'NO'
     outputs:
       commit: ${{ steps.source.outputs.commit }}
       release-tag: ${{ steps.source.outputs.release-tag }}

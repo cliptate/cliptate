@@ -4,7 +4,7 @@ import Foundation
 
 import CliptateCore
 
-/// Only direct builds create a listener. The App Store variant remains inert.
+/// Serves authenticated CLI requests through the running application.
 @MainActor
 final class CLIApplicationServer {
   static let shared = CLIApplicationServer()
@@ -15,33 +15,31 @@ final class CLIApplicationServer {
   }
 
   func connect(url: URL) {
-    #if !APP_STORE
-      guard let endpoint = CLIEndpoint(url: url) else { return }
-      guard requests.register(endpoint) else { return }
-      guard listener == nil else { return }
-      do {
-        let parameters = NWParameters.tcp
-        parameters.requiredLocalEndpoint = .hostPort(
-          host: "127.0.0.1", port: NWEndpoint.Port(rawValue: CLIEndpoint.port)!)
-        let listener = try NWListener(using: parameters)
-        listener.newConnectionHandler = { connection in
-          Task { @MainActor in await self.requests.serve(CLIChannel(connection: connection)) }
-        }
-        listener.stateUpdateHandler = { state in
-          if case .failed = state {
-            Task { @MainActor in
-              self.listener?.cancel()
-              self.listener = nil
-            }
+    guard let endpoint = CLIEndpoint(url: url) else { return }
+    guard requests.register(endpoint) else { return }
+    guard listener == nil else { return }
+    do {
+      let parameters = NWParameters.tcp
+      parameters.requiredLocalEndpoint = .hostPort(
+        host: "127.0.0.1", port: NWEndpoint.Port(rawValue: CLIEndpoint.port)!)
+      let listener = try NWListener(using: parameters)
+      listener.newConnectionHandler = { connection in
+        Task { @MainActor in await self.requests.serve(CLIChannel(connection: connection)) }
+      }
+      listener.stateUpdateHandler = { state in
+        if case .failed = state {
+          Task { @MainActor in
+            self.listener?.cancel()
+            self.listener = nil
           }
         }
-        self.listener = listener
-        listener.start(queue: DispatchQueue(label: "com.cliptate.cli.listener"))
-      } catch {
-        // The client has a bounded startup deadline and reports an unavailable port.
-        listener = nil
       }
-    #endif
+      self.listener = listener
+      listener.start(queue: DispatchQueue(label: "com.cliptate.cli.listener"))
+    } catch {
+      // The client has a bounded startup deadline and reports an unavailable port.
+      listener = nil
+    }
   }
 }
 

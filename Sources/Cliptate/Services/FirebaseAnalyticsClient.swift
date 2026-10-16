@@ -31,11 +31,7 @@ final class FirebaseAnalyticsClient {
         .adUserData: .denied,
         .adPersonalization: .denied,
       ])
-      #if APP_STORE
-      let distribution = "app_store"
-      #else
       let distribution = "direct"
-      #endif
       #if DEBUG
       let environment = "development"
       #else

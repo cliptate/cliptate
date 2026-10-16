@@ -84,22 +84,12 @@ Runtime; this works for public source builds, but development consent can reset
 after rebuilding. See Apple's
 [code-signing requirements explanation](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements).
 
-Debug (Cliptate Dev) defaults to the free direct-distribution channel, without
-App Sandbox and with Accessibility-backed capabilities and the embedded CLI:
+Debug and Release use free direct distribution, without App Sandbox and with
+Accessibility-backed capabilities and the embedded CLI:
 
 ```bash
 ./scripts/run.sh
 ```
-
-To test the App Store channel using the same independent development identity:
-
-```bash
-CLIPTATE_APP_STORE=YES ./scripts/run.sh
-```
-
-The `APP_STORE` capability gate remains independent of development identity.
-Release keeps its App Store default; `CLIPTATE_APP_STORE=NO` explicitly selects
-the free direct-distribution channel for either configuration.
 
 Before `run`, `--debug`, `--logs`, and `--verify`, the script checks identity
 compatibility against installed Cliptate and Cliptate Dev bundles in `/Applications`
@@ -229,14 +219,12 @@ its release notes. Only successfully notarized packages are marked as such.
 Direct-download builds use Sparkle and a signed appcast. Configure the Actions
 variable `SPARKLE_PUBLIC_KEY` and secret `SPARKLE_PRIVATE_KEY` before the next
 package run. See [in-app updates](updates.md) for key generation, the shared stable
-feed, version ordering, local testing, and App Store distribution requirements.
-The `APP_STORE` accessibility capability flag remains unchanged.
+feed, version ordering, and local testing.
 
 ## Shared model cache
 
 Direct-download builds use the account's real home directory for
-`~/.cache/huggingface/hub` and run without App Sandbox. App Store builds retain
-their sandbox container. `HF_HUB_CACHE` and `HF_HOME` overrides
+`~/.cache/huggingface/hub` and run without App Sandbox. `HF_HUB_CACHE` and `HF_HOME` overrides
 continue to work when their target is accessible to the application.
 
 Models use the Python-compatible `models--<owner>--<repository>/snapshots/<revision>`
@@ -295,8 +283,7 @@ MLX Audio Swift 0.1.5 also supplies NVIDIA Nemotron ASR. Select **Nemotron ASR**
 in the model picker for AI Cut and Voice To Text. The recommended checkpoint is
 `mlx-community/nemotron-3.5-asr-streaming-0.6b-8bit` (~756 MB); the catalog also
 offers the 3.5 bf16 checkpoint (~1.28 GB) and the older English-only 8-bit
-checkpoint (~664 MB). Existing selections remain unchanged. These models are free
-in both distribution channels and download on demand into the shared model cache.
+checkpoint (~664 MB). Existing selections remain unchanged. These models are free and download on demand into the shared model cache.
 
 Nemotron 3.5 exposes automatic language detection and the 28 language families
 represented by Cliptate from NVIDIA's transcription-ready and broad-coverage
@@ -331,17 +318,9 @@ RUN_NEMOTRON_MODEL_TESTS=1 NEMOTRON_TEST_AUDIO_PATH=/tmp/cliptate-nemotron-smoke
 
 ## Default folder access
 
-Sandboxed builds declare read/write access to Downloads, Movies, Music, and
-Pictures, plus a home-relative file-access temporary exception for `/`, covering
-the account's home directory and its subdirectories, including Documents and
-Desktop. The slash is relative to the user's home, not the filesystem root.
-Direct-download builds already run without App Sandbox.
-
-These entitlements do not grant macOS privacy consent: protected folders may
-still require the user's permission when first accessed. Mac App Store submissions
-must justify the home-directory temporary exception to App Review. See Apple's
-[temporary exception documentation](https://developer.apple.com/library/archive/documentation/Miscellaneous/Reference/EntitlementKeyReference/Chapters/AppSandboxTemporaryExceptionEntitlements.html)
-and [Documents folder privacy policy](https://developer.apple.com/documentation/bundleresources/information-property-list/nsdocumentsfolderusagedescription).
+Cliptate runs without App Sandbox. macOS privacy consent still applies to
+protected folders, microphone, screen recording, and Accessibility access.
+Existing sandboxed installation data is migrated as described below.
 
 ## Apple signing and notarization
 
@@ -415,7 +394,7 @@ app after the privacy identity check and verifies that its process stays running
 The former Xcode UI test placeholders are preserved in `Tests/Legacy/UITests`;
 SwiftPM does not provide an XCUITest application runner.
 Tests omitted from the original SwiftPM source list are preserved in `Tests/Legacy`;
-some document removed RevenueCat hooks or obsolete model expectations. See the
+some document obsolete model expectations. See the
 [legacy test inventory](../Tests/Legacy/README.md).
 
 The root `Package.resolved` is checked in for reproducible dependency selection.
@@ -423,38 +402,19 @@ When updating a dependency, update `Package.swift`, resolve the graph, run
 `python3 scripts/update-dependency-notices.py`, and run the builds and tests.
 MLX Audio Swift 0.1.5, MLX Swift 0.32.3, and MLX Swift LM 3.32.3 are pinned to
 exact versions for compatibility; update that inference graph as a unit.
-Combine Schedulers 1.2.0 and XCTest Dynamic Overlay 1.11.0 are pinned in the package
-graph because later releases select different IssueReporting package identities
-with Swift 6.3 and Swift 6.4.
+SwiftAssRenderer uses Combine Schedulers 1.2.0 and XCTest Dynamic Overlay 1.11.0;
+these remain pinned to keep IssueReporting package identities compatible across
+Swift 6.3 and Swift 6.4.
 CI explicitly selects Xcode 26.6 on the macOS 26 Apple Silicon runner. Keep locked
 resolution enabled so a clean checkout verifies the complete dependency graph.
 
-## Billing and distribution configuration
+## Direct distribution configuration
 
-Non-`APP_STORE` builds are fully free and do not use App Sandbox: all models and Pro features are available
-without a subscription, purchase, or RevenueCat SDK key. These builds do not
-initialize billing, show upgrade promotions, or present paywalls. GitHub Release
-and Nightly packages explicitly select this channel.
+Debug and Release are fully free and run without App Sandbox. All models and
+features are available without subscriptions, purchases, or billing configuration.
+Both include Accessibility-backed dictation and the embedded CLI. GitHub Release
+and Nightly use this same distribution path.
 
-Default SwiftPM Debug builds select the free direct channel. Release
-builds retain `APP_STORE` and the existing subscription policy. Public source
-builds contain no RevenueCat SDK key, so App Store billing stays unconfigured
-until you provide one.
-
-To build and test the free direct-distribution channel with either entry point:
-
-```bash
-CLIPTATE_APP_STORE=NO swift build
-CLIPTATE_APP_STORE=NO swift test
-CLIPTATE_APP_STORE=NO ./scripts/build-and-run.sh build
-```
-
-The option removes `APP_STORE`, disables App Sandbox, and enables the existing Accessibility-backed
-capabilities described in [ADR 0001](adr/0001-accessibility-gate-for-app-store.md).
-For an App Store build, set it to `YES` (or omit it for Release). Explicit `YES`
-also restores the App Store entitlements, App Sandbox, and disabled CLI URL in
-Debug. Channel selection is passed to SwiftPM and used for bundle permissions by
-the same build invocation. App Store builds remain sandboxed.
 Direct builds copy missing configuration and history from the current or legacy
 `com.voicepink.voicepinkpro` sandbox container once without removing originals or
 replacing current direct-build data. The Cliptate data directory stays unchanged.
@@ -467,32 +427,20 @@ installation](cli.md) for transcription, TTS, and dictionary commands. The CLI s
 the running application's configuration and model runtime; SwiftPM's standalone
 CLI product connects to the app rather than linking the inference libraries.
 
-To connect your own RevenueCat application:
-
-```bash
-cp config/Local.json.example config/Local.json
-```
-
-Set `CLIPTATE_REVENUECAT_API_KEY` to your public Apple SDK key. The ignored local
-JSON configuration is consumed by both Debug and Release bundles. Environment
-variables override local settings. Existing scalar billing/update/team settings in
-`config/Local.xcconfig` are read for compatibility, with `Local.json` taking
-precedence. Secret REST keys must never be embedded in an app.
+Local updater and development-team settings belong in the ignored
+`config/Local.json`; copy `config/Local.json.example` to get started. Environment
+variables override local values. Existing update/team settings in
+`config/Local.xcconfig` remain readable for compatibility, with `Local.json`
+taking precedence.
 
 `config/app.json` owns the source marketing version, build number, and shared
 update defaults. Environment overrides such as `CURRENT_PROJECT_VERSION` keep CI
 and local release numbering unchanged. Dev identity and updater isolation remain
 fixed independently of local configuration.
 
-App Store distribution requires your own signing configuration, store products,
-and RevenueCat application. Developer ID distribution requires signing configuration
-but no billing configuration. The existing production bundle identifier
-is retained to avoid breaking app data and product integration; forks intended for
-distribution should choose their own identifier and product IDs.
-
-Both build entry points preserve the `APP_STORE` capability gate and support
-explicit channel selection. Consult [ADR 0001](adr/0001-accessibility-gate-for-app-store.md)
-before changing the gate.
+Public DMG distribution requires Developer ID signing and notarization. Keep the
+production bundle identifier to preserve existing data and update compatibility;
+forks intended for distribution should choose their own identifier.
 
 ## Usage analytics
 
@@ -535,10 +483,9 @@ The production bundle ID changed from `com.voicepink.voicepinkpro` to
 `com.cliptate.app`. macOS treats this as a new application for privacy permissions.
 The release verifier accepts only this explicit transition and still verifies both
 code signatures and their signing authority; later same-ID updates must retain
-compatible privacy identities. App Store releases require a new App Store Connect
-app record and matching billing configuration. Existing product IDs and legacy
-storage keys remain unchanged. Sandboxed App Store data does not automatically
-move between app containers.
+compatible privacy identities. Existing legacy storage keys remain unchanged.
+Missing data from historical sandbox containers is copied once without replacing
+current files or removing originals.
 
 ## Repository layout
 

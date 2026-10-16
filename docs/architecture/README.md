@@ -7,8 +7,8 @@ Cliptate uses three SwiftPM modules with matching product names:
   parsing, formatting, transport, and request sessions. It depends only on system
   frameworks and does not import the application or its inference/UI dependencies.
 - `Cliptate` (`Sources/Cliptate`) is the SwiftUI app executable. It depends on Core
-  and owns UI, configuration, inference runtimes, billing, updates, and OS adapters.
-  Concrete transcriber construction and model access policy stay in this module.
+  and owns UI, configuration, inference runtimes, updates, and OS adapters.
+  Concrete transcriber construction stays in this module.
 - `CliptateCLI` (`Sources/CliptateCLI`) is the command-line executable. It depends
   only on Core and sends inference requests to the app, sharing its model lifecycle.
   The app bundle installs this executable as `Contents/Helpers/cliptate`.
@@ -42,8 +42,8 @@ into a distributable `.app`. `config/app.json` owns version and update defaults;
   stays occupied until cancelled work exits; dictionary requests remain available
   during transcription or TTS. The command owns a private staging WAV passed by bookmark; it publishes the output atomically after synthesis succeeds,
   keeping large audio outside JSON frames and preserving existing files on failure.
-  Callers and real-loopback tests cross the same request interfaces. Only direct
-  builds embed the helper and activate the listener. See [CLI documentation](../cli.md).
+  Callers and real-loopback tests cross the same request interfaces. Both Debug and Release
+  embed the helper and activate the listener. See [CLI documentation](../cli.md).
 - **Inference:** `ModelRuntime` coordinates sessions. `ModelDownloadManager` handles
   disk artifacts; `ModelCacheManager` handles loaded models, leases, and eviction.
   Active workflows use the cache manager rather than legacy `TranscriberPool`.
@@ -53,14 +53,12 @@ into a distributable `.app`. `config/app.json` owns version and update defaults;
 - **Editing and export:** segment processing produces timing-aware decisions consumed
   by video, FCPXML, and subtitle exporters. `SegmentIdentifier` preserves selection
   across reshaped segments.
-- **Subscription:** RevenueCat, access control, and paywall code are included. SDK
-  configuration is supplied locally, independently from source distribution.
 - **Usage analytics:** `AnalyticsRuntime` applies the restored collection preference and
   accepts typed launch, navigation, transcription, and export events.
   `FirebaseAnalyticsClient` owns the SDK adapter and accepts only the matching
   bundled Firebase configuration. `AppConfiguration` owns the setting; snapshots
   and presets preserve it. The SDK starts from the application delegate after
-  configuration restoration, in both distribution channels. See the
+  configuration restoration. See the
   [analytics configuration](../development.md#usage-analytics).
 - **Application updates:** `AppUpdateManager` owns one Sparkle updater shared by
   the app menu, status item, and settings. Distribution metadata and receipt checks
@@ -75,8 +73,11 @@ into a distributable `.app`. `config/app.json` owns version and update defaults;
   upload ordering, and tag mutations remain in the existing scripts. Initial
   checkout and concurrency expressions run before repository code is available;
   focused checks keep those expressions aligned with the policy.
-- **Platform capabilities:** `AccessibilityGate` selects capability behavior according
-  to the `APP_STORE` compilation condition; see [ADR 0001](../adr/0001-accessibility-gate-for-app-store.md).
+- **Platform capabilities:** `AccessibilityGate` owns Accessibility trust checks and
+  focused-field injection. Both Debug and Release use free direct distribution with
+  the embedded CLI, global shortcuts, and no App Sandbox. Missing Accessibility
+  consent still falls back to clipboard delivery. [ADR 0001](../adr/0001-accessibility-gate-for-app-store.md)
+  records the retired App Store restrictions.
 
 ## Supporting records
 

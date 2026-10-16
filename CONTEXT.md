@@ -52,12 +52,12 @@ The module that turns one export request plus the current AI Cut workspace into 
 _Avoid_: export flags, ad-hoc export routing
 
 **AccessibilityGate**:
-The single seam that owns whether macOS Accessibility-backed capabilities (focused-field text injection, global Space-key interception) are available, exposing them behind plain calls so callers never touch `AXIsProcessTrusted`, `CGEvent`, or `kAXTrusted` directly. Its App Store variant reports every capability unavailable so callers fall back; the default variant uses the real implementation.
+The single seam that owns macOS Accessibility-backed focused-field text injection and trust checks. Callers use it to insert dictation into other apps or fall back to the clipboard when permission is unavailable.
 _Avoid_: AX helper, permission manager, accessibility wrapper
 
-**App Store build**:
-A build of the app produced for Mac App Store distribution, distinguished by the `APP_STORE` compilation condition, in which `AccessibilityGate` reports all Accessibility capabilities unavailable so the binary neither requests nor links Accessibility APIs (App Review guideline 2.4.5). SwiftPM Release builds define `APP_STORE` by default; Debug (Cliptate Dev) defaults to direct distribution without that condition. `CLIPTATE_APP_STORE=YES` explicitly selects the App Store channel through the build script or SwiftPM; `NO` selects direct distribution.
-_Avoid_: MAS build, sandboxed build, store flavor
+**Direct distribution**:
+The free Cliptate app distributed as a download. Debug and Release expose all models and features, Accessibility-backed dictation, and the embedded CLI. Development and production keep separate identities and data.
+_Avoid_: store flavor, billing channel
 
 ## Example dialogue
 

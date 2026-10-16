@@ -196,8 +196,6 @@ final class TranscriberWarmupCoordinator: ObservableObject {
         await coordinator.publishIdle(for: signature)
       } catch let error as ModelPreparationError {
         await coordinator.publishBlocked(error.localizedDescription, for: signature)
-      } catch let error as ModelDownloadError {
-        await coordinator.publishFailed(error.localizedDescription, for: signature)
       } catch {
         await coordinator.publishFailed(error.localizedDescription, for: signature)
       }
@@ -335,8 +333,6 @@ final class TranscriberWarmupCoordinator: ObservableObject {
         await coordinator.publishIdle(for: signature)
       } catch let error as ModelPreparationError {
         await coordinator.publishBlocked(error.localizedDescription, for: signature)
-      } catch let error as ModelDownloadError {
-        await coordinator.publishFailed(error.localizedDescription, for: signature)
       } catch {
         await coordinator.publishFailed(error.localizedDescription, for: signature)
       }

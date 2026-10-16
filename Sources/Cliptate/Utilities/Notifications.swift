@@ -7,7 +7,6 @@ extension Notification.Name {
   static let modelArtifactsDidChange = Notification.Name("Cliptate.modelArtifactsDidChange")
   /// Posted when History wants to navigate the main window to the AI Cut section.
   static let openAICutSection = Notification.Name("Cliptate.openAICutSection")
-  static let openProSection = Notification.Name("Cliptate.openProSection")
 }
 
 enum ModelArtifactStatusNotifier {

@@ -14,7 +14,6 @@ enum AppSection: String, CaseIterable, Identifiable {
   case history = "History"
   case dictionary = "Dictionary"
   case permissions = "Permissions"
-  case pro = "Pro"
   case setting = "Setting"
 
   var id: String { rawValue }
@@ -25,7 +24,6 @@ enum AppSection: String, CaseIterable, Identifiable {
     case .voiceToText: return "Voice Dictation"
     case .ttsStudio: return "Voice Generation"
     case .permissions: return "Getting Started"
-    case .pro: return SubscriptionPolicy.isBillingEnabled ? "Pro" : "Free Access"
     case .setting: return "Settings"
     default: return LocalizedStringKey(rawValue)
     }
@@ -42,7 +40,6 @@ enum AppSection: String, CaseIterable, Identifiable {
     case .setting: return "gearshape"
     case .dictionary: return "text.book.closed"
     case .permissions: return "shield.lefthalf.filled"
-    case .pro: return "crown"
     }
   }
 
@@ -61,10 +58,7 @@ enum AppSection: String, CaseIterable, Identifiable {
         localized: "Permissions and setup guidance",
         comment: "Getting started sidebar description"
       )
-    case .pro:
-      return SubscriptionPolicy.isBillingEnabled
-        ? String(localized: "Subscription and benefits", comment: "Pro sidebar description")
-        : String(localized: "All features are free", comment: "Free distribution sidebar description")
+
     }
   }
 }
@@ -83,9 +77,6 @@ func resolvedAppSection(
   }
   if currentSection == .permissions {
     return requiresGettingStarted ? .permissions : .home
-  }
-  if currentSection == .pro && !SubscriptionPolicy.isBillingEnabled {
-    return .home
   }
   return currentSection ?? (requiresGettingStarted ? .permissions : .home)
 }
@@ -291,8 +282,6 @@ struct ContentView: View {
             .environmentObject(config)
         case .permissions:
           PermissionsView(onOpenVoiceToText: { currentSection = .voiceToText })
-        case .pro:
-          ProHubView()
         }
       }
       // Keep a page's fitting size from enlarging the application window.
@@ -314,12 +303,7 @@ struct ContentView: View {
     .onReceive(NotificationCenter.default.publisher(for: .openAICutSection)) { _ in
       currentSection = .aiCut
     }
-    .onReceive(NotificationCenter.default.publisher(for: .openProSection)) { _ in
-      if SubscriptionPolicy.isBillingEnabled {
-        currentSection = .pro
-      }
-      _ = AppNavigationRequestStore.consume()
-    }
+
     .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) {
       _ in
       permissionStatusManager.refreshAll()

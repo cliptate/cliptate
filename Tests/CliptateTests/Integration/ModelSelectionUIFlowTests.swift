@@ -11,6 +11,20 @@ import Testing
 @Suite("Model selection UI integration flow")
 @MainActor
 struct ModelSelectionUIFlowTests {
+  @Test("every undownloaded model offers download without checking billing", arguments: ModelVariant.allCases)
+  func allModelsOfferDownload(model: ModelVariant) {
+    let presentation = ModelsView.denseRowPresentation(
+      for: model,
+      isDownloaded: false,
+      progress: nil,
+      isDefaultSelection: false,
+      isAlignSelection: false,
+      isVADSelection: false
+    )
+    #expect(presentation.status == "Not Downloaded")
+    #expect(presentation.primaryAction == .download)
+  }
+
   @Test("unsupported language falls back when model context changes")
   func languageSelectionFallsBackOnModelSwitch() async throws {
     let ttsLanguages = await ModelCacheManager.shared.filteredLanguages(
@@ -70,95 +84,6 @@ struct ModelSelectionUIFlowTests {
     #expect(ModelsView.asrModels(for: .all).map(\.rawValue).contains(expectedModels[0]))
   }
 
-  @Test("premium shortcuts expose locked models for the selected engine")
-  func premiumShortcutsMatchLockedModels() throws {
-    let parakeetStatuses: [ModelVariant: ModelDownloadStatus] = [
-      .parakeetV2: .downloaded,
-      .parakeetV3: .notDownloaded,
-    ]
-    let parakeetPermissions: [ModelVariant: ModelDownloadPermission] = [
-      .parakeetV3: ModelDownloadPermission(
-        model: .parakeetV3,
-        isAllowed: false,
-        reason: .requiresProSubscription
-      )
-    ]
-    let parakeetShortcuts = ModelSelectionView.premiumShortcutModels(
-      for: .parakeet,
-      downloadStatuses: parakeetStatuses,
-      permissions: parakeetPermissions
-    )
-    #expect(parakeetShortcuts == (SubscriptionPolicy.isBillingEnabled ? [ModelVariant.parakeetV3] : []))
-
-    let qwenStatuses: [ModelVariant: ModelDownloadStatus] = [
-      .qwen3ASR: .downloaded,
-      .qwen3ASR17B4bit: .notDownloaded,
-      .qwen3ASR17B8bit: .notDownloaded,
-      .qwen3ASR17Bbf16: .downloaded,
-    ]
-    let qwenPermissions: [ModelVariant: ModelDownloadPermission] = [
-      .qwen3ASR17B4bit: ModelDownloadPermission(
-        model: .qwen3ASR17B4bit,
-        isAllowed: false,
-        reason: .requiresProSubscription
-      ),
-      .qwen3ASR17B8bit: ModelDownloadPermission(
-        model: .qwen3ASR17B8bit,
-        isAllowed: false,
-        reason: .requiresProSubscription
-      ),
-    ]
-    let qwenShortcuts = ModelSelectionView.premiumShortcutModels(
-      for: .qwen3,
-      downloadStatuses: qwenStatuses,
-      permissions: qwenPermissions
-    )
-    #expect(qwenShortcuts == (SubscriptionPolicy.isBillingEnabled ? [ModelVariant.qwen3ASR17B4bit, .qwen3ASR17B8bit] : []))
-
-    let fireRedStatuses: [ModelVariant: ModelDownloadStatus] = [
-      .fireRedASR2: .notDownloaded
-    ]
-    let fireRedPermissions: [ModelVariant: ModelDownloadPermission] = [
-      .fireRedASR2: ModelDownloadPermission(
-        model: .fireRedASR2,
-        isAllowed: false,
-        reason: .requiresProSubscription
-      )
-    ]
-    let fireRedShortcuts = ModelSelectionView.premiumShortcutModels(
-      for: .fireRed,
-      downloadStatuses: fireRedStatuses,
-      permissions: fireRedPermissions
-    )
-    #expect(fireRedShortcuts == (SubscriptionPolicy.isBillingEnabled ? [ModelVariant.fireRedASR2] : []))
-
-    let cohereType = try #require(TranscriberType(rawValue: "cohere"))
-    let cohereFP16 = try #require(ModelVariant(rawValue: "cohere-transcribe-03-2026-mlx-fp16"))
-    let cohere8Bit = try #require(ModelVariant(rawValue: "cohere-transcribe-03-2026-mlx-8bit"))
-    let cohereStatuses: [ModelVariant: ModelDownloadStatus] = [
-      cohereFP16: .notDownloaded,
-      cohere8Bit: .notDownloaded,
-    ]
-    let coherePermissions: [ModelVariant: ModelDownloadPermission] = [
-      cohereFP16: ModelDownloadPermission(
-        model: cohereFP16,
-        isAllowed: false,
-        reason: .requiresProSubscription
-      ),
-      cohere8Bit: ModelDownloadPermission(
-        model: cohere8Bit,
-        isAllowed: false,
-        reason: .requiresProSubscription
-      ),
-    ]
-    let cohereShortcuts = ModelSelectionView.premiumShortcutModels(
-      for: cohereType,
-      downloadStatuses: cohereStatuses,
-      permissions: coherePermissions
-    )
-    #expect(cohereShortcuts == (SubscriptionPolicy.isBillingEnabled ? [cohereFP16, cohere8Bit] : []))
-  }
-
   @Test("models header demotes cache memory to secondary stat below downloaded and disk usage")
   func modelsHeaderKeepsCacheMemoryAsPrimaryStat() {
     let metrics = ModelsView.headerMetrics(
@@ -179,11 +104,6 @@ struct ModelSelectionUIFlowTests {
       for: .qwen3ASR17B8bit,
       isDownloaded: true,
       progress: nil,
-      permission: ModelDownloadPermission(
-        model: .qwen3ASR17B8bit,
-        isAllowed: true,
-        reason: nil
-      ),
       isDefaultSelection: false,
       isAlignSelection: false,
       isVADSelection: false
@@ -212,7 +132,6 @@ struct ModelSelectionUIFlowTests {
 
     #expect(ModelsView.statusStyle(for: .active).tone == .success)
     #expect(ModelsView.statusStyle(for: .downloaded).tone == .neutral)
-    #expect(ModelsView.statusStyle(for: .pro).tone == .warning)
     #expect(ModelsView.statusStyle(for: .error).tone == .danger)
   }
 
@@ -222,7 +141,6 @@ struct ModelSelectionUIFlowTests {
       for: .qwen3ForcedAligner,
       isDownloaded: true,
       progress: nil,
-      permission: nil,
       isDefaultSelection: false,
       isAlignSelection: true,
       isVADSelection: false
@@ -231,7 +149,6 @@ struct ModelSelectionUIFlowTests {
       for: .sileroVAD,
       isDownloaded: true,
       progress: nil,
-      permission: nil,
       isDefaultSelection: false,
       isAlignSelection: false,
       isVADSelection: true

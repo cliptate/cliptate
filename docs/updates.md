@@ -112,7 +112,7 @@ and `latest=false`, and only replaces its installer and checksum. The source
 branch is never written by the release workflow. Feed validation is structural;
 cryptographic archive verification is performed by Sparkle when installing.
 
-## Local builds and App Store distribution
+## Local builds
 
 Debug builds use the independent `com.cliptate.dev` identity and disable the
 production updater, even when a feed and key are configured. Use Release and
@@ -124,14 +124,6 @@ Copy `config/Local.json.example` to the ignored `config/Local.json` and set
 such as `https://example.com/appcast.xml`.
 The build script also accepts those settings as environment variables, plus
 `CURRENT_PROJECT_VERSION` for testing a newer build.
-
-`APP_STORE` remains the existing accessibility capability gate. It is independent
-of distribution. Set `CLIPTATE_UPDATES_ENABLED=NO` for an actual Mac App Store
-build; a detected App Store receipt also disables the updater. For an App Store
-submission, omit the Sparkle package/framework and its temporary Mach lookup
-entitlements from that distribution target, as required by Sparkle's
-[sandbox integration instructions](https://sparkle-project.org/documentation/sandboxing/).
-The current bundler packages direct-download releases.
 
 To test a full update, install an older signed and notarized build in Applications,
 publish a newer signed build to the same feed, then choose **Check for Updates…**.

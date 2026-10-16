@@ -11,7 +11,7 @@ belong to that exchange.
 _Avoid_: CLI connection, command job
 
 **Release channel**:
-The choice between Cliptate's rolling Nightly prerelease and a stable version release. This is distinct from App Store versus direct-download distribution.
+The choice between Cliptate's rolling Nightly prerelease and a stable version release. Both use free direct distribution.
 _Avoid_: distribution channel, build flavor
 
 **Release-channel policy**:

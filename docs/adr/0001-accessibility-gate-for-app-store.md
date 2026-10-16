@@ -1,5 +1,10 @@
 # Gate macOS Accessibility behind a single compile-time seam for App Store builds
 
+**Status: retired (2026-10-16).** Cliptate now supports only free direct distribution.
+The App Store compilation condition and restricted implementation have been removed.
+`AccessibilityGate` retains the trust-check and injection boundary for clipboard fallback.
+The original decision below is preserved as historical context.
+
 Mac App Store review rejected the app under guideline 2.4.5 because it requests
 Accessibility solely to drive other apps (focused-field text injection via
 `CGEvent`, global Space-key interception via `CGEvent.tapCreate`) — not to

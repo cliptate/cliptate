@@ -6,13 +6,11 @@ import CliptateCore
 /// Copies missing data and preferences once while retaining originals and migration markers.
 enum DirectAppDataMigration {
   static func run() throws {
-    #if !APP_STORE
-      guard let identifier = Bundle.main.bundleIdentifier,
-        let passwd = getpwuid(getuid())
-      else { return }
-      let home = URL(fileURLWithPath: String(cString: passwd.pointee.pw_dir))
-      try run(home: home, bundleIdentifier: identifier, userDefaults: .standard)
-    #endif
+    guard let identifier = Bundle.main.bundleIdentifier,
+      let passwd = getpwuid(getuid())
+    else { return }
+    let home = URL(fileURLWithPath: String(cString: passwd.pointee.pw_dir))
+    try run(home: home, bundleIdentifier: identifier, userDefaults: .standard)
   }
 
   static func run(home: URL, bundleIdentifier: String, userDefaults: UserDefaults) throws {

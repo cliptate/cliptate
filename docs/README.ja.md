@@ -32,7 +32,7 @@
 
 Cliptate は、音声を編集可能なテキスト、字幕、ラフカットに変換するネイティブ macOS アプリです。Apple Silicon Mac 上のモデルで、録音の文字起こし、他のアプリへの音声入力、無音部分のカット、音声合成を行えます。
 
-**GitHub ダウンロード版は無料です。** すべてのモデルと Pro 機能が利用でき、サブスクリプションや購入は不要です。任意のオンライン AI 機能には、ご自身で設定したサービスを使用します。
+**GitHub ダウンロード版は無料です。** すべてのモデルと機能が利用でき、サブスクリプションや購入は不要です。任意のオンライン AI 機能には、ご自身で設定したサービスを使用します。
 
 ![音声入力の統計とアクティビティを表示する Cliptate 日本語ホーム画面](../assets/screenshots/home.ja.jpg)
 
@@ -122,7 +122,6 @@ Apple Silicon、macOS 15+、**Xcode 26+（Swift 6.2+）** が必要です。
 git clone https://github.com/cliptate/cliptate.git
 cd cliptate
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-export CLIPTATE_APP_STORE=NO
 swift build
 swift test
 ./scripts/run.sh
@@ -130,7 +129,7 @@ swift test
 
 SwiftPM はアプリの実行ファイルと CLI をビルドし、ユニットテストを実行します。`./scripts/run.sh` は **Cliptate Dev.app** を組み立て、署名して起動します。開発用の設定とデータは独立しています。起動せずにビルドするには `./scripts/build-and-run.sh build` を使用します。
 
-`CLIPTATE_APP_STORE=NO` は、CLI とアクセシビリティを使う音声入力を含む無料の直接配布チャネルを選択します。Debug はデフォルトでこのチャネルを使い、Release は App Store の制限とサブスクリプション動作を維持します。App Store の課金には独自のローカル設定が必要です。署名、モデルキャッシュ、配布設定は[開発ガイド](development.md)をご覧ください。
+Debug と Release はどちらも無料の直接配布版で、CLI とアクセシビリティを使う音声入力を含みます。署名、モデルキャッシュ、配布設定は[開発ガイド](development.md)をご覧ください。
 
 ## 貢献とサポート
 

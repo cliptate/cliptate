@@ -138,13 +138,6 @@ actor TranscriberPool {
   }
 
   private func validateModelReadiness(for model: ModelVariant) async throws {
-    if model.requiresProSubscription {
-      let permission = try await ModelAccessController.shared.checkPermission(for: model)
-      guard permission.isAllowed else {
-        let reason = permission.reason ?? .requiresProSubscription
-        throw ModelDownloadError.permissionDenied(reason: reason)
-      }
-    }
 
     let hasArtifacts = await ModelDownloadManager.shared.hasLocalArtifacts(for: model)
     guard hasArtifacts else {

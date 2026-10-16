@@ -28,7 +28,6 @@ struct NemotronASRTranscriberTests {
     for model in models {
       #expect(model.provider == .nemotron)
       #expect(model.downloadBackend == .nemotronASR)
-      #expect(!model.requiresProSubscription)
       #expect(try JSONDecoder().decode(ModelVariant.self, from: JSONEncoder().encode(model)) == model)
       #expect((TranscriberType.nemotron.createTranscriber(model: model) as? NemotronASRTranscriber)?.model == model)
     }

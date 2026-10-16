@@ -47,28 +47,6 @@ struct LocalizationCatalogCoverageTests {
     )
   }
 
-  @Test("subscription surfaces keep localized catalog entries")
-  func subscriptionSurfacesKeepLocalizedCatalogEntries() throws {
-    let strings = try Self.catalogStrings()
-    let requiredKeys = [
-      "Unlimited downloads for premium models",
-      "Batch workflows and export tools stay unlocked",
-      "Priority access to new model releases",
-      "Current",
-      "Save 17%",
-      "Popular",
-      "Best Value",
-      "Selected",
-      "Purchases restored successfully.",
-    ]
-
-    let missingKeys = requiredKeys.filter { strings[$0] == nil }
-    #expect(
-      missingKeys.isEmpty,
-      "Missing subscription localization keys:\n\(missingKeys.joined(separator: "\n"))"
-    )
-  }
-
   @Test("native navigation and dictation controls have localization entries")
   func nativeUIControlKeys() throws {
     let strings = try Self.catalogStrings()
@@ -109,94 +87,6 @@ struct LocalizationCatalogCoverageTests {
       }
     }
   }
-
-  @Test("subscription action labels use Chinese in zh-Hans")
-  func subscriptionActionLabelsUseChineseInZhHans() throws {
-    let strings = try Self.catalogStrings()
-    let expectedChineseValues = [
-      "Continue for %@": "继续 %@",
-      "Unlock Lifetime for %@": "以 %@ 解锁终身访问",
-      "Upgrade with %@": "使用 %@ 升级",
-    ]
-
-    let failures = expectedChineseValues.compactMap { key, expectedValue -> String? in
-      let entry = strings[key] as? [String: Any]
-      let localizations = entry?["localizations"] as? [String: Any]
-      let localizedEntry = localizations?["zh-Hans"] as? [String: Any]
-      let stringUnit = localizedEntry?["stringUnit"] as? [String: Any]
-      let value = stringUnit?["value"] as? String
-      guard value != expectedValue else {
-        return nil
-      }
-      return "\"\(key)\" -> expected \"\(expectedValue)\", got \"\(value ?? "<missing>")\""
-    }
-
-    #expect(
-      failures.isEmpty,
-      "Unexpected zh-Hans subscription action labels:\n\(failures.joined(separator: "\n"))"
-    )
-  }
-
-  @Test("subscription plan names have localized catalog entries")
-  func subscriptionPlanNamesHaveLocalizedCatalogEntries() throws {
-    let strings = try Self.catalogStrings()
-    let expectedChineseValues = [
-      "Pro Monthly": "Pro 月度",
-      "Pro Annual": "Pro 年度",
-      "Pro Lifetime": "Pro 终身",
-    ]
-
-    let failures = expectedChineseValues.compactMap { key, expectedValue -> String? in
-      let entry = strings[key] as? [String: Any]
-      let localizations = entry?["localizations"] as? [String: Any]
-      let localizedEntry = localizations?["zh-Hans"] as? [String: Any]
-      let stringUnit = localizedEntry?["stringUnit"] as? [String: Any]
-      let value = stringUnit?["value"] as? String
-      guard value == expectedValue else {
-        return "\"\(key)\" -> expected \"\(expectedValue)\", got \"\(value ?? "<missing>")\""
-      }
-      return nil
-    }
-
-    #expect(
-      failures.isEmpty,
-      "Unexpected zh-Hans subscription plan names:\n\(failures.joined(separator: "\n"))"
-    )
-  }
-
-  @Test("pro hub strings have localized catalog entries")
-  func proHubStringsHaveLocalizedCatalogEntries() throws {
-    let strings = try Self.catalogStrings()
-    let requiredKeys = [
-      // Header
-      "Cliptate Pro",
-      "Manage your plan, billing, and purchases.",
-      "Manage or Upgrade",
-      "Unlock Cliptate",
-      // Feature highlights
-      "Unlimited Transcriptions",
-      "No free-tier quotas",
-      "Priority Models",
-      "Latest Whisper & Parakeet",
-      "Premium Exports",
-      "4K, FCPXML & subtitles",
-      // Plan tiers
-      "Available Plans",
-      "Monthly",
-      "Flexible, cancel anytime",
-      "Annual",
-      "Best long-term value",
-      "Lifetime",
-      "One purchase, forever",
-    ]
-
-    let missingKeys = requiredKeys.filter { strings[$0] == nil }
-    #expect(
-      missingKeys.isEmpty,
-      "Missing Pro hub localization keys:\n\(missingKeys.joined(separator: "\n"))"
-    )
-  }
-
 
   @Test("accessibility permission strings have localized catalog entries")
   func accessibilityPermissionStringsHaveLocalizedCatalogEntries() throws {

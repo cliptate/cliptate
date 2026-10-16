@@ -10,17 +10,6 @@ private func defaultLegacyMLXAudioBase() -> URL? {
   ModelDownloadManager.legacyMLXAudioBase(cachesDirectory: URL.cachesDirectory)
 }
 
-enum ModelDownloadError: LocalizedError, Equatable {
-  case permissionDenied(reason: ModelDownloadPermission.PermissionDenialReason)
-
-  var errorDescription: String? {
-    switch self {
-    case .permissionDenied(let reason):
-      return reason.message
-    }
-  }
-}
-
 /// Manages Parakeet and MLX Audio model downloads, status, and deletion.
 actor ModelDownloadManager {
   static let shared = ModelDownloadManager()
@@ -30,7 +19,6 @@ actor ModelDownloadManager {
   nonisolated let cacheRootProvider: @Sendable () -> URL
   nonisolated let legacyMLXAudioBaseProvider: @Sendable () -> URL?
 
-  private let accessController: any ModelAccessControlling
   private let fileManager: FileManager
   private let logger = Logger(subsystem: "com.cliptate.app", category: "ModelDownloadManager")
   private var activeDownloads: [ModelVariant: Task<Void, Error>] = [:]
@@ -40,12 +28,10 @@ actor ModelDownloadManager {
       ModelDownloadManager.hubCacheRoot(environment: ProcessInfo.processInfo.environment)
     },
     legacyMLXAudioBaseProvider: @escaping @Sendable () -> URL? = { defaultLegacyMLXAudioBase() },
-    accessController: any ModelAccessControlling = ModelAccessController.shared,
     fileManager: FileManager = .default
   ) {
     self.cacheRootProvider = cacheRootProvider
     self.legacyMLXAudioBaseProvider = legacyMLXAudioBaseProvider
-    self.accessController = accessController
     self.fileManager = fileManager
   }
 
@@ -82,14 +68,6 @@ actor ModelDownloadManager {
   // MARK: - Public API
 
   func isModelDownloaded(_ model: ModelVariant) async -> Bool {
-    if model.requiresProSubscription {
-      do {
-        let permission: ModelDownloadPermission = try await accessController.checkPermission(for: model)
-        guard permission.isAllowed else { return false }
-      } catch {
-        return false
-      }
-    }
     return hasLocalModel(for: model)
   }
 
@@ -130,8 +108,6 @@ actor ModelDownloadManager {
       try await existing.value
       return
     }
-
-    try await ensureDownloadPermitted(for: model)
 
     let task = Task {
       switch Self.downloadBackend(for: model) {
@@ -471,15 +447,6 @@ actor ModelDownloadManager {
       try fileManager.copyItem(at: legacy, to: primary)
     } catch {
       logger.error("Failed to restore legacy model cache from \(legacy.path, privacy: .public) to \(primary.path, privacy: .public): \(error.localizedDescription, privacy: .public)")
-    }
-  }
-
-  private func ensureDownloadPermitted(for model: ModelVariant) async throws {
-    guard model.requiresProSubscription else { return }
-    let permission = try await accessController.checkPermission(for: model)
-    guard permission.isAllowed else {
-      let reason = permission.reason ?? .requiresProSubscription
-      throw ModelDownloadError.permissionDenied(reason: reason)
     }
   }
 

@@ -54,11 +54,7 @@ final class PermissionStatusManager: ObservableObject {
 
   var requiresGettingStarted: Bool {
     let requiresCorePermissions = microphoneStatus != .authorized || !isScreenRecordingEnabled
-    #if APP_STORE
-      return requiresCorePermissions
-    #else
-      return requiresCorePermissions || (AccessibilityGate.isSupported && !isAccessibilityEnabled)
-    #endif
+    return requiresCorePermissions || (AccessibilityGate.isSupported && !isAccessibilityEnabled)
   }
 
   init() {
@@ -122,10 +118,8 @@ struct PermissionsView: View {
     "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"
   private let screenRecordingSettingsURL =
     "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"
-  #if !APP_STORE
-    private let accessibilitySettingsURL =
-      "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
-  #endif
+  private let accessibilitySettingsURL =
+    "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
 
   var body: some View {
     ScrollView {
@@ -159,35 +153,33 @@ struct PermissionsView: View {
             refresh: { manager.refreshMicrophone() }
           )
 
-          #if !APP_STORE
-            if AccessibilityGate.isSupported {
-              PermissionCard(
-                icon: "doc.on.clipboard",
-                title: String(
-                  localized: "Enable hands-free text insertion",
-                  comment: "Accessibility permission title"
+          if AccessibilityGate.isSupported {
+            PermissionCard(
+              icon: "doc.on.clipboard",
+              title: String(
+                localized: "Enable hands-free text insertion",
+                comment: "Accessibility permission title"
+              ),
+              message: [
+                String(
+                  localized:
+                    "This allows Cliptate to insert the text you dictate directly into any app.",
+                  comment: "Accessibility permission benefit copy"
                 ),
-                message: [
-                  String(
-                    localized:
-                      "This allows Cliptate to insert the text you dictate directly into any app.",
-                    comment: "Accessibility permission benefit copy"
-                  ),
-                  String(
-                    localized: "Without this permission, Cliptate cannot enter the text you speak.",
-                    comment: "Accessibility permission missing-permission copy"
-                  ),
-                ].joined(separator: " "),
-                state: manager.isAccessibilityEnabled ? .granted : .pending,
-                buttonTitle: String(
-                  localized: "Open Accessibility Settings",
-                  comment: "Button to open macOS Accessibility settings"
+                String(
+                  localized: "Without this permission, Cliptate cannot enter the text you speak.",
+                  comment: "Accessibility permission missing-permission copy"
                 ),
-                action: handleAccessibilityAction,
-                refresh: { manager.refreshAccessibility() }
-              )
-            }
-          #endif
+              ].joined(separator: " "),
+              state: manager.isAccessibilityEnabled ? .granted : .pending,
+              buttonTitle: String(
+                localized: "Open Accessibility Settings",
+                comment: "Button to open macOS Accessibility settings"
+              ),
+              action: handleAccessibilityAction,
+              refresh: { manager.refreshAccessibility() }
+            )
+          }
 
           PermissionCard(
             icon: "rectangle.on.rectangle",
@@ -258,11 +250,9 @@ struct PermissionsView: View {
     }
   }
 
-  #if !APP_STORE
-    private func handleAccessibilityAction() {
-      openSystemSettings(accessibilitySettingsURL)
-    }
-  #endif
+  private func handleAccessibilityAction() {
+    openSystemSettings(accessibilitySettingsURL)
+  }
 
   private func handleScreenRecordingAction() {
     if !manager.isScreenRecordingEnabled {

@@ -239,23 +239,6 @@ public protocol ChunkTranscriber: Transcriber {
   func transcribeChunk(samples: [Float], language: Language) async throws -> String
 }
 
-/// Access level classification for transcription models
-public enum ModelAccessLevel: String, Codable, Sendable {
-  /// Free models are available without a subscription
-  case free
-
-  /// Pro models require an active subscription
-  case pro
-
-  /// Reserved for future enterprise-only models
-  case enterprise
-
-  /// Indicates whether this access level requires payment
-  public var requiresSubscription: Bool {
-    self != .free
-  }
-}
-
 /// Model variants for different transcription engines
 public enum ModelVariant: String, CaseIterable, Sendable, Identifiable, Codable {
   // Multilingual Whisper models; Turbo is the recommended balance of speed and size.

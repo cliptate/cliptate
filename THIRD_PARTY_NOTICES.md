@@ -17,7 +17,6 @@ by the committed dependency locks.
 | Combine Schedulers | MIT | https://github.com/pointfreeco/combine-schedulers |
 | XCTest Dynamic Overlay | MIT | https://github.com/pointfreeco/xctest-dynamic-overlay |
 | AudioKit | MIT | https://github.com/AudioKit/AudioKit |
-| RevenueCat | MIT | https://github.com/RevenueCat/purchases-ios-spm |
 | MLX Audio Swift | MIT | https://github.com/Blaizzy/mlx-audio-swift |
 | MLX Swift | MIT | https://github.com/ml-explore/mlx-swift |
 | MLX Swift LM | MIT | https://github.com/ml-explore/mlx-swift-lm |

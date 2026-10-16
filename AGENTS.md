@@ -1,7 +1,7 @@
 # Cliptate development instructions
 
 Work directly in this checkout unless the user requests a worktree.
-Read `docs/development.md` for build prerequisites, signing, and optional billing configuration.
+Read `docs/development.md` for build prerequisites, signing, and updater configuration.
 Read `CONTEXT.md` when changing domain concepts and `docs/architecture/README.md` when changing module boundaries.
 
 Use Conventional Commits for every new commit and squash-merge title; follow the
@@ -34,7 +34,7 @@ SwiftPM discovers tests automatically in `Tests/CliptateTests`.
 - `ConfigurationRuntime` owns restore, persistence, presets, and deferred warmup ordering.
 - Use `ModelRuntime` and `ModelCacheManager` for active inference; `TranscriberPool` is legacy.
 - Keep per-video editing state in `VideoState`; use `SegmentIdentifier` across segment reshaping.
-- Preserve `APP_STORE` capability behavior; read `docs/adr/0001-accessibility-gate-for-app-store.md` before changing accessibility or shortcut delivery.
+- Cliptate uses free direct distribution. Keep Accessibility-backed dictation and the embedded CLI available in Debug and Release.
 
 ## Resources and configuration
 

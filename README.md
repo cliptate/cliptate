@@ -34,7 +34,7 @@
 
 Cliptate is a native macOS app for turning speech into editable text, subtitles, and rough cuts. Transcribe recordings, dictate into other apps, trim pauses, and generate speech with models running on your Apple Silicon Mac.
 
-**GitHub downloads are free:** all models and Pro features are unlocked, with no subscription or purchase required. Optional online AI services use your own provider configuration.
+**Cliptate is free:** all models and features are available, with no subscription or purchase required. Optional online AI services use your own provider configuration.
 
 **[Watch the Cliptate video demo on YouTube](https://youtu.be/2MEVQTw3OVs).**
 
@@ -128,7 +128,6 @@ Requires Apple Silicon, macOS 15+, and **Xcode 26+ with Swift 6.2+**.
 git clone https://github.com/cliptate/cliptate.git
 cd cliptate
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-export CLIPTATE_APP_STORE=NO
 swift build
 swift test
 ./scripts/run.sh
@@ -136,7 +135,7 @@ swift test
 
 SwiftPM builds the app executable and CLI and runs unit tests. `./scripts/run.sh` assembles, signs, and launches the application as **Cliptate Dev.app** with separate development settings and data. To build the app without launching it, use `./scripts/build-and-run.sh build`.
 
-`CLIPTATE_APP_STORE=NO` selects the free direct-distribution channel, including the CLI and Accessibility-backed dictation. Debug defaults to this channel; Release defaults to App Store restrictions and subscription behavior. App Store billing requires your own local configuration. See the [development guide](docs/development.md) for signing, model caches, and distribution setup.
+Debug and Release both use free direct distribution, including the CLI and Accessibility-backed dictation. See the [development guide](docs/development.md) for signing, model caches, and distribution setup.
 
 ## Contribute and get help
 

@@ -32,7 +32,7 @@
 
 Cliptate ist eine native macOS-App, die Sprache in bearbeitbaren Text, Untertitel und Rohschnitte umwandelt. Transkribieren Sie Aufnahmen, diktieren Sie in andere Apps, kürzen Sie Pausen und erzeugen Sie Sprache mit Modellen auf Ihrem Apple Silicon Mac.
 
-**Die GitHub-Downloadversion ist kostenlos:** Alle Modelle und Pro-Funktionen sind ohne Abonnement oder Kauf verfügbar. Optionale Online-KI-Funktionen nutzen den von Ihnen konfigurierten Dienst.
+**Die GitHub-Downloadversion ist kostenlos:** Alle Modelle und Funktionen sind ohne Abonnement oder Kauf verfügbar. Optionale Online-KI-Funktionen nutzen den von Ihnen konfigurierten Dienst.
 
 ![Cliptate-Startseite auf Deutsch mit Diktierstatistik und Aktivitätsverlauf](../assets/screenshots/home.de.jpg)
 
@@ -122,7 +122,6 @@ Erforderlich sind Apple Silicon, macOS 15+ und **Xcode 26+ mit Swift 6.2+**.
 git clone https://github.com/cliptate/cliptate.git
 cd cliptate
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-export CLIPTATE_APP_STORE=NO
 swift build
 swift test
 ./scripts/run.sh
@@ -130,7 +129,7 @@ swift test
 
 SwiftPM baut die ausführbare App und die CLI und führt Unit-Tests aus. `./scripts/run.sh` erstellt, signiert und startet die App **Cliptate Dev.app** mit eigenen Entwicklungseinstellungen und Daten. Zum Bauen ohne Start verwenden Sie `./scripts/build-and-run.sh build`.
 
-`CLIPTATE_APP_STORE=NO` wählt den kostenlosen direkten Vertriebskanal mit CLI und Diktat über Bedienungshilfen. Debug verwendet standardmäßig diesen Kanal; Release behält die App-Store-Beschränkungen und das Abonnementverhalten. Die App-Store-Abrechnung erfordert Ihre eigene lokale Konfiguration. Signierung, Modellcache und Vertrieb sind im [Entwicklungshandbuch](development.md) beschrieben.
+Debug und Release verwenden beide den kostenlosen direkten Vertrieb mit CLI und Diktat über Bedienungshilfen. Signierung, Modellcache und Vertrieb sind im [Entwicklungshandbuch](development.md) beschrieben.
 
 ## Mitwirken und Hilfe
 

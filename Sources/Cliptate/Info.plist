@@ -11,8 +11,6 @@
                 <array><string>$(CLIPTATE_CLI_URL_SCHEME)</string></array>
             </dict>
         </array>
-        <key>CliptateRevenueCatAPIKey</key>
-        <string>$(CLIPTATE_REVENUECAT_API_KEY)</string>
         <key>CliptateUpdatesEnabled</key>
         <string>$(CLIPTATE_UPDATES_ENABLED)</string>
         <key>SUFeedURL</key>
@@ -23,8 +21,6 @@
         <true />
         <key>SUVerifyUpdateBeforeExtraction</key>
         <true />
-        <key>ITSAppUsesNonExemptEncryption</key>
-        <false />
         <key>NSMicrophoneUsageDescription</key>
         <string>Cliptate needs access to your microphone to record audio for transcription.</string>
         <key>NSAppleEventsUsageDescription</key>

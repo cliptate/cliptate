@@ -5,8 +5,8 @@
 The CLI is included in the GitHub/direct-download macOS app. It starts Cliptate
 in the background when necessary and uses the application's current model,
 language, segmentation, alignment, and custom dictionary. Transcriptions do not
-create projects or transcript-history entries. App Store builds do not include
-the CLI or start its listener.
+create projects or transcript-history entries. Debug and Release both include
+the CLI and its listener.
 
 Run `cliptate --help` for the complete command reference, including input and output
 rules, the JSON structure, dictionary behavior, environment variables, exit codes,
@@ -43,7 +43,7 @@ the new CLI. `cliptate --version` prints the app version and protocol version.
 For development:
 
 ```sh
-CLIPTATE_APP_STORE=NO ./scripts/build-and-run.sh build
+./scripts/build-and-run.sh build
 ".build/app/Build/Products/Debug/Cliptate Dev.app/Contents/Helpers/cliptate" --help
 swift build --product CliptateCLI
 CLIPTATE_APP=/path/to/Cliptate.app swift run CliptateCLI dictionary list
@@ -217,11 +217,10 @@ keeps its admission slot until its work exits. No filesystem paths or dictionary
 contents are placed in the launch URL. File access is passed using an implicit bookmark;
 the CLI itself reads dictionary imports and writes output files.
 
-GitHub/direct builds run without App Sandbox, as explicitly selected by
-`CLIPTATE_APP_STORE=NO`. App Store builds retain their sandbox and capability policy.
+Debug and Release both use free direct distribution without App Sandbox.
 Direct builds copy missing configuration, presets, and history from the previous
 sandbox container once, retain originals, and preserve existing direct-build data.
-The helper is a native Xcode target, signed before embedding, and covered by the
+The helper is a native SwiftPM executable, signed before embedding, and covered by the
 existing app signature/notarization checks. The production app bundle ID is unchanged.
 
 ## Development app

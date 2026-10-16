@@ -25,7 +25,11 @@ class BundleResourceTests(unittest.TestCase):
                 (bundle / "resource").write_bytes(b"runtime resource")
             (products / "mlx-swift_Cmlx.bundle/current").symlink_to("resource")
 
-            app_bundle.copy_resources(products, resources)
+            app_bundle.copy_resources(products, resources, {
+                "name": "Cliptate", "dependencies": [
+                    {"name": "mlx-swift"}, {"name": "KeyboardShortcuts"},
+                ],
+            })
 
             self.assertFalse((resources / "Cliptate_Cliptate.bundle").exists())
             for name in ["mlx-swift_Cmlx", "KeyboardShortcuts_KeyboardShortcuts"]:

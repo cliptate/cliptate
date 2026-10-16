@@ -31,7 +31,7 @@ run: ## Build and launch Cliptate Dev
 	./scripts/run.sh
 
 dmg: ## Build a local ad-hoc direct-download Release DMG
-	CONFIGURATION=Release CLIPTATE_APP_STORE=NO ./scripts/build-and-run.sh build
+	CONFIGURATION=Release ./scripts/build-and-run.sh build
 	./scripts/package-dmg.sh
 
 ci: ## Run the Test Action locally through act

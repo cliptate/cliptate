@@ -1,6 +1,6 @@
 ---
 name: release
-description: Prepare and publish Cliptate macOS version releases, verify installers and updates, and maintain the website changelog. Use for Cliptate release preparation, publication, or release verification; App Store submission is a separate workflow.
+description: Prepare and publish Cliptate macOS version releases, verify installers and updates, and maintain the website changelog. Use for Cliptate release preparation, publication, or release verification.
 ---
 
 # Cliptate release
@@ -16,7 +16,7 @@ description: Prepare and publish Cliptate macOS version releases, verify install
 ## 1. 准备版本与说明
 
 1. 核对目标源码与上一个正式版本的差异。使用实际历史和发布状态确定前一版本，排除滚动 `nightly`；不要依赖标签的字典排序。保留工作区中不属于发布任务的改动，避免将未完成或他人的修改带入发布提交。
-2. 检查 `config/app.json` 中的版本设置，将 `MARKETING_VERSION` 与目标标签去掉 `v` 后的版本对齐。按当前发布惯例推进应用的源码 `CURRENT_PROJECT_VERSION`，保留生产 bundle identity。分发渠道仍为免费的直接下载版，使用 `CLIPTATE_APP_STORE=NO`。
+2. 检查 `config/app.json` 中的版本设置，将 `MARKETING_VERSION` 与目标标签去掉 `v` 后的版本对齐。按当前发布惯例推进应用的源码 `CURRENT_PROJECT_VERSION`，保留生产 bundle identity。分发渠道仍为免费的直接下载版。
 3. CI 和本地打包会覆盖安装包的内部 build number，具体规则见 `docs/updates.md`、`docs/local-actions.md`；源码 build number 不代表最终发布包的 build number。保持包版本递增，尤其核对当前 Latest 和 Nightly 的内部版本，防止旧包或旧 CI run 覆盖更新结果。
 4. 按 `docs/release-notes/README.md` 写 `docs/release-notes/<tag>.md`。首行、五个摘要章节、日期（Asia/Shanghai）、前一版本、升级动作、限制和实际验证记录都要完整。提交清单保留真实标题与哈希，并提供版本比较链接；含特殊字符的标签按指南编码文件名。更新该目录 README 的版本索引。
 5. 功能说明来自这一版本的源码范围。需要时同步应用使用指南、CLI 文档和各语言 README。验证章节只记录已经执行的检查；签名、公证与安装验证在取得结果前保持待验证表述。
@@ -32,14 +32,14 @@ GitHub Release 的更新内容只链接官网对应版本详情，保留自动�
 ```bash
 swift build
 swift test
-CONFIGURATION=Release CLIPTATE_APP_STORE=NO ./scripts/build-and-run.sh build
+CONFIGURATION=Release ./scripts/build-and-run.sh build
 python3 scripts/release-notes.py "$RELEASE_TAG" --check
 python3 -m unittest discover -s Tests/Automation -v
 python3 scripts/update-dependency-notices.py --check
 git diff --check
 ```
 
-`RELEASE_TAG` 使用已确定的目标标签。变更分发能力或 `APP_STORE` 逻辑时补充另一渠道的检查；模型和交互验证按变更涉及的行为执行，并如实记录未完成项。检查依赖锁文件没有被构建意外改写。普通本地 Release 构建可能使用 ad-hoc 签名，它只提供构建证据。
+`RELEASE_TAG` 使用已确定的目标标签。变更分发能力时验证 Debug 与 Release 的免费直发行为；模型和交互验证按变更涉及的行为执行，并如实记录未完成项。检查依赖锁文件没有被构建意外改写。普通本地 Release 构建可能使用 ad-hoc 签名，它只提供构建证据。
 
 按 Conventional Commits 提交版本设置和说明，例如 `chore(release): prepare vX.Y`。**发布说明必须在目标提交中，先提交，再创建版本标签。** 提交之前核对暂存范围。版本已存在时转入检查或已获授权的同标签重跑，保留标签原指向。
 

@@ -267,26 +267,6 @@ struct KeyboardShortcutManagerHoldTests {
     #expect(source.contains("AccessibilityGate.installKeyEventTap") == false)
   }
 
-  @Test("app store space monitor bypasses CGEventTap")
-  func appStoreSpaceMonitorBypassesEventTap() throws {
-    let source = try keyboardShortcutManagerSource()
-
-    #expect(source.contains("#if APP_STORE\n      installSpaceFallbackMonitor(includeGlobalMonitor: false)\n    #else"))
-    #expect(source.contains("#if !APP_STORE\n  import CoreGraphics"))
-  }
-
-  @Test("app store shortcut monitors avoid global key monitoring")
-  func appStoreShortcutMonitorsAvoidGlobalKeyMonitoring() throws {
-    let source = try keyboardShortcutManagerSource()
-
-    #expect(source.contains("#if !APP_STORE\n      flagsGlobalMonitor = NSEvent.addGlobalMonitorForEvents"))
-    #expect(
-      source.contains(
-        "#if !APP_STORE\n      if includeGlobalMonitor {\n        spaceFallbackGlobalMonitor = NSEvent.addGlobalMonitorForEvents"
-      )
-    )
-  }
-
   private func keyboardShortcutManagerSource() throws -> String {
     let fileURL = URL(fileURLWithPath: #filePath)
     let projectRoot = fileURL

@@ -3,9 +3,7 @@ import Foundation
 import KeyboardShortcuts
 import os.log
 
-#if !APP_STORE
-  import CoreGraphics
-#endif
+import CoreGraphics
 
 extension KeyboardShortcuts.Name {
   public static let dictationVoiceTranscription = Self("dictationVoiceTranscription")
@@ -54,10 +52,8 @@ public final class KeyboardShortcutManager: ObservableObject {
   // Event monitors
   private var flagsLocalMonitor: Any?
   private var flagsGlobalMonitor: Any?
-  #if !APP_STORE
-    private var eventTap: CFMachPort?
-    private var eventTapRunLoopSource: CFRunLoopSource?
-  #endif
+  private var eventTap: CFMachPort?
+  private var eventTapRunLoopSource: CFRunLoopSource?
   private var spaceFallbackGlobalMonitor: Any?
   private var spaceFallbackLocalMonitor: Any?
 
@@ -218,15 +214,11 @@ public final class KeyboardShortcutManager: ObservableObject {
 
     flagsLocalMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged, handler: handler)
 
-    #if !APP_STORE
-      flagsGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) {
-        [weak self] event in
-        self?.processFlagsChanged(event)
-      }
-      logger.notice("Installed local/global flags monitors for \(self.dictationPreset.displayName) / \(self.assistantPreset.displayName) + Shift")
-    #else
-      logger.notice("Installed local flags monitor for App Store build")
-    #endif
+    flagsGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) {
+      [weak self] event in
+      self?.processFlagsChanged(event)
+    }
+    logger.notice("Installed local/global flags monitors for \(self.dictationPreset.displayName) / \(self.assistantPreset.displayName) + Shift")
   }
 
   private func removeFlagsMonitors() {
@@ -413,47 +405,42 @@ public final class KeyboardShortcutManager: ObservableObject {
   private func installSpaceMonitor() {
     removeSpaceMonitor()
 
-    #if APP_STORE
-      installSpaceFallbackMonitor(includeGlobalMonitor: false)
-    #else
-      let mask: CGEventMask =
-        (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
+    let mask: CGEventMask =
+      (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
 
-      let unmanagedSelf = Unmanaged.passUnretained(self)
+    let unmanagedSelf = Unmanaged.passUnretained(self)
 
-      guard
-        let tap = CGEvent.tapCreate(
-          tap: .cgSessionEventTap,
-          place: .headInsertEventTap,
-          options: .defaultTap,
-          eventsOfInterest: mask,
-          callback: { (proxy, type, event, refcon) -> Unmanaged<CGEvent>? in
-            guard let refcon else { return Unmanaged.passUnretained(event) }
-            let manager = Unmanaged<KeyboardShortcutManager>.fromOpaque(refcon)
-              .takeUnretainedValue()
-            return manager.handleCGEvent(type: type, event: event)
-          },
-          userInfo: unmanagedSelf.toOpaque()
-        )
-      else {
-        logger.warning(
-          "CGEventTap creation failed — falling back to NSEvent monitor (global keys will not be suppressed)"
-        )
-        installSpaceFallbackMonitor(includeGlobalMonitor: true)
-        return
-      }
+    guard
+      let tap = CGEvent.tapCreate(
+        tap: .cgSessionEventTap,
+        place: .headInsertEventTap,
+        options: .defaultTap,
+        eventsOfInterest: mask,
+        callback: { (proxy, type, event, refcon) -> Unmanaged<CGEvent>? in
+          guard let refcon else { return Unmanaged.passUnretained(event) }
+          let manager = Unmanaged<KeyboardShortcutManager>.fromOpaque(refcon)
+            .takeUnretainedValue()
+          return manager.handleCGEvent(type: type, event: event)
+        },
+        userInfo: unmanagedSelf.toOpaque()
+      )
+    else {
+      logger.warning(
+        "CGEventTap creation failed — falling back to NSEvent monitor (global keys will not be suppressed)"
+      )
+      installSpaceFallbackMonitor(includeGlobalMonitor: true)
+      return
+    }
 
-      eventTap = tap
-      let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
-      eventTapRunLoopSource = source
-      CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
-      CGEvent.tapEnable(tap: tap, enable: true)
+    eventTap = tap
+    let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
+    eventTapRunLoopSource = source
+    CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
+    CGEvent.tapEnable(tap: tap, enable: true)
 
-      logger.notice("Installed CGEventTap for Space and Escape key interception")
-    #endif
+    logger.notice("Installed CGEventTap for Space and Escape key interception")
   }
 
-  #if !APP_STORE
   private nonisolated func handleCGEvent(
     type: CGEventType,
     event: CGEvent
@@ -508,7 +495,6 @@ public final class KeyboardShortcutManager: ObservableObject {
 
     return nil
   }
-  #endif
 
   private func installSpaceFallbackMonitor(includeGlobalMonitor: Bool) {
     let handler: (NSEvent) -> NSEvent? = { [weak self] event in
@@ -518,14 +504,12 @@ public final class KeyboardShortcutManager: ObservableObject {
     spaceFallbackLocalMonitor = NSEvent.addLocalMonitorForEvents(
       matching: [.keyDown, .keyUp], handler: handler)
 
-    #if !APP_STORE
-      if includeGlobalMonitor {
-        spaceFallbackGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown, .keyUp]) {
-          [weak self] event in
-          self?.processSpaceFallback(event)
-        }
+    if includeGlobalMonitor {
+      spaceFallbackGlobalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown, .keyUp]) {
+        [weak self] event in
+        self?.processSpaceFallback(event)
       }
-    #endif
+    }
 
     logger.notice("Installed NSEvent fallback monitors for Space and Escape (global events cannot be suppressed)")
   }
@@ -551,16 +535,14 @@ public final class KeyboardShortcutManager: ObservableObject {
   }
 
   private func removeSpaceMonitor() {
-    #if !APP_STORE
-      if let tap = eventTap {
-        CGEvent.tapEnable(tap: tap, enable: false)
-      }
-      if let source = eventTapRunLoopSource {
-        CFRunLoopRemoveSource(CFRunLoopGetCurrent(), source, .commonModes)
-      }
-      eventTap = nil
-      eventTapRunLoopSource = nil
-    #endif
+    if let tap = eventTap {
+      CGEvent.tapEnable(tap: tap, enable: false)
+    }
+    if let source = eventTapRunLoopSource {
+      CFRunLoopRemoveSource(CFRunLoopGetCurrent(), source, .commonModes)
+    }
+    eventTap = nil
+    eventTapRunLoopSource = nil
 
     if let m = spaceFallbackLocalMonitor { NSEvent.removeMonitor(m) }
     if let m = spaceFallbackGlobalMonitor { NSEvent.removeMonitor(m) }

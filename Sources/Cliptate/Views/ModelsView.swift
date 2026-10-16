@@ -105,31 +105,15 @@ struct ModelsView: View {
   @State private var hoveredTTSProvider: TTSProvider?
   @State private var isRefreshing = false
   @State private var mlxModelDiskMB: [String: Int] = [:]
-  @StateObject private var paywallManager = PaywallManager.shared
-  @State private var subscriptionStatus: SubscriptionStatus?
-  @State private var permissionMap: [ModelVariant: ModelDownloadPermission] = [:]
-  @State private var subscriptionMonitorTask: Task<Void, Never>?
-  @State private var purchaseBanner: PurchaseBanner?
-  @State private var bannerTask: Task<Void, Never>?
   @State private var isPreloadingAlignModel = false
   @State private var isPreloadingTTSModel = false
   @State private var isClearingModelCache = false
   @State private var showClearCacheConfirmation = false
   @State private var cacheActionErrorMessage: String?
   @State private var showHeaderToolsPopover = false
-  @AppStorage("ModelsView.dismissedProPromo") private var hasDismissedProPromo: Bool = false
 
   var body: some View {
     mainContent
-      .animation(.spring(response: 0.35, dampingFraction: 0.85), value: shouldShowProPromo)
-      .overlay(alignment: .top) {
-        if let banner = purchaseBanner {
-          PurchaseBannerView(banner: banner)
-            .padding(.top, 12)
-            .padding(.horizontal, 32)
-            .transition(.move(edge: .top).combined(with: .opacity))
-        }
-      }
       .task {
         await refreshStatuses()
       }
@@ -153,24 +137,6 @@ struct ModelsView: View {
       }
       .onChange(of: config.ttsMLXModelId) { _, _ in
         Task { await config.refreshModelLifecycleState() }
-      }
-      .onAppear {
-        startSubscriptionMonitoringIfNeeded()
-      }
-      .onDisappear {
-        stopSubscriptionMonitoring()
-        bannerTask?.cancel()
-        bannerTask = nil
-        purchaseBanner = nil
-      }
-      .onChange(of: paywallManager.latestPurchaseEvent) { _, event in
-        guard let event else { return }
-        handlePurchaseEvent(event)
-        paywallManager.consumeLatestPurchaseEvent(event.id)
-      }
-      .sheet(isPresented: paywallPresentationBinding) {
-        PaywallView()
-          .environmentObject(paywallManager)
       }
       .confirmationDialog(
         "Clear cached models?",
@@ -203,13 +169,6 @@ struct ModelsView: View {
     VStack(alignment: .leading, spacing: 0) {
       // ── Dashboard Header ─────────────────────────────────────────
       dashboardHeader
-
-      if shouldShowProPromo {
-        proPromoBanner
-          .padding(.horizontal, 28)
-          .padding(.bottom, 14)
-          .transition(.move(edge: .top).combined(with: .opacity))
-      }
 
       // ── Filter Bar ───────────────────────────────────────────────
       filterBar
@@ -461,7 +420,6 @@ struct ModelsView: View {
     }
   }
 
-
   private var cacheStatusOverview: some View {
     HStack(spacing: 10) {
       cacheStatusBadge(
@@ -577,65 +535,6 @@ struct ModelsView: View {
     .background(
       Capsule()
         .fill(color.opacity(0.12))
-    )
-  }
-
-  private var proPromoBanner: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack(alignment: .firstTextBaseline) {
-        Label("Unlock Pro Accuracy", systemImage: "sparkles")
-          .font(.headline)
-        Spacer()
-        Button(role: .cancel) {
-          withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
-            hasDismissedProPromo = true
-          }
-        } label: {
-          Image(systemName: "xmark")
-            .font(.system(size: 12, weight: .bold))
-            .foregroundColor(.secondary)
-            .padding(6)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Dismiss Pro promotion")
-      }
-
-      Text(
-        "Install premium Whisper and Parakeet variants for faster, more accurate transcription. Cliptate keeps your downloads unlimited."
-      )
-      .font(.subheadline)
-      .foregroundStyle(.secondary)
-
-      HStack(spacing: 12) {
-        Button {
-          presentPaywall(
-            for: ModelVariant.proModels.first ?? .parakeetV3, reason: .userInitiated)
-        } label: {
-          Text("View Plans")
-            .font(.system(size: 13, weight: .semibold))
-        }
-        .buttonStyle(.borderedProminent)
-
-        Button {
-          withAnimation(.easeInOut(duration: 0.2)) {
-            hasDismissedProPromo = true
-          }
-        } label: {
-          Text("Maybe Later")
-            .font(.system(size: 13, weight: .medium))
-        }
-        .buttonStyle(.bordered)
-      }
-    }
-    .padding(.vertical, 18)
-    .padding(.horizontal, 20)
-    .background(
-      RoundedRectangle(cornerRadius: 18, style: .continuous)
-        .fill(AppSurface.selectedFill)
-    )
-    .overlay(
-      RoundedRectangle(cornerRadius: 18, style: .continuous)
-        .stroke(Color.accentColor.opacity(0.2))
     )
   }
 
@@ -863,10 +762,6 @@ struct ModelsView: View {
   private func startDownload(for model: ModelVariant) {
     let downloadState = downloadState
     Task {
-      if let permission = permissionMap[model], !permission.isAllowed {
-        _ = await paywallManager.showPaywall(for: model)
-        return
-      }
 
       await MainActor.run {
         downloadState.setProgress(
@@ -991,10 +886,8 @@ struct ModelsView: View {
       isDefaultSelection: isCurrentSelection(model),
       isAlignSelection: model.isQwen3AlignerModel && config.alignModelVariant == model,
       isVADSelection: model.isVADModel && config.vadModelVariant == model,
-      permission: permissionMap[model],
       onDownload: { startDownload(for: model) },
       onDelete: { deleteModel(model) },
-      onProTap: { presentPaywall(for: model) },
       onOpenFolder: { openModelFolder(for: model) },
       onCancel: { cancelDownload(for: model) },
       onSetAsDefault: model.isQwen3AlignerModel
@@ -1179,12 +1072,6 @@ struct ModelsView: View {
     .padding(.top, 4)
   }
 
-  private var shouldShowProPromo: Bool {
-    guard SubscriptionPolicy.isBillingEnabled else { return false }
-    let isProActive = subscriptionStatus?.isActive ?? false
-    return !isProActive && !hasDismissedProPromo
-  }
-
   private func refreshStatuses(force: Bool = false) async {
     if isRefreshing && !force { return }
     await MainActor.run { isRefreshing = true }
@@ -1197,14 +1084,7 @@ struct ModelsView: View {
         )
       )
 
-    async let statusesTask = ModelDownloadManager.shared.getStatuses(for: allModels)
-    async let permissionsTask = fetchPermissions(for: allModels)
-    async let subscriptionTask = fetchSubscriptionStatus(forceRefresh: force)
-
-
-    let statuses = await statusesTask
-    let permissions = await permissionsTask
-    let subscription = await subscriptionTask
+    let statuses = await ModelDownloadManager.shared.getStatuses(for: allModels)
 
     // Refresh MLX TTS model statuses
     var mlxStatuses: [String: Bool] = [:]
@@ -1221,17 +1101,11 @@ struct ModelsView: View {
       for def in MLXTTSModelDefinition.availableModels {
         downloadState.setDownloaded(mlxStatuses[def.huggingFaceRepo] ?? false, for: def.modelVariant)
       }
-      permissionMap = permissions
-      subscriptionStatus = subscription
       mlxModelDiskMB = mlxSizes
       isRefreshing = false
     }
     await config.refreshModelLifecycleState()
   }
-
-
-
-
 
   private func startMLXDownload(_ definition: MLXTTSModelDefinition) {
     let model = definition.modelVariant
@@ -1434,150 +1308,6 @@ struct ModelsView: View {
     }
   }
 
-  private func fetchPermissions(for models: [ModelVariant]) async
-    -> [ModelVariant: ModelDownloadPermission]
-  {
-    var results: [ModelVariant: ModelDownloadPermission] = [:]
-    for model in models {
-      do {
-        let permission = try await ModelAccessController.shared.checkPermission(for: model)
-        results[model] = permission
-      } catch {
-        if model.requiresProSubscription {
-          results[model] = ModelDownloadPermission(
-            model: model,
-            isAllowed: false,
-            reason: .offline
-          )
-        } else {
-          results[model] = ModelDownloadPermission(model: model, isAllowed: true, reason: nil)
-        }
-      }
-    }
-    return results
-  }
-
-  private func fetchSubscriptionStatus(forceRefresh: Bool) async -> SubscriptionStatus? {
-    guard SubscriptionPolicy.isBillingEnabled else { return nil }
-    do {
-      return try await ModelAccessController.shared.getCurrentSubscriptionStatus(
-        forceRefresh: forceRefresh
-      )
-    } catch {
-      return await MainActor.run { subscriptionStatus }
-    }
-  }
-
-  private func refreshPermissionsCache() async {
-    let models = Array(
-      Set(
-        TranscriberType.allCases.flatMap { $0.supportedModels }
-          + ModelVariant.alignerModels
-          + ModelVariant.vadModels
-      )
-    )
-    let permissions = await fetchPermissions(for: models)
-    await MainActor.run {
-      permissionMap = permissions
-    }
-  }
-
-  private func handlePurchaseEvent(_ event: PaywallManager.PurchaseEvent) {
-    switch event.outcome {
-    case .success:
-      hasDismissedProPromo = true
-      let message = String(
-        format: NSLocalizedString(
-          "Subscription successful, %@ unlocked.", comment: "purchase success banner"),
-        event.model.displayName
-      )
-      showPurchaseBanner(
-        PurchaseBanner(
-          message: message,
-          detail: String(
-            format: NSLocalizedString(
-              "%@ plan activated. Use the Download button on this page to install the model.",
-              comment: "purchase success follow-up with plan"
-            ),
-            event.plan.name
-          ),
-          style: .success
-        )
-      )
-      Task { await refreshStatuses(force: true) }
-    case .cancelled:
-      showPurchaseBanner(
-        PurchaseBanner(
-          message: NSLocalizedString("Purchase cancelled.", comment: "purchase cancelled banner"),
-          detail: nil,
-          style: .info
-        )
-      )
-    case .failure(let message):
-      showPurchaseBanner(
-        PurchaseBanner(
-          message: NSLocalizedString("Purchase Failed", comment: "purchase failure banner"),
-          detail: message,
-          style: .error
-        )
-      )
-    }
-  }
-
-  private func showPurchaseBanner(_ banner: PurchaseBanner) {
-    bannerTask?.cancel()
-    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-      purchaseBanner = banner
-    }
-    bannerTask = Task {
-      try? await Task.sleep(nanoseconds: 4_000_000_000)
-      await MainActor.run {
-        if purchaseBanner?.id == banner.id {
-          withAnimation(.easeInOut) {
-            purchaseBanner = nil
-          }
-        }
-        bannerTask = nil
-      }
-    }
-  }
-
-  private func presentPaywall(
-    for model: ModelVariant, reason: PaywallContext.PaywallReason = .attemptedPaidModelDownload
-  ) {
-    Task { _ = await paywallManager.showPaywall(for: model, reason: reason) }
-  }
-
-  private func startSubscriptionMonitoringIfNeeded() {
-    guard SubscriptionPolicy.isBillingEnabled else { return }
-    guard subscriptionMonitorTask == nil else { return }
-    subscriptionMonitorTask = Task {
-      let stream = await ModelAccessController.shared.subscriptionStatusStream()
-      for await status in stream {
-        if Task.isCancelled { break }
-        await MainActor.run {
-          subscriptionStatus = status
-        }
-        await refreshPermissionsCache()
-      }
-    }
-  }
-
-  private func stopSubscriptionMonitoring() {
-    subscriptionMonitorTask?.cancel()
-    subscriptionMonitorTask = nil
-  }
-
-  private var paywallPresentationBinding: Binding<Bool> {
-    Binding(
-      get: { paywallManager.isPresented },
-      set: { newValue in
-        if !newValue {
-          paywallManager.dismissPaywall()
-        }
-      }
-    )
-  }
 }
 
 extension ModelsView {
@@ -1615,7 +1345,6 @@ extension ModelsView {
   enum SharedStatus: Equatable {
     case active
     case downloaded
-    case pro
     case error
   }
 
@@ -1656,8 +1385,6 @@ extension ModelsView {
       return StatusStyle(tone: .success)
     case .downloaded:
       return StatusStyle(tone: .neutral)
-    case .pro:
-      return StatusStyle(tone: .warning)
     case .error:
       return StatusStyle(tone: .danger)
     }
@@ -1755,8 +1482,7 @@ extension ModelsView {
     case setAligner
     case setVAD
     case download
-    case unlockPro
-    case checkingAccess
+    case downloading
   }
 
   enum DenseRowOverflowAction: Equatable {
@@ -1777,7 +1503,6 @@ extension ModelsView {
     for model: ModelVariant,
     isDownloaded: Bool,
     progress: ModelDownloadProgress?,
-    permission: ModelDownloadPermission?,
     isDefaultSelection: Bool,
     isAlignSelection: Bool,
     isVADSelection: Bool
@@ -1789,7 +1514,7 @@ extension ModelsView {
         status: String(localized: "Downloading"),
         statusKind: nil,
         metadata: metadata,
-        primaryAction: .checkingAccess,
+        primaryAction: .downloading,
         overflowActions: []
       )
     }
@@ -1854,43 +1579,11 @@ extension ModelsView {
       )
     }
 
-    if let permission {
-      if permission.isAllowed {
-        return DenseRowPresentation(
-          status: String(localized: "Not Downloaded"),
-          statusKind: nil,
-          metadata: metadata,
-          primaryAction: .download,
-          overflowActions: []
-        )
-      }
-
-      if permission.reason == .loading {
-        return DenseRowPresentation(
-          status: String(localized: "Checking access..."),
-          statusKind: nil,
-          metadata: metadata,
-          primaryAction: .checkingAccess,
-          overflowActions: []
-        )
-      }
-
-      return DenseRowPresentation(
-        status: String(localized: "Pro"),
-        statusKind: .pro,
-        metadata: metadata,
-        primaryAction: .unlockPro,
-        overflowActions: []
-      )
-    }
-
     return DenseRowPresentation(
-      status: model.requiresProSubscription
-        ? String(localized: "Checking access...")
-        : String(localized: "Not Downloaded"),
-      statusKind: model.requiresProSubscription ? .pro : nil,
+      status: String(localized: "Not Downloaded"),
+      statusKind: nil,
       metadata: metadata,
-      primaryAction: model.requiresProSubscription ? .checkingAccess : .download,
+      primaryAction: .download,
       overflowActions: []
     )
   }
@@ -1913,7 +1606,6 @@ extension ModelsView {
   private var selectedTTSProvider: TTSProvider {
     TTSProvider(rawValue: ttsProviderStorage) ?? .all
   }
-
 
   private var showQwen3Section: Bool {
     selectedTTSProvider == .all || selectedTTSProvider == .qwen3
@@ -2038,10 +1730,8 @@ private struct CompactModelRowView: View {
   let isDefaultSelection: Bool
   let isAlignSelection: Bool
   let isVADSelection: Bool
-  let permission: ModelDownloadPermission?
   let onDownload: () -> Void
   let onDelete: () -> Void
-  let onProTap: () -> Void
   let onOpenFolder: () -> Void
   let onCancel: () -> Void
   let onSetAsDefault: (() -> Void)?
@@ -2053,7 +1743,6 @@ private struct CompactModelRowView: View {
       for: model,
       isDownloaded: isDownloaded,
       progress: progress,
-      permission: permission,
       isDefaultSelection: isDefaultSelection,
       isAlignSelection: isAlignSelection,
       isVADSelection: isVADSelection
@@ -2104,18 +1793,11 @@ private struct CompactModelRowView: View {
       .buttonStyle(.bordered)
       .tint(categoryAccentColor)
       .controlSize(.small)
-    case .unlockPro:
-      Button(action: onProTap) {
-        Label("Unlock Pro", systemImage: "lock.fill")
-      }
-      .buttonStyle(.borderedProminent)
-      .tint(.orange)
-      .controlSize(.small)
-    case .checkingAccess:
+    case .downloading:
       HStack(spacing: 6) {
         ProgressView()
           .controlSize(.small)
-        Text("Checking access...")
+        Text("Downloading")
           .font(.caption)
           .foregroundStyle(.secondary)
       }
@@ -2383,76 +2065,5 @@ private struct CompactMLXTTSRowView: View {
         isHovering = hovering
       }
     }
-  }
-}
-
-// MARK: - Purchase Banner
-
-private struct PurchaseBanner: Identifiable, Equatable {
-  enum Style: Equatable {
-    case success
-    case info
-    case error
-
-    var foreground: Color {
-      switch self {
-      case .success: return .green
-      case .info: return .accentColor
-      case .error: return .red
-      }
-    }
-
-    var background: Color {
-      switch self {
-      case .success: return Color.green.opacity(0.12)
-      case .info: return AppSurface.selectedFill
-      case .error: return Color.red.opacity(0.12)
-      }
-    }
-
-    var icon: String {
-      switch self {
-      case .success: return "checkmark.seal.fill"
-      case .info: return "info.circle.fill"
-      case .error: return "exclamationmark.triangle.fill"
-      }
-    }
-  }
-
-  let id = UUID()
-  let message: String
-  let detail: String?
-  let style: Style
-}
-
-private struct PurchaseBannerView: View {
-  let banner: PurchaseBanner
-
-  var body: some View {
-    HStack(spacing: 12) {
-      Image(systemName: banner.style.icon)
-        .foregroundColor(banner.style.foreground)
-        .font(.title2)
-      VStack(alignment: .leading, spacing: 4) {
-        Text(banner.message)
-          .font(.headline)
-          .foregroundColor(.primary)
-        if let detail = banner.detail, !detail.isEmpty {
-          Text(detail)
-            .font(.subheadline)
-            .foregroundColor(.secondary)
-        }
-      }
-      Spacer()
-    }
-    .padding(14)
-    .background(
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
-        .fill(banner.style.background)
-    )
-    .overlay(
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
-        .stroke(banner.style.foreground.opacity(0.35), lineWidth: 1)
-    )
   }
 }

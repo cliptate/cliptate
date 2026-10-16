@@ -80,7 +80,6 @@ struct AISettingsView: View {
           AppUpdateSettingsView()
         }
         providerSection
-        #if !APP_STORE
         SettingsCard(
           title: "Command Line",
           subtitle: "Transcribe files and manage your dictionary from Terminal.",
@@ -88,7 +87,6 @@ struct AISettingsView: View {
         ) {
           CLISettingsView()
         }
-        #endif
       }
       .frame(maxWidth: 840, alignment: .leading)
       .padding(.horizontal, 28)

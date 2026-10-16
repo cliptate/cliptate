@@ -17,34 +17,30 @@ ROOT = Path(__file__).resolve().parents[1]
 def settings(root=ROOT, environment=None):
     env = os.environ if environment is None else environment
     values = json.loads((root / "config/app.json").read_text())
-    # Preserve existing local billing/update/team settings without evaluating code.
+    # Preserve existing local update/team settings without evaluating code.
     legacy = root / "config/Local.xcconfig"
     if legacy.exists():
         for line in legacy.read_text().splitlines():
             match = re.fullmatch(r"\s*(CLIPTATE_\w+)\s*=\s*(.*?)\s*", line)
-            if match:
+            if match and (match[1] in values or match[1] == "CLIPTATE_DEVELOPMENT_TEAM"):
                 values[match[1]] = match[2].replace("$()", "")
     local = root / "config/Local.json"
     if local.exists():
-        values.update(json.loads(local.read_text()))
+        values.update({key: value for key, value in json.loads(local.read_text()).items()
+                       if key in values or key == "CLIPTATE_DEVELOPMENT_TEAM"})
     values.update({key: value for key, value in env.items()
-                   if key in values or key in {"CLIPTATE_APP_STORE", "CLIPTATE_DEVELOPMENT_TEAM"}})
+                   if key in values or key in {"CLIPTATE_DEVELOPMENT_TEAM"}})
     if any(not isinstance(value, str) for value in values.values()):
         raise ValueError("App configuration values must be strings")
     configuration = env.get("CONFIGURATION", "Debug")
     if configuration not in {"Debug", "Release"}:
         raise ValueError("CONFIGURATION must be Debug or Release")
-    channel = values.get("CLIPTATE_APP_STORE") or ("YES" if configuration == "Release" else "NO")
-    if channel not in {"YES", "NO"}:
-        raise ValueError("CLIPTATE_APP_STORE must be YES or NO")
     development = configuration == "Debug"
     values.update({
         "CONFIGURATION": configuration,
-        "CLIPTATE_APP_STORE": channel,
         "PRODUCT_NAME": "Cliptate Dev" if development else "Cliptate",
         "PRODUCT_BUNDLE_IDENTIFIER": "com.cliptate.dev" if development else "com.cliptate.app",
-        "CLIPTATE_CLI_URL_SCHEME": ("cliptate-dev-cli" if development else "cliptate-cli")
-        + ("-disabled" if channel == "YES" else ""),
+        "CLIPTATE_CLI_URL_SCHEME": "cliptate-dev-cli" if development else "cliptate-cli",
     })
     if development:
         values["CLIPTATE_UPDATES_ENABLED"] = "NO"
@@ -91,7 +87,7 @@ def entitlements(values, root=ROOT, helper=False):
     if helper:
         result = {}
     else:
-        filename = "Cliptate.entitlements" if values["CLIPTATE_APP_STORE"] == "YES" else "Cliptate-Direct.entitlements"
+        filename = "Cliptate.entitlements"
         result = expand(plistlib.loads((root / "Sources/Cliptate" / filename).read_bytes()), values)
     if values["CONFIGURATION"] == "Debug":
         result["com.apple.security.get-task-allow"] = True
@@ -104,12 +100,22 @@ def run(*arguments, env=None, capture=False):
                           text=True).stdout
 
 
-def copy_resources(bin_path, resources):
+def copy_resources(bin_path, resources, graph):
     # App catalogs are compiled into Bundle.main below. Dependency accessors
-    # still need their bundles; test fixtures can remain from earlier test runs.
+    # still need their bundles. Ignore stale products from removed dependencies.
+    package_names = set()
+
+    def collect(package):
+        package_names.add(package["name"])
+        for dependency in package.get("dependencies", []):
+            collect(dependency)
+
+    collect(graph)
     for bundle in sorted(bin_path.glob("*.bundle")):
         if bundle.name in {"Cliptate_Cliptate.bundle", "Cliptate_CliptateTests.bundle",
                            "Cliptate_CliptateCoreTests.bundle"}:
+            continue
+        if not any(bundle.name.startswith(name + "_") for name in package_names):
             continue
         shutil.copytree(bundle, resources / bundle.name, symlinks=True)
 
@@ -221,13 +227,14 @@ def prepare_framework(framework, architectures):
 
 
 def build_app(values, destination, identity):
-    env = {**os.environ, "CLIPTATE_APP_STORE": values["CLIPTATE_APP_STORE"]}
+    env = dict(os.environ)
     command = [ROOT / "scripts/swift-safe.sh", "build", "--package-path", ROOT,
                "--configuration", values["CONFIGURATION"].lower(), "--force-resolved-versions"]
     run(*command, "--product", "Cliptate", env=env)
-    if values["CLIPTATE_APP_STORE"] == "NO":
-        run(*command, "--product", "CliptateCLI", env=env)
+    run(*command, "--product", "CliptateCLI", env=env)
     bin_path = Path(run(*command, "--show-bin-path", env=env, capture=True).strip())
+    graph = json.loads(run(ROOT / "scripts/swift-safe.sh", "package", "--package-path", ROOT,
+                           "show-dependencies", "--format", "json", env=env, capture=True))
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".bundle-", dir=destination.parent) as temporary:
         work = Path(temporary)
@@ -238,7 +245,7 @@ def build_app(values, destination, identity):
         resources.mkdir()
         shutil.copy2(bin_path / "Cliptate", executable)
         relocate(executable)
-        copy_resources(bin_path, resources)
+        copy_resources(bin_path, resources, graph)
         copy_firebase_configuration(values, resources)
         info = info_plist(values)
         info.update(compile_resources(resources, work))
@@ -256,11 +263,10 @@ def build_app(values, destination, identity):
             architectures = run("xcrun", "lipo", "-archs", executable, capture=True).split()
             prepare_framework(frameworks / "Sparkle.framework", architectures)
         binaries = [executable]
-        if values["CLIPTATE_APP_STORE"] == "NO":
-            helper = app / "Contents/Helpers/cliptate"
-            helper.parent.mkdir()
-            shutil.copy2(bin_path / "CliptateCLI", helper)
-            binaries.append(helper)
+        helper = app / "Contents/Helpers/cliptate"
+        helper.parent.mkdir()
+        shutil.copy2(bin_path / "CliptateCLI", helper)
+        binaries.append(helper)
         if values["CONFIGURATION"] == "Release":
             for binary in binaries:
                 # App and helper names differ only in case on production builds.

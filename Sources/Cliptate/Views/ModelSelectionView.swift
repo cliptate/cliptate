@@ -7,9 +7,7 @@ struct ModelSelectionView: View {
   @Binding var selectedLanguage: Language
   var isInteractionDisabled = false
 
-  @StateObject private var paywallManager = PaywallManager.shared
   @State private var modelDownloadStatuses: [ModelVariant: ModelDownloadStatus] = [:]
-  @State private var permissionMap: [ModelVariant: ModelDownloadPermission] = [:]
   @State private var lastSelectedModelByTranscriber: [TranscriberType: ModelVariant] = [:]
 
   var body: some View {
@@ -69,10 +67,6 @@ struct ModelSelectionView: View {
                 }
               }
               .pickerStyle(MenuPickerStyle())
-            }
-
-            if !premiumShortcutModelsForSelection.isEmpty {
-              premiumShortcutSection
             }
 
             if let status = modelDownloadStatuses[selectedModel] {
@@ -176,7 +170,6 @@ struct ModelSelectionView: View {
 
         Task {
           await loadModelDownloadStatuses()
-          await loadPremiumPermissions()
         }
       }
       .onReceive(NotificationCenter.default.publisher(for: .modelArtifactsDidChange)) { _ in
@@ -194,17 +187,6 @@ struct ModelSelectionView: View {
     }
     .disabled(isInteractionDisabled)
     .preference(key: ModelSelectionStatusesPreferenceKey.self, value: modelDownloadStatuses)
-    .sheet(isPresented: paywallPresentationBinding) {
-      PaywallView()
-        .environmentObject(paywallManager)
-    }
-    .onChange(of: paywallManager.latestPurchaseEvent) { _, event in
-      guard event != nil else { return }
-      Task {
-        await loadPremiumPermissions()
-        await loadModelDownloadStatuses()
-      }
-    }
   }
 
   private func loadModelDownloadStatuses() async {
@@ -253,43 +235,6 @@ struct ModelSelectionView: View {
 
     Task {
       await loadModelDownloadStatuses()
-      await loadPremiumPermissions()
-    }
-  }
-
-  private func loadPremiumPermissions() async {
-    let currentType = selectedTranscriberType
-    let models = orderedModels(for: currentType).filter(\.requiresProSubscription)
-
-    await MainActor.run {
-      for model in models {
-        permissionMap[model] = ModelDownloadPermission(
-          model: model,
-          isAllowed: false,
-          reason: .loading
-        )
-      }
-
-      let validKeys = Set(models)
-      permissionMap = permissionMap.filter { validKeys.contains($0.key) }
-    }
-
-    var permissions: [ModelVariant: ModelDownloadPermission] = [:]
-    for model in models {
-      do {
-        permissions[model] = try await ModelAccessController.shared.checkPermission(for: model)
-      } catch {
-        permissions[model] = ModelDownloadPermission(
-          model: model,
-          isAllowed: false,
-          reason: .offline
-        )
-      }
-    }
-
-    await MainActor.run {
-      guard selectedTranscriberType == currentType else { return }
-      permissionMap = permissions
     }
   }
 
@@ -327,42 +272,6 @@ struct ModelSelectionView: View {
     )
   }
 
-  private var premiumShortcutModelsForSelection: [ModelVariant] {
-    Self.premiumShortcutModels(
-      for: selectedTranscriberType,
-      downloadStatuses: modelDownloadStatuses,
-      permissions: permissionMap
-    )
-  }
-
-  private var premiumShortcutSection: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text("Unlock Professional Models")
-        .font(.subheadline.weight(.semibold))
-
-      Text("Tap a premium model to open plans and continue.")
-        .font(.caption)
-        .foregroundColor(.secondary)
-
-      ForEach(premiumShortcutModelsForSelection, id: \.self) { model in
-        Button {
-          presentPaywall(for: model)
-        } label: {
-          HStack(spacing: 8) {
-            Image(systemName: "lock.fill")
-            Text(model.displayName)
-            Spacer()
-            Text("Unlock Pro")
-              .font(.caption.weight(.semibold))
-          }
-        }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
-      }
-    }
-    .padding(.top, 4)
-  }
-
   private var languageRestrictionNotice: String? {
     switch selectedModel {
     case _ where selectedModel.isWhisperModel:
@@ -389,39 +298,6 @@ struct ModelSelectionView: View {
     orderedModels(for: selectedTranscriberType).filter {
       modelDownloadStatuses[$0] == .downloaded
     }
-  }
-
-  private func presentPaywall(
-    for model: ModelVariant,
-    reason: PaywallContext.PaywallReason = .attemptedPaidModelDownload
-  ) {
-    Task {
-      _ = await paywallManager.showPaywall(for: model, reason: reason)
-    }
-  }
-
-  static func premiumShortcutModels(
-    for type: TranscriberType,
-    downloadStatuses: [ModelVariant: ModelDownloadStatus],
-    permissions: [ModelVariant: ModelDownloadPermission]
-  ) -> [ModelVariant] {
-    type.supportedModels.filter { model in
-      guard model.requiresProSubscription else { return false }
-      guard downloadStatuses[model] != .downloaded else { return false }
-      guard let permission = permissions[model] else { return false }
-      return !permission.isAllowed
-    }
-  }
-
-  private var paywallPresentationBinding: Binding<Bool> {
-    Binding(
-      get: { paywallManager.isPresented },
-      set: { isPresented in
-        if !isPresented {
-          paywallManager.dismissPaywall()
-        }
-      }
-    )
   }
 
   @MainActor

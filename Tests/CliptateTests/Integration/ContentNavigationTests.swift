@@ -6,6 +6,11 @@ import Testing
 
 @Suite("Content navigation")
 struct ContentNavigationTests {
+  @Test("retired subscription destination is not restorable")
+  func retiredSubscriptionDestination() {
+    #expect(AppSection(rawValue: "Pro") == nil)
+  }
+
   @Test("renamed voice destinations preserve restored navigation identifiers")
   func voiceDestinationNames() {
     #expect(AppSection.aiCut.label == LocalizedStringKey("File Transcription"))
@@ -22,7 +27,7 @@ struct ContentNavigationTests {
     #expect(AppSidebarGroup.overview.sections(requiresGettingStarted: true) == [.home, .permissions])
     #expect(AppSidebarGroup.create.sections(requiresGettingStarted: false) == [.aiCut, .voiceToText, .ttsStudio])
     #expect(AppSidebarGroup.library.sections(requiresGettingStarted: false) == [.history, .models, .dictionary])
-    let appSections: [AppSection] = SubscriptionPolicy.isBillingEnabled ? [.pro, .setting] : [.setting]
+    let appSections: [AppSection] = [.setting]
     #expect(AppSidebarGroup.app.sections(requiresGettingStarted: false) == appSections)
     #expect(AppSidebarGroup.app.sections(requiresGettingStarted: true) == appSections)
     #expect(Array(visibleAppSections(requiresGettingStarted: true).prefix(2)) == [.home, .permissions])
@@ -33,7 +38,6 @@ struct ContentNavigationTests {
     let sections = visibleAppSections(requiresGettingStarted: requiresGettingStarted)
     let expected = AppSection.allCases.filter {
       (requiresGettingStarted || $0 != .permissions)
-        && (SubscriptionPolicy.isBillingEnabled || $0 != .pro)
     }
     #expect(Set(sections) == Set(expected))
     #expect(sections.count == Set(sections).count)
@@ -87,26 +91,6 @@ struct ContentNavigationTests {
 
     #expect(observedBlock.contains("permissionStatusManager.refreshAll()"))
     #expect(observedBlock.contains("syncGettingStartedSection()") == false)
-  }
-
-  @Test("pro navigation is available only in the billing channel")
-  func proSectionIsAvailableInNavigation() {
-    #expect(visibleAppSections(requiresGettingStarted: false).contains(.pro) == SubscriptionPolicy.isBillingEnabled)
-    #expect(AppSection.pro.icon == "crown")
-    #expect(AppSection.pro.description == (SubscriptionPolicy.isBillingEnabled
-      ? "Subscription and benefits" : "All features are free"))
-  }
-
-  @Test("restored pro selection returns home in the free channel")
-  func restoredProSelection() {
-    #expect(resolvedAppSection(currentSection: .pro, requiresGettingStarted: false)
-      == (SubscriptionPolicy.isBillingEnabled ? .pro : .home))
-    #expect(resolvedAppSection(currentSection: .pro, requiresGettingStarted: true) == .permissions)
-  }
-
-  @Test("pro section notification is available")
-  func proSectionNotificationIsAvailable() {
-    #expect(Notification.Name.openProSection.rawValue == "Cliptate.openProSection")
   }
 
   @Test("content view defers shortcut result handling to VoiceToText when that section is active")

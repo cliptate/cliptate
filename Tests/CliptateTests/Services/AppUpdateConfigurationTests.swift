@@ -11,48 +11,28 @@ struct AppUpdateConfigurationTests {
   ]
 
   @Test func configuredDirectBuildIsEnabled() {
-    #expect(AppUpdateConfiguration(info: valid, hasAppStoreReceipt: false).isEnabled)
-  }
-
-  @Test func localBundleReceiptDisablesUpdates() throws {
-    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-    defer { try? FileManager.default.removeItem(at: directory) }
-    let app = directory.appendingPathComponent("ReceiptTest.app")
-    let contents = app.appendingPathComponent("Contents")
-    let receipts = contents.appendingPathComponent("_MASReceipt")
-    try FileManager.default.createDirectory(at: receipts, withIntermediateDirectories: true)
-    var info = valid
-    info["CFBundleIdentifier"] = "com.cliptate.receipt-test"
-    info["CFBundlePackageType"] = "APPL"
-    let plist = try PropertyListSerialization.data(fromPropertyList: info, format: .xml, options: 0)
-    try plist.write(to: contents.appendingPathComponent("Info.plist"))
-    let bundle = try #require(Bundle(url: app))
-
-    #expect(AppUpdateConfiguration(bundle: bundle).isEnabled)
-    try Data("receipt".utf8).write(to: receipts.appendingPathComponent("receipt"))
-    #expect(!AppUpdateConfiguration(bundle: bundle).isEnabled)
+    #expect(AppUpdateConfiguration(info: valid).isEnabled)
   }
 
   @Test func developmentAppCannotUseTheProductionUpdater() {
     var info = valid
     info["CFBundleIdentifier"] = "com.cliptate.dev"
-    #expect(!AppUpdateConfiguration(info: info, hasAppStoreReceipt: false).isEnabled)
+    #expect(!AppUpdateConfiguration(info: info).isEnabled)
   }
 
-  @Test func storeAndExplicitlyDisabledBuildsNeverEnableUpdates() {
-    #expect(!AppUpdateConfiguration(info: valid, hasAppStoreReceipt: true).isEnabled)
+  @Test func explicitlyDisabledBuildsNeverEnableUpdates() {
     var info = valid
     info["CliptateUpdatesEnabled"] = "NO"
-    #expect(!AppUpdateConfiguration(info: info, hasAppStoreReceipt: false).isEnabled)
+    #expect(!AppUpdateConfiguration(info: info).isEnabled)
     info["CliptateUpdatesEnabled"] = false
-    #expect(!AppUpdateConfiguration(info: info, hasAppStoreReceipt: false).isEnabled)
+    #expect(!AppUpdateConfiguration(info: info).isEnabled)
   }
 
   @Test func missingOrInvalidSigningKeyDisablesUpdates() {
     for key in ["", "$(CLIPTATE_SPARKLE_PUBLIC_KEY)", "invalid", Data(repeating: 1, count: 31).base64EncodedString()] {
       var info = valid
       info["SUPublicEDKey"] = key
-      #expect(!AppUpdateConfiguration(info: info, hasAppStoreReceipt: false).isEnabled)
+      #expect(!AppUpdateConfiguration(info: info).isEnabled)
     }
   }
 
@@ -60,7 +40,7 @@ struct AppUpdateConfigurationTests {
     for feed in ["", "http://example.com/appcast.xml", "file:///tmp/appcast.xml", "$(CLIPTATE_UPDATE_FEED_URL)", "https:appcast.xml"] {
       var info = valid
       info["SUFeedURL"] = feed
-      #expect(!AppUpdateConfiguration(info: info, hasAppStoreReceipt: false).isEnabled)
+      #expect(!AppUpdateConfiguration(info: info).isEnabled)
     }
   }
 

@@ -32,7 +32,7 @@
 
 Cliptate 是一款原生 macOS 应用，可将语音转为可编辑文本、字幕和粗剪时间线。在 Apple Silicon Mac 上运行模型，完成录音转写、跨应用听写、停顿裁剪和语音合成。
 
-**GitHub 下载版完全免费**：所有模型与 Pro 功能均已解锁，无需订阅或购买。可选在线 AI 功能使用你自行配置的服务。
+**GitHub 下载版完全免费**：所有模型与功能均可使用，无需订阅或购买。可选在线 AI 功能使用你自行配置的服务。
 
 ![Cliptate 简体中文首页，显示听写统计和使用记录](../assets/screenshots/home.zh-Hans.jpg)
 
@@ -124,7 +124,6 @@ CLI 使用应用当前选择的模型和配置，必要时在后台启动应用�
 git clone https://github.com/cliptate/cliptate.git
 cd cliptate
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-export CLIPTATE_APP_STORE=NO
 swift build
 swift test
 ./scripts/run.sh
@@ -132,7 +131,7 @@ swift test
 
 SwiftPM 构建应用可执行文件与 CLI，并运行单元测试。`./scripts/run.sh` 组装、签名并启动 **Cliptate Dev.app**，使用独立的开发配置与数据。如只需构建应用，运行 `./scripts/build-and-run.sh build`。
 
-`CLIPTATE_APP_STORE=NO` 选择免费的直接发行渠道，包含 CLI 和基于辅助功能的听写能力。Debug 默认使用此渠道；Release 默认保留 App Store 的能力限制与订阅行为。App Store 订阅服务需自行在本地配置。签名、模型缓存与发行配置详见[开发指南](development.md)。
+Debug 和 Release 均为免费直发版，包含 CLI 和基于辅助功能的听写能力。签名、模型缓存与发行配置详见[开发指南](development.md)。
 
 ## 参与贡献与获取帮助
 

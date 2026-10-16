@@ -20,12 +20,11 @@ The SwiftPM app product is `Cliptate`; the bundler produces `Cliptate Dev.app` i
 
 ## High-level architecture
 
-- `Sources/Cliptate/Cliptate.swift` is the real bootstrap path. It creates the shared `AppConfiguration`, `ConfigPresetStore`, and `ModelDownloadStateStore`, loads either the persisted snapshot or the default preset before the first scene appears, binds debounced persistence, initializes RevenueCat, and prewarms the selected ASR model.
+- `Sources/Cliptate/Cliptate.swift` is the real bootstrap path. It creates the shared `AppConfiguration`, `ConfigPresetStore`, and `ModelDownloadStateStore`, loads either the persisted snapshot or the default preset before the first scene appears, binds debounced persistence, and prewarms the selected ASR model.
 - `Sources/Cliptate/Views/ContentView.swift` is mainly a section router. The actual editing workflow lives in `AICutView`, which owns the multi-video working set (`selectedVideoURLs`, `activeVideoURL`, `videoStates`) and keeps one `VideoState` per file so switching videos preserves playback state, raw segments, processed deletions, translations, and effect state.
 - `AppConfiguration` is the source of truth for model selection, language, export options, AI provider settings, voice-to-text settings, and TTS settings. `AppConfigurationPersistence` stores the live snapshot in Application Support, while `ConfigPresetStore` separately manages named user presets.
 - Model management is intentionally split:
   - `ModelDownloadManager` handles on-disk model artifacts and download progress.
-  - `ModelAccessController` applies RevenueCat-backed access control, with cached offline fallback.
   - `ModelCacheManager` owns in-memory ASR / align / TTS runtime caching, deduplicated loads, ASR leases, and idle eviction.
   - `TranscriberWarmupCoordinator` reacts to configuration changes and keeps the selected model warm.
   - `TranscriberPool` is legacy and explicitly deprecated; new workflows should not depend on it.
@@ -70,8 +69,10 @@ This repo uses a single-context layout with a root `CONTEXT.md` and optional roo
 
 ## Recent tracked requirements
 
-- App Review 1.8 (20) follow-up: reviewers need clear Pro/IAP location steps, Support URL must point to a functional support webpage instead of Telegram, and the Getting Started "Manage in Voice To Text" keyboard shortcut button must navigate reliably even while required permissions are still missing.
-- App Review compliance: App Store builds must not request macOS Accessibility for non-accessibility text insertion, and microphone/screen-recording permission prompt buttons should use neutral wording such as "Continue" instead of "Request permission."
+- 2026-10-16: keep only free direct distribution in Debug and Release; remove RevenueCat, subscription UI and access restrictions, and App Store build configuration. Preserve existing data migration, Accessibility-backed dictation, CLI, and automatic updates.
+
+- Support URL must point to a functional support webpage instead of Telegram, and the Getting Started "Manage in Voice To Text" keyboard shortcut button must navigate reliably even while required permissions are still missing.
+- Microphone/screen-recording permission prompt buttons should use neutral wording such as "Continue" instead of "Request permission."
 - MicOverlay should lean further into a sci-fi / HUD look, offer multiple visual directions for comparison, and keep the right-side elapsed-time area frameless.
 - During AI Enhance, MicOverlay must stay visible until enhancement actually finishes and should show the localized "Thinking..." status while enhancement is running.
 - MicOverlay should use a deeper near-black "space black" surface so accent colors read as emitted light rather than tinted background chrome.
@@ -86,12 +87,6 @@ This repo uses a single-context layout with a root `CONTEXT.md` and optional roo
 - Accessibility permission guidance should use localized hands-free text insertion copy, never auto-trigger the macOS Accessibility prompt, and send users to System Settings for manual enablement.
 - The permissions section should be presented as a localized "Getting Started" guide, auto-open only when the app is freshly opened and required permissions are missing, refresh permission state when the app becomes active without forcing a section switch, and disappear from navigation once all required permissions are granted.
 - The Models page should switch to a default dense row list that shows more models at once, keep only name/status/size/language summary/primary action always visible, compress the header into a compact toolbar with Refresh visible and other actions collapsed, and demote Cache Memory below Downloaded and Disk Usage.
-- The Models page should use one shared visual system across ASR / Align / VAD / TTS, keep category identity to a single accent per category, avoid per-section color drift, and use semantic status colors consistently for shared states like Active / Downloaded / Pro.
+- The Models page should use one shared visual system across ASR / Align / VAD / TTS, keep category identity to a single accent per category, avoid per-section color drift, and use semantic status colors consistently for shared states like Active / Downloaded.
 - The latest Models page styling pass should override the earlier per-category-accent direction: Cache Memory should use the same primary badge treatment as Disk Usage, and ASR / Align / VAD / TTS should share the same ASR-style accent so the page reads as one cohesive library surface.
-- The Pro page should prioritize a denser dashboard-style layout in `ProHubView`, surfacing the main upgrade/manage CTA and subscription status together near the top instead of stacking large sections vertically.
 - The Models page TTS catalog should support the same downloaded-only and search-based browsing flow as other model categories so users can inspect only installed TTS models.
-- The latest ProHubView pass should lean further into a system-native, content-first subscription center: calmer neutral surfaces, fewer decorative hero treatments, and accent color reserved mostly for the primary CTA and key icons.
-- ProHubView should drop the lower “Included With Pro” area entirely and keep the page focused on the upper summary plus subscription management content.
-- ProHubView should further simplify the left column to a minimal header with just the title, short supporting copy, and primary CTA, leaving detailed subscription information to the status card.
-- ProHubView should still feel more content-rich than the ultra-minimal pass, but all Pro page sections need to sit inside one shared calm card surface instead of mixing bare blocks with custom containers.
-- App Store builds must not compile or install macOS Accessibility-adjacent text injection, `CGEventTap`, or global key-monitor paths; MAS dictation delivery should use clipboard/manual paste and local-only shortcut monitoring.

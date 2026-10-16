@@ -4,66 +4,8 @@ import Testing
 
 @testable import Cliptate
 
-@Suite("ModelDownloadManager permission integration")
-struct ModelDownloadManagerPermissionTests {
-  @Test
-  func freeParakeetModelDoesNotCheckPermissions() async throws {
-    let mockAccess = MockAccessController(permissionQueue: [])
-    let manager = ModelDownloadManager(
-      accessController: mockAccess, fileManager: StubFileManager())
-    _ = await manager.isModelDownloaded(.parakeetV3)
-    // Parakeet is a free model — no permission check needed
-    let callCount = await mockAccess.checkPermissionCallCount
-    #expect(callCount == 0)
-  }
-
-  @Test
-  func isModelDownloadedReturnsFalseWhenPermissionDenied() async throws {
-    guard let restrictedModel = ModelVariant.proModels.first else {
-      #expect(ModelVariant.proModels.isEmpty)
-      return
-    }
-
-    let mockAccess = MockAccessController(permissionQueue: [
-      ModelDownloadPermission(
-        model: restrictedModel,
-        isAllowed: false,
-        reason: .requiresProSubscription
-      )
-    ])
-
-    let manager = ModelDownloadManager(accessController: mockAccess, fileManager: StubFileManager())
-    let result = await manager.isModelDownloaded(restrictedModel)
-    #expect(result == false)
-
-    let callCount = await mockAccess.checkPermissionCallCount
-    #expect(callCount == 1)
-  }
-
-  @Test
-  func downloadThrowsPermissionDeniedError() async {
-    guard let restrictedModel = ModelVariant.proModels.first else {
-      #expect(ModelVariant.proModels.isEmpty)
-      return
-    }
-
-    let mockAccess = MockAccessController(permissionQueue: [
-      ModelDownloadPermission(
-        model: restrictedModel,
-        isAllowed: false,
-        reason: .requiresProSubscription
-      )
-    ])
-
-    let manager = ModelDownloadManager(
-      accessController: mockAccess, fileManager: StubFileManager())
-    let handler: @Sendable (ModelDownloadProgress) async -> Void = { _ in }
-
-    await #expect(throws: ModelDownloadError.permissionDenied(reason: .requiresProSubscription)) {
-      try await manager.download(model: restrictedModel, progressHandler: handler)
-    }
-  }
-
+@Suite("ModelDownloadManager local artifacts")
+struct ModelDownloadManagerArtifactTests {
   @Test
   func hasLocalArtifactsRecognizesSortformerCacheInMLXAudioDirectory() async throws {
     let tempRoot = FileManager.default.temporaryDirectory
@@ -89,7 +31,6 @@ struct ModelDownloadManagerPermissionTests {
 
     let manager = ModelDownloadManager(
       cacheRootProvider: { hubRoot },
-      accessController: MockAccessController(permissionQueue: []),
       fileManager: .default
     )
     defer { try? FileManager.default.removeItem(at: tempRoot) }
@@ -115,7 +56,6 @@ struct ModelDownloadManagerPermissionTests {
 
     let manager = ModelDownloadManager(
       cacheRootProvider: { hubRoot },
-      accessController: MockAccessController(permissionQueue: []),
       fileManager: .default
     )
 
@@ -141,12 +81,12 @@ struct ModelDownloadManagerPermissionTests {
 
     let manager = ModelDownloadManager(
       cacheRootProvider: { hubRoot },
-      accessController: MockAccessController(permissionQueue: []),
       fileManager: .default
     )
 
     let result = await manager.hasLocalArtifacts(for: .parakeetV3)
     #expect(result, "Directory with safetensors and config.json should be recognised as a valid Parakeet model")
+    #expect(await manager.isModelDownloaded(.parakeetV3))
   }
 }
 
@@ -155,12 +95,12 @@ struct ModelDownloadManagerPermissionTests {
 @Suite("ModelDownloadManager path resolution")
 struct ModelDownloadManagerPathTests {
 
-    @Test("direct builds resolve account home while App Store builds retain container home")
+    @Test("model storage resolves account home and falls back to process home")
     func testModelHomeDirectoryRespectsDistribution() {
         let container = URL(fileURLWithPath: "/mock/home/Library/Containers/com.voicepink.voicepinkpro/Data")
         let account = URL(fileURLWithPath: "/mock/home")
         let home = ModelStorageLayoutResolver.modelHomeDirectory(processHome: container, accountHome: account)
-        #expect(home == (SubscriptionPolicy.isBillingEnabled ? container : account))
+        #expect(home == account)
         #expect(ModelStorageLayoutResolver.modelHomeDirectory(processHome: container, accountHome: nil) == container)
     }
 
@@ -272,7 +212,6 @@ struct ModelDownloadManagerMLXAudioTests {
         let hubRoot = tempRoot.appendingPathComponent("hf-hub", isDirectory: true)
         let manager = ModelDownloadManager(
             cacheRootProvider: { hubRoot },
-            accessController: MockAccessController(permissionQueue: []),
             fileManager: .default
         )
         return (manager, hubRoot, tempRoot)
@@ -435,7 +374,6 @@ struct ModelDownloadManagerMLXAudioTests {
         let customRoot = URL(fileURLWithPath: "/custom/hub/root")
         let manager = ModelDownloadManager(
             cacheRootProvider: { customRoot },
-            accessController: MockAccessController(),
             fileManager: .default
         )
         let dir = manager.mlxAudioDirectory(forRepo: "mlx-community/parakeet-tdt-0.6b-v3")
@@ -481,7 +419,6 @@ struct ModelDownloadManagerMLXAudioTests {
         let manager = ModelDownloadManager(
             cacheRootProvider: { hubRoot },
             legacyMLXAudioBaseProvider: { legacyMLXAudioBase },
-            accessController: MockAccessController(permissionQueue: []),
             fileManager: .default
         )
 
@@ -617,7 +554,6 @@ struct ModelDownloadManagerMLXAudioTests {
         let manager = ModelDownloadManager(
             cacheRootProvider: { hubRoot },
             legacyMLXAudioBaseProvider: { legacyMLXAudioBase },
-            accessController: MockAccessController(permissionQueue: []),
             fileManager: .default
         )
 
@@ -637,7 +573,7 @@ struct ModelDownloadManagerUnifiedRoutingTests {
     private var manager: ModelDownloadManager {
         ModelDownloadManager(
             cacheRootProvider: { customHubRoot },
-            accessController: MockAccessController(permissionQueue: []),
+
             fileManager: StubFileManager()
         )
     }
@@ -754,30 +690,6 @@ struct ComputeDownloadProgressTests {
     func clampsAtExactFull() {
         #expect(computeDownloadProgress(actualMB: 400, expectedMB: 400) == 0.95)
     }
-}
-
-actor MockAccessController: ModelAccessControlling {
-  var permissionQueue: [ModelDownloadPermission]
-  private(set) var checkPermissionCallCount: Int = 0
-
-  init(permissionQueue: [ModelDownloadPermission] = []) {
-    self.permissionQueue = permissionQueue
-  }
-
-  func canDownloadModel(_ model: ModelVariant) async throws -> Bool {
-    if let permission = permissionQueue.first(where: { $0.model == model }) {
-      return permission.isAllowed
-    }
-    return true
-  }
-
-  func checkPermission(for model: ModelVariant) async throws -> ModelDownloadPermission {
-    checkPermissionCallCount += 1
-    if !permissionQueue.isEmpty {
-      return permissionQueue.removeFirst()
-    }
-    return ModelDownloadPermission(model: model, isAllowed: true, reason: nil)
-  }
 }
 
 final class StubFileManager: FileManager, @unchecked Sendable {

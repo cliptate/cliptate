@@ -7,7 +7,6 @@ struct PermissionsViewSourceTests {
   func accessibilityPermissionCopyUsesHandsFreeInsertionWording() throws {
     let content = try permissionsViewSource()
 
-    #expect(content.contains("#if !APP_STORE"))
     #expect(content.contains(#""Enable hands-free text insertion""#))
     #expect(
       content.contains(
@@ -61,13 +60,6 @@ struct PermissionsViewSourceTests {
     )
   }
 
-  @Test("accessibility gate keeps protected frameworks out of app store compilation")
-  func accessibilityGateKeepsProtectedFrameworksOutOfAppStoreCompilation() throws {
-    let content = try accessibilityGateSource()
-
-    #expect(content.contains("#if !APP_STORE\n  import ApplicationServices\n  import CoreGraphics\n#endif"))
-  }
-
   @Test("mic overlay does not import accessibility framework")
   func micOverlayDoesNotImportAccessibilityFramework() throws {
     let content = try micOverlaySource()
@@ -85,15 +77,6 @@ struct PermissionsViewSourceTests {
     #expect(content.contains("requestAccessibility()") == false)
   }
 
-  @Test("Swift package defaults only Release to App Store and supports explicit overrides")
-  func defaultSwiftPackageBuildChannels() throws {
-    let content = try packageManifestSource()
-
-    #expect(content.contains(#".define("APP_STORE")"#))
-    #expect(content.contains(#".define("APP_STORE", .when(configuration: .release))"#))
-    #expect(content.contains(#"case "NO": channelSwiftSettings = []"#))
-  }
-
   private func permissionsViewSource() throws -> String {
     try projectFileSource("Sources/Cliptate/Views/PermissionsView.swift")
   }
@@ -104,10 +87,6 @@ struct PermissionsViewSourceTests {
 
   private func micOverlaySource() throws -> String {
     try projectFileSource("Sources/Cliptate/Utilities/MicIndicatorOverlay.swift")
-  }
-
-  private func packageManifestSource() throws -> String {
-    try projectFileSource("Package.swift")
   }
 
   private func projectFileSource(_ relativePath: String) throws -> String {

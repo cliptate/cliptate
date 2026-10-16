@@ -1,15 +1,5 @@
 // swift-tools-version: 6.2
 import PackageDescription
-import Foundation
-
-// Dev/Debug defaults to direct distribution, Release to App Store.
-// An explicit override selects the same channel for either configuration.
-let channelSwiftSettings: [SwiftSetting]
-switch ProcessInfo.processInfo.environment["CLIPTATE_APP_STORE"] {
-case "YES": channelSwiftSettings = [.define("APP_STORE")]
-case "NO": channelSwiftSettings = []
-default: channelSwiftSettings = [.define("APP_STORE", .when(configuration: .release))]
-}
 
 // SwiftPM uses swiftc to link executables. Its driver needs -O at link time
 // as well as compile time to enable the release linker optimizations.
@@ -38,12 +28,11 @@ let package = Package(
         .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.4.0"),
         .package(url: "https://github.com/sindresorhus/LaunchAtLogin-Modern.git", from: "1.1.0"),
         .package(url: "https://github.com/mihai8804858/swift-ass-renderer", from: "1.3.1"),
-        // Newer manifests change the IssueReporting package identity across Swift versions.
-        // Use the same dependency graph with Xcode 26 and Xcode 27.
+        // SwiftAssRenderer uses CombineSchedulers. Pin its IssueReporting graph
+        // so Xcode 26 and Xcode 27 resolve the same package identities.
         .package(url: "https://github.com/pointfreeco/combine-schedulers", exact: "1.2.0"),
         .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", exact: "1.11.0"),
         .package(url: "https://github.com/AudioKit/AudioKit", from: "5.6.5"),
-        .package(url: "https://github.com/RevenueCat/purchases-ios-spm.git", from: "5.44.1"),
         // Keep the inference graph compatible with the pinned MLX Audio version.
         .package(url: "https://github.com/ml-explore/mlx-swift.git", exact: "0.32.3"),
         .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", exact: "3.32.3"),
@@ -65,8 +54,6 @@ let package = Package(
                 .product(name: "LaunchAtLogin", package: "LaunchAtLogin-Modern"),
                 .product(name: "SwiftAssRenderer", package: "swift-ass-renderer"),
                 .product(name: "AudioKit", package: "AudioKit"),
-                .product(name: "RevenueCat", package: "purchases-ios-spm"),
-                // Used transitively by RevenueCat's CombineSchedulers; keep the pinned identity explicit.
                 .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
                 .product(name: "MLX", package: "mlx-swift"),
                 .product(name: "MLXLMCommon", package: "mlx-swift-lm"),
@@ -80,13 +67,11 @@ let package = Package(
             exclude: [
                 "Info.plist",
                 "Cliptate.entitlements",
-                "Cliptate-Direct.entitlements",
             ],
             resources: [
                 .process("Assets.xcassets"),
                 .process("Localizable.xcstrings")
             ],
-            swiftSettings: channelSwiftSettings,
             linkerSettings: releaseLinkerSettings + [.unsafeFlags(["-Xlinker", "-ObjC"])]
         ),
         .testTarget(name: "CliptateCoreTests", dependencies: ["CliptateCore"]),

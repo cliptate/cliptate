@@ -413,7 +413,6 @@ struct CliptateCommand {
       ENVIRONMENT
         CLIPTATE_APP=/path/to/Cliptate.app selects the app bundle.
         Otherwise the embedded helper uses its app; a standalone CLI finds the installed app.
-        App Store builds do not provide the CLI service.
 
       EXIT STATUS
         0  Success

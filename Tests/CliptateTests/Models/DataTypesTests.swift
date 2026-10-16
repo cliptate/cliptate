@@ -4,59 +4,8 @@ import Testing
 
 @testable import Cliptate
 
-@Suite("ModelVariant access level mapping")
-struct ModelVariantAccessLevelTests {
-    private let cohereRawValues = [
-        "cohere-transcribe-03-2026-mlx-fp16",
-        "cohere-transcribe-03-2026-mlx-8bit",
-        "cohere-transcribe-03-2026-mlx-4bit",
-    ]
-
-    @Test
-    func premiumModelsMapToProAccess() {
-        let premiumModels: Set<ModelVariant> = [
-            .parakeetV3,
-            .qwen3ASR17B4bit,
-            .qwen3ASR17B5bit,
-            .qwen3ASR17B6bit,
-            .qwen3ASR17B8bit,
-            .qwen3ASR17Bbf16,
-            .fireRedASR2,
-            .cohereTranscribe03FP16,
-            .cohereTranscribe038bit,
-            .cohereTranscribe034bit,
-            .sortformerStreaming,
-            .sortformerOffline,
-        ]
-
-        for variant in ModelVariant.allCases {
-            let shouldRequireSubscription = SubscriptionPolicy.isBillingEnabled && premiumModels.contains(variant)
-            #expect(variant.requiresProSubscription == shouldRequireSubscription)
-            #expect(variant.accessLevel == (shouldRequireSubscription ? .pro : .free))
-        }
-    }
-
-    @Test("Cohere models map to Pro access")
-    func cohereModelsMapToProAccess() throws {
-        let variants = try cohereRawValues.map { rawValue in
-            try #require(ModelVariant(rawValue: rawValue))
-        }
-
-        #expect(Set(variants.map(\.rawValue)) == Set(cohereRawValues))
-        for variant in variants {
-            #expect(variant.requiresProSubscription == SubscriptionPolicy.isBillingEnabled)
-            #expect(variant.accessLevel == (SubscriptionPolicy.isBillingEnabled ? .pro : .free))
-            #expect(variant.provider.rawValue == "cohere")
-        }
-    }
-
-    @Test
-    func proModelListMatchesAccessLevels() {
-        #expect(Set(ModelVariant.proModels) == Set(ModelVariant.allCases.filter(\.requiresProSubscription)))
-        #expect(Set(ModelVariant.freeModels).intersection(Set(ModelVariant.proModels)).isEmpty)
-        #expect(ModelVariant.freeModels.count + ModelVariant.proModels.count == ModelVariant.allCases.count)
-    }
-
+@Suite("ModelVariant catalog")
+struct ModelVariantCatalogTests {
     @Test
     func sortformerModelsAreExposedAsVADOnlyModels() {
         #expect(ModelVariant.vadModels.contains(.sortformerStreaming))
@@ -243,66 +192,4 @@ struct ModelVariantStorageMetadataTests {
             "/mock/Library/Caches/huggingface/hub/models--beshkenadze--cohere-transcribe-03-2026-mlx-8bit",
         ])
     }
-}
-
-@Suite("PaywallContext display")
-struct PaywallContextDisplayTests {
-  @Test("manual subscription management hides the model summary card")
-  func manualSubscriptionManagementHidesModelSummaryCard() {
-    let context = PaywallContext(
-      model: .parakeetV3,
-      accessLevel: .pro,
-      availablePlans: [monthlyPlan, annualPlan],
-      currentSubscription: inactiveStatus,
-      reason: .userInitiated
-    )
-
-    #expect(context.showsModelSummaryCard == false)
-  }
-
-  @Test("upgrade flows still show the model summary card")
-  func upgradeFlowsStillShowModelSummaryCard() {
-    let context = PaywallContext(
-      model: .parakeetV3,
-      accessLevel: .pro,
-      availablePlans: [monthlyPlan, annualPlan],
-      currentSubscription: inactiveStatus,
-      reason: .attemptedPaidModelDownload
-    )
-
-    #expect(context.showsModelSummaryCard)
-  }
-
-  private var monthlyPlan: SubscriptionPlan {
-    SubscriptionPlan(
-      id: "monthly",
-      name: "Monthly Pro",
-      type: .monthly,
-      productIdentifier: "com.voicepinkpro.sub.monthly",
-      duration: .months(1),
-      priceText: "$9.99"
-    )
-  }
-
-  private var annualPlan: SubscriptionPlan {
-    SubscriptionPlan(
-      id: "annual",
-      name: "Annual Pro",
-      type: .annual,
-      productIdentifier: "com.voicepinkpro.sub.annual",
-      duration: .years(1),
-      priceText: "$59.99"
-    )
-  }
-
-  private var inactiveStatus: SubscriptionStatus {
-    SubscriptionStatus(
-      isProSubscribed: false,
-      currentPlan: nil,
-      expirationDate: nil,
-      isInTrialPeriod: false,
-      lastUpdated: .now,
-      isSandbox: false
-    )
-  }
 }
