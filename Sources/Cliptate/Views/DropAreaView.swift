@@ -38,7 +38,7 @@ struct DropAreaView: View {
     VStack(spacing: style == .hero ? 14 : 10) {
       Image(systemName: "square.and.arrow.down.on.square")
         .font(.system(size: style == .hero ? 34 : 22, weight: .medium))
-        .foregroundColor(.accentColor)
+        .foregroundStyle(isHighlighted ? Color.accentColor : Color.secondary)
       Text(title)
         .font(style == .hero ? .headline : .caption)
         .foregroundColor(.secondary)
@@ -49,28 +49,22 @@ struct DropAreaView: View {
       }
     }
     .frame(maxWidth: .infinity)
-    .frame(minHeight: style == .hero ? 260 : nil)
-    .padding(style == .hero ? 40 : 12)
+    .frame(minHeight: style == .hero ? 180 : nil)
+    .padding(style == .hero ? 24 : 12)
     .background(
-      RoundedRectangle(cornerRadius: style == .hero ? 18 : 10, style: .continuous)
+      RoundedRectangle(cornerRadius: 12, style: .continuous)
         .strokeBorder(
           isHighlighted ? Color.accentColor : Color.secondary.opacity(0.3),
-          style: StrokeStyle(lineWidth: style == .hero ? 2 : 1, dash: [5])
+          style: StrokeStyle(lineWidth: 1, dash: [5])
         )
         .background(
-          (isHighlighted ? Color.accentColor.opacity(0.12) : Color.primary.opacity(0.03))
+          (isHighlighted ? AppSurface.selectedFill : AppSurface.settingsBackground)
             .clipShape(
-              RoundedRectangle(cornerRadius: style == .hero ? 18 : 10, style: .continuous)
+              RoundedRectangle(cornerRadius: 12, style: .continuous)
             )
         )
     )
-    .shadow(
-      color: isHighlighted ? Color.accentColor.opacity(0.18) : Color.clear,
-      radius: style == .hero ? 16 : 0,
-      y: style == .hero ? 8 : 0
-    )
-    .scaleEffect(style == .hero && isHighlighted && !reduceMotion ? 1.01 : 1)
-    .contentShape(RoundedRectangle(cornerRadius: style == .hero ? 18 : 10, style: .continuous))
+    .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     .onTapGesture {
       onTap?()
     }

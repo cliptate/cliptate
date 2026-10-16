@@ -61,10 +61,18 @@ struct VoiceToTextView: View {
   @State private var historyErrorMessage: String?
   @State private var lastCountedSessionID: UUID?
   @State private var showingUsageStatsResetDialog = false
-  @State private var isUsageExpanded = false
-  @State private var isIndicatorExpanded = false
+  @State private var isUsageExpanded = true
+  @State private var isIndicatorExpanded = true
+  @State private var contextSheet: ContextSheet?
   @AppStorage("historyShowSpeaker") private var historyShowSpeaker = true
   @AppStorage("historyShowTimestamp") private var historyShowTimestamp = true
+
+  private enum ContextSheet: String, Identifiable {
+    case dictation
+    case assistant
+
+    var id: Self { self }
+  }
 
   private var selectedSignature: (TranscriberType, ModelVariant) {
     (config.activeVoiceToTextTranscriberType, config.activeVoiceToTextModelVariant)
@@ -186,14 +194,30 @@ struct VoiceToTextView: View {
       } message: {
         Text("This clears total duration, session count, and generated words.")
       }
+      .sheet(item: $contextSheet) { target in
+        switch target {
+        case .dictation:
+          VoiceContextSettingsView(
+            title: "Dictation Context",
+            includeClipboard: $config.aiIncludeClipboardContext,
+            includeWindow: $config.aiIncludeWindowContext
+          )
+        case .assistant:
+          VoiceContextSettingsView(
+            title: "Assistant Context",
+            includeClipboard: $config.voiceToTextAssistantIncludeClipboardContext,
+            includeWindow: $config.voiceToTextAssistantIncludeWindowContext
+          )
+        }
+      }
   }
 
   private var primaryLayout: some View {
     mainPanel
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    .background(AppSurface.pageBackground)
+    .background(AppSurface.contentBackground)
     .appPageHeader {
-      AppPageHeader {
+      AppPageHeader(background: AppSurface.contentBackground) {
         header
       }
     }
@@ -290,9 +314,11 @@ struct VoiceToTextView: View {
   private var mainPanel: some View {
     ScrollView {
       controls
-        .frame(maxWidth: 960, alignment: .leading)
-        .padding(24)
-        .frame(maxWidth: .infinity, alignment: .top)
+        .frame(maxWidth: 840, alignment: .leading)
+        .padding(.horizontal, 28)
+        .padding(.top, 8)
+        .padding(.bottom, 28)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
     }
   }
 
@@ -349,6 +375,24 @@ struct VoiceToTextView: View {
 
   private var controls: some View {
     VStack(alignment: .leading, spacing: 20) {
+      HStack(alignment: .top, spacing: 16) {
+        DisclosureGroup("Usage Statistics", isExpanded: $isUsageExpanded) {
+          usageStatsCards
+            .padding(.top, 8)
+        }
+        .font(.headline)
+
+        Button(role: .destructive) {
+          showingUsageStatsResetDialog = true
+        } label: {
+          Label("Reset stats", systemImage: "arrow.counterclockwise")
+            .font(.caption)
+        }
+        .buttonStyle(.borderless)
+        .disabled(!usageStats.hasHistory)
+        .help("Clear all saved voice usage totals")
+      }
+
       warmupErrorLabel
 
       if let issue = transcriber.inputIssue {
@@ -372,34 +416,25 @@ struct VoiceToTextView: View {
 
       shortcutModesSection
 
-      VStack(alignment: .leading, spacing: 16) {
-        DisclosureGroup(isExpanded: $isIndicatorExpanded) {
-          MicIndicatorStyleSettingsView(selection: $config.micIndicatorStyle)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, 12)
-        } label: {
-          HStack {
-            Text("Dictation Indicator")
-            Spacer()
-            Text(config.micIndicatorStyle.displayName)
-              .foregroundStyle(.secondary)
-          }
-        }
-
-        Divider()
-
-        DisclosureGroup("Usage Statistics", isExpanded: $isUsageExpanded) {
-          usageStatsCards
-            .padding(.top, 12)
+      DisclosureGroup(isExpanded: $isIndicatorExpanded) {
+        MicIndicatorStyleSettingsView(selection: $config.micIndicatorStyle)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .padding(.top, 12)
+      } label: {
+        HStack {
+          Text("Dictation Indicator")
+            .font(.headline)
+          Spacer()
+          Text(config.micIndicatorStyle.displayName)
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
       }
-      .padding(16)
-      .background(AppSurface.cardBackground, in: RoundedRectangle(cornerRadius: 12))
     }
   }
 
   private var modelConfigurationCard: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: 12) {
       HStack {
         Text("Model Configuration")
           .font(.headline)
@@ -409,48 +444,63 @@ struct VoiceToTextView: View {
         } label: {
           Text("Manage in Models")
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(.link)
+        .font(.caption)
         .accessibilityLabel("Open Models page")
       }
 
-      LabeledContent("Model") {
-        Text(config.activeVoiceToTextModelVariant.displayName)
-          .textSelection(.enabled)
-      }
-
-      ModelAwareLanguageSelectionView(
-        title: String(localized: "Language"),
-        selectedLanguage: $config.voiceToTextLanguage,
-        contextProvider: {
-          .asr(
-            type: config.activeVoiceToTextTranscriberType,
-            model: config.activeVoiceToTextModelVariant
-          )
-        },
-        helpText: String(localized: "Language list matches the active Voice Dictation ASR model.")
-      )
-
-      switch selectedModelStatus {
-      case .checking:
-        HStack(spacing: 8) {
-          ProgressView()
-            .controlSize(.small)
-          Text("Checking model availability...")
-            .font(.caption)
-            .foregroundStyle(.secondary)
+      VStack(alignment: .leading, spacing: 12) {
+        HStack(alignment: .firstTextBaseline) {
+          Text("Model")
+          Spacer(minLength: 16)
+          VStack(alignment: .trailing, spacing: 4) {
+            Text(config.activeVoiceToTextModelVariant.displayName)
+              .multilineTextAlignment(.trailing)
+              .textSelection(.enabled)
+            modelAvailabilityLabel
+          }
         }
-      case .downloaded:
-        Label("Model ready", systemImage: "checkmark.circle.fill")
-          .font(.caption)
-          .foregroundStyle(.green)
-      case .notDownloaded:
-        Label("Selected model is not downloaded", systemImage: "exclamationmark.triangle.fill")
-          .font(.caption)
-          .foregroundStyle(.orange)
+
+        Divider()
+
+        ModelAwareLanguageSelectionView(
+          title: String(localized: "Language"),
+          selectedLanguage: $config.voiceToTextLanguage,
+          contextProvider: {
+            .asr(
+              type: config.activeVoiceToTextTranscriberType,
+              model: config.activeVoiceToTextModelVariant
+            )
+          },
+          helpText: String(localized: "Language list matches the active Voice Dictation ASR model."),
+          compactControl: true
+        )
       }
+      .padding(14)
+      .background(AppSurface.settingsBackground, in: RoundedRectangle(cornerRadius: 10))
     }
-    .padding(16)
-    .background(AppSurface.cardBackground, in: RoundedRectangle(cornerRadius: 12))
+  }
+
+  @ViewBuilder
+  private var modelAvailabilityLabel: some View {
+    switch selectedModelStatus {
+    case .checking:
+      HStack(spacing: 6) {
+        ProgressView()
+          .controlSize(.mini)
+        Text("Checking model availability...")
+      }
+      .font(.caption)
+      .foregroundStyle(.secondary)
+    case .downloaded:
+      Label("Model ready", systemImage: "checkmark.circle")
+        .font(.caption)
+        .foregroundStyle(.secondary)
+    case .notDownloaded:
+      Label("Selected model is not downloaded", systemImage: "exclamationmark.triangle.fill")
+        .font(.caption)
+        .foregroundStyle(.orange)
+    }
   }
 
   @ViewBuilder
@@ -465,28 +515,12 @@ struct VoiceToTextView: View {
   private var usageStatsCards: some View {
     let stats = usageStats
 
-    return VStack(alignment: .leading, spacing: 8) {
-      LazyVGrid(
-        columns: [GridItem(.adaptive(minimum: 220), alignment: .topLeading)],
-        alignment: .leading,
-        spacing: 8
-      ) {
-        statsCardsContent(for: stats)
-      }
-
-      HStack {
-        Button(role: .destructive) {
-          showingUsageStatsResetDialog = true
-        } label: {
-          Label("Reset stats", systemImage: "arrow.counterclockwise")
-            .font(.caption)
-        }
-        .buttonStyle(.borderless)
-        .disabled(!stats.hasHistory)
-        .help("Clear all saved voice usage totals")
-
-        Spacer()
-      }
+    return LazyVGrid(
+      columns: [GridItem(.adaptive(minimum: 200), alignment: .topLeading)],
+      alignment: .leading,
+      spacing: 8
+    ) {
+      statsCardsContent(for: stats)
     }
   }
 
@@ -536,7 +570,8 @@ struct VoiceToTextView: View {
         .foregroundStyle(tint)
 
       Text(primary)
-        .font(.system(.title3, design: .rounded).weight(.semibold))
+        .font(.title2.weight(.semibold))
+        .monospacedDigit()
 
       Text(secondary)
         .font(.caption2)
@@ -551,85 +586,102 @@ struct VoiceToTextView: View {
       Text("Shortcut Modes")
         .font(.headline)
 
-      LazyVGrid(
-        columns: [GridItem(.adaptive(minimum: 320), alignment: .topLeading)],
-        alignment: .leading,
-        spacing: 16
-      ) {
-        VStack(alignment: .leading, spacing: 8) {
-          Label("Dictation", systemImage: "mic")
-            .font(.headline)
-            .fontWeight(.semibold)
+      VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 10) {
+          HStack {
+            Label("Dictation", systemImage: "mic")
+              .fontWeight(.medium)
 
-          Picker("Key", selection: Binding(
-            get: { shortcutManager.dictationPreset },
-            set: { shortcutManager.updatePreset($0, for: .dictation) }
-          )) {
-            ForEach(VoiceToggleShortcutPreset.allCases.filter { $0 != .custom }) { preset in
-              Text(preset.displayName).tag(preset)
+            Spacer(minLength: 16)
+
+            Picker("Key", selection: Binding(
+              get: { shortcutManager.dictationPreset },
+              set: { shortcutManager.updatePreset($0, for: .dictation) }
+            )) {
+              ForEach(VoiceToggleShortcutPreset.allCases.filter { $0 != .custom }) { preset in
+                Text(preset.displayName).tag(preset)
+              }
             }
+            .labelsHidden()
+            .accessibilityLabel("Dictation shortcut")
+            .frame(maxWidth: 210)
           }
-          .labelsHidden()
-          .accessibilityLabel("Dictation shortcut")
-          .frame(maxWidth: .infinity, alignment: .leading)
 
           Text("Tap to enter, Space to handsfree. AI Enhance uses context to improve accuracy.")
             .font(.caption2)
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
 
-          Divider().padding(.vertical, 4)
-
-          VStack(alignment: .leading, spacing: 10) {
-            alignedToggle("AI Enhance", binding: $config.voiceToTextDictationAIEnhanceEnabled)
-            alignedToggle("Clipboard Context", binding: $config.aiIncludeClipboardContext)
-            alignedToggle("Window Context", binding: $config.aiIncludeWindowContext)
+          ViewThatFits(in: .horizontal) {
+            HStack(spacing: 24) {
+              aiEnhanceToggle($config.voiceToTextDictationAIEnhanceEnabled)
+              Spacer(minLength: 16)
+              contextSettingsButton(
+                .dictation, clipboard: config.aiIncludeClipboardContext,
+                window: config.aiIncludeWindowContext
+              )
+            }
+            VStack(alignment: .leading, spacing: 10) {
+              aiEnhanceToggle($config.voiceToTextDictationAIEnhanceEnabled)
+              contextSettingsButton(
+                .dictation, clipboard: config.aiIncludeClipboardContext,
+                window: config.aiIncludeWindowContext
+              )
+            }
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(AppSurface.cardBackground, in: RoundedRectangle(cornerRadius: 12))
+        .padding(14)
 
-        VStack(alignment: .leading, spacing: 8) {
-          Label("Assistant", systemImage: "text.bubble")
-            .font(.headline)
-            .fontWeight(.semibold)
+        Divider()
 
-          Picker("Key", selection: Binding(
-            get: { shortcutManager.assistantPreset },
-            set: { shortcutManager.updatePreset($0, for: .assistant) }
-          )) {
-            ForEach(VoiceToggleShortcutPreset.allCases.filter { $0 != .custom }) { preset in
-              Text("\(preset.displayName) + Shift").tag(preset)
+        VStack(alignment: .leading, spacing: 10) {
+          HStack {
+            Label("Assistant", systemImage: "text.bubble")
+              .fontWeight(.medium)
+
+            Spacer(minLength: 16)
+
+            Picker("Key", selection: Binding(
+              get: { shortcutManager.assistantPreset },
+              set: { shortcutManager.updatePreset($0, for: .assistant) }
+            )) {
+              ForEach(VoiceToggleShortcutPreset.allCases.filter { $0 != .custom }) { preset in
+                Text("\(preset.displayName) + Shift").tag(preset)
+              }
             }
+            .labelsHidden()
+            .accessibilityLabel("Assistant shortcut")
+            .frame(maxWidth: 210)
           }
-          .labelsHidden()
-          .accessibilityLabel("Assistant shortcut")
-          .frame(maxWidth: .infinity, alignment: .leading)
 
           Text("Voice assistant. Tap to enter, Space to handsfree. AI Enhance uses context to improve responses.")
             .font(.caption2)
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
 
-          Divider().padding(.vertical, 4)
-
-          VStack(alignment: .leading, spacing: 10) {
-            alignedToggle("AI Enhance", binding: $config.voiceToTextAssistantAIEnhanceEnabled)
-            alignedToggle(
-              "Clipboard Context",
-              binding: $config.voiceToTextAssistantIncludeClipboardContext
-            )
-            alignedToggle(
-              "Window Context",
-              binding: $config.voiceToTextAssistantIncludeWindowContext
-            )
+          ViewThatFits(in: .horizontal) {
+            HStack(spacing: 24) {
+              aiEnhanceToggle($config.voiceToTextAssistantAIEnhanceEnabled)
+              Spacer(minLength: 16)
+              contextSettingsButton(
+                .assistant, clipboard: config.voiceToTextAssistantIncludeClipboardContext,
+                window: config.voiceToTextAssistantIncludeWindowContext
+              )
+            }
+            VStack(alignment: .leading, spacing: 10) {
+              aiEnhanceToggle($config.voiceToTextAssistantAIEnhanceEnabled)
+              contextSettingsButton(
+                .assistant, clipboard: config.voiceToTextAssistantIncludeClipboardContext,
+                window: config.voiceToTextAssistantIncludeWindowContext
+              )
+            }
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(AppSurface.cardBackground, in: RoundedRectangle(cornerRadius: 12))
+        .padding(14)
       }
+      .background(AppSurface.settingsBackground, in: RoundedRectangle(cornerRadius: 10))
 
       // Phase indicator
       modePhaseIndicator
@@ -1002,17 +1054,42 @@ struct VoiceToTextView: View {
     EmptyView()
   }
 
-  private func alignedToggle(_ title: LocalizedStringKey, binding: Binding<Bool>) -> some View {
-    Toggle(isOn: binding) {
-      HStack(spacing: 4) {
-        Text(title)
-        Spacer(minLength: 0)
-      }
-    }
+  private func aiEnhanceToggle(_ binding: Binding<Bool>) -> some View {
+    Toggle("AI Enhance", isOn: binding)
     .toggleStyle(.switch)
-    .controlSize(.mini)
+    .controlSize(.small)
     .font(.caption)
-    .frame(maxWidth: .infinity, alignment: .leading)
+    .fixedSize(horizontal: true, vertical: false)
+  }
+
+  private func contextSettingsButton(
+    _ target: ContextSheet, clipboard: Bool, window: Bool
+  ) -> some View {
+    let summary: String
+    switch (clipboard, window) {
+    case (true, true): summary = String(localized: "Clipboard and window")
+    case (true, false): summary = String(localized: "Clipboard Context")
+    case (false, true): summary = String(localized: "Window Context")
+    case (false, false): summary = String(localized: "Context is off")
+    }
+
+    return Button {
+      contextSheet = target
+    } label: {
+      HStack(spacing: 6) {
+        Text(summary)
+        Image(systemName: "chevron.right")
+          .font(.caption2.weight(.semibold))
+          .foregroundStyle(.secondary)
+      }
+      .font(.caption)
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.link)
+    .accessibilityLabel(
+      target == .dictation ? Text("Dictation Context") : Text("Assistant Context")
+    )
+    .accessibilityValue(summary)
   }
 
   private func characterCount(in text: String) -> Int {
@@ -1742,6 +1819,68 @@ struct VoiceUsageStats {
     // natural pauses to falsely report zero time saved.
     let typingSeconds = Double(totalWords) / 20.0 * 60.0
     return max(0, typingSeconds - totalDuration)
+  }
+}
+
+private struct VoiceContextSettingsView: View {
+  let title: LocalizedStringKey
+  @Binding var includeClipboard: Bool
+  @Binding var includeWindow: Bool
+  @Environment(\.dismiss) private var dismiss
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 20) {
+      HStack {
+        Text(title)
+          .font(.headline)
+          .accessibilityAddTraits(.isHeader)
+        Spacer()
+        Button("Done") { dismiss() }
+          .keyboardShortcut(.defaultAction)
+      }
+
+      VStack(alignment: .leading, spacing: 0) {
+        Toggle(isOn: $includeClipboard) {
+          VStack(alignment: .leading, spacing: 4) {
+            Text("Clipboard Context")
+            Text("Use clipboard text to help AI understand your request.")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .accessibilityLabel("Clipboard Context")
+        .padding(14)
+
+        Divider()
+
+        Toggle(isOn: $includeWindow) {
+          VStack(alignment: .leading, spacing: 4) {
+            Text("Window Context")
+            Text("Use text from the active window to help AI understand your request.")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .accessibilityLabel("Window Context")
+        .padding(14)
+      }
+      .toggleStyle(.switch)
+      .controlSize(.small)
+      .background(AppSurface.settingsBackground, in: RoundedRectangle(cornerRadius: 10))
+
+      Text("Context is included when AI Enhance is on.")
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    .padding(24)
+    .frame(width: 460)
+    .background(AppSurface.contentBackground)
+    .onExitCommand { dismiss() }
   }
 }
 

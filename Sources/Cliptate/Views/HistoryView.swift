@@ -88,11 +88,6 @@ struct HistoryView: View {
 
   var body: some View {
     VStack(spacing: 0) {
-      HistoryActivityView(records: historyRuntime.activityRecords)
-        .frame(maxWidth: 1120)
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
       GeometryReader { proxy in
         if proxy.size.width >= 700 {
           splitLayout
@@ -101,9 +96,9 @@ struct HistoryView: View {
         }
       }
     }
-    .background(AppSurface.pageBackground, ignoresSafeAreaEdges: [])
+    .background(AppSurface.contentBackground, ignoresSafeAreaEdges: [])
     .appPageHeader {
-      AppPageHeader {
+      AppPageHeader(background: AppSurface.contentBackground) {
         pageHeader
       }
     }
@@ -389,7 +384,7 @@ struct HistoryView: View {
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(AppSurface.pageBackground)
+    .background(AppSurface.contentBackground)
   }
 
   // MARK: - Empty state

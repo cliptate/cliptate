@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 struct TTSSynthesisView: View {
     private let ttsSessionRuntime = TTSSessionRuntime.shared
     @EnvironmentObject private var config: AppConfiguration
-    @SceneStorage("ContentView.selectedSection") private var selectedSectionStorage: String = "AI Cut"
+    @SceneStorage("ContentView.selectedSection") private var selectedSectionStorage: String = "Home"
 
     @State private var inputText: String = ""
     @State private var isSynthesizing = false
@@ -77,7 +77,7 @@ struct TTSSynthesisView: View {
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(alignment: .leading, spacing: 20) {
                     modelStatusCard
 
                     textEditorCard
@@ -91,13 +91,16 @@ struct TTSSynthesisView: View {
                         previewCard
                     }
                 }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 24)
+                .frame(maxWidth: 840, alignment: .leading)
+                .padding(.horizontal, 28)
+                .padding(.top, 8)
+                .padding(.bottom, 28)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
         }
-        .background(AppSurface.pageBackground)
+        .background(AppSurface.contentBackground)
         .appPageHeader {
-            AppPageHeader(.ttsStudio)
+            AppPageHeader(.ttsStudio, background: AppSurface.contentBackground)
         }
         .task {
             await refreshStatus()
@@ -159,12 +162,6 @@ struct TTSSynthesisView: View {
     private var modelStatusCard: some View {
         if config.ttsEngine == .qwen3TTS && !mlxModelCached {
             HStack(spacing: 0) {
-                // Orange accent stripe
-                RoundedRectangle(cornerRadius: 3, style: .continuous)
-                    .fill(Color.orange)
-                    .frame(width: 4)
-                    .padding(.vertical, 2)
-
                 HStack(spacing: 14) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(Color.orange)
@@ -215,22 +212,18 @@ struct TTSSynthesisView: View {
             HStack(alignment: .center, spacing: 8) {
                 Image(systemName: "doc.text")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(.secondary)
                 Text("Script")
                     .font(.headline)
                 Spacer()
-                // Char count badge
                 HStack(spacing: 4) {
                     Text("\(inputCharacterCount)")
                         .font(.caption.monospacedDigit().weight(.semibold))
-                        .foregroundStyle(inputCharacterCount > 0 ? Color.accentColor : Color.secondary)
+                        .foregroundStyle(.secondary)
                     Text("chars · ~\(estimatedSpeechDuration, specifier: "%.1f")s")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Capsule().fill(AppSurface.subtleFill))
             }
             .padding(.horizontal, 16)
             .padding(.top, 14)
@@ -248,6 +241,7 @@ struct TTSSynthesisView: View {
                     .scrollContentBackground(.hidden)
                     .background(AppSurface.inputBackground)
                     .focused($isEditorFocused)
+                    .accessibilityLabel("Script")
 
                 if inputText.isEmpty {
                     Text("Paste or type the narration you want to synthesize…")
@@ -286,11 +280,11 @@ struct TTSSynthesisView: View {
             .padding(.bottom, 12)
         }
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(AppSurface.cardBackground)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(AppSurface.contentBackground)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .stroke(
                     isEditorFocused ? AppSurface.selectedBorder : AppSurface.border,
                     lineWidth: isEditorFocused ? 1.5 : 1
@@ -300,27 +294,18 @@ struct TTSSynthesisView: View {
     }
 
     private var voiceControlsCard: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 Image(systemName: "person.wave.2")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(.secondary)
                 Text("Voice Settings")
                     .font(.headline)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 14)
-            .padding(.bottom, 12)
-
-            Divider()
-                .padding(.horizontal, 12)
-
             mlxVoiceControls
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
+                .padding(14)
+                .background(AppSurface.settingsBackground, in: RoundedRectangle(cornerRadius: 10))
         }
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(AppSurface.cardBackground))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(AppSurface.border))
     }
 
 
@@ -332,18 +317,21 @@ struct TTSSynthesisView: View {
 
             // Active model row
             HStack(spacing: 12) {
-                Text("Model").font(.subheadline).foregroundStyle(.secondary)
+                Text("Model")
+                Spacer(minLength: 16)
                 Text(selectedDef?.displayName ?? config.ttsMLXModelId)
-                    .font(.subheadline.weight(.medium))
-                    .lineLimit(1)
-                Spacer()
+                    .multilineTextAlignment(.trailing)
+                    .textSelection(.enabled)
                 Button {
                     NotificationCenter.default.post(name: .openModelsLibrary, object: nil)
                 } label: {
                     Label("Manage", systemImage: "square.and.arrow.up")
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.link)
+                .font(.caption)
             }
+
+            Divider()
 
             ModelAwareLanguageSelectionView(
                 title: String(localized: "Language", comment: "Label for selecting TTS language"),
@@ -351,7 +339,8 @@ struct TTSSynthesisView: View {
                 contextProvider: {
                     .tts(engine: .qwen3TTS, modelID: config.ttsMLXModelId)
                 },
-                helpText: String(localized: "Filtered to languages supported by the selected TTS model.", comment: "Help text for TTS language selection")
+                helpText: String(localized: "Filtered to languages supported by the selected TTS model.", comment: "Help text for TTS language selection"),
+                compactControl: true
             )
 
             // Voice mode tabs driven by model family.
@@ -368,6 +357,7 @@ struct TTSSynthesisView: View {
             }()
 
             if !availableModes.isEmpty {
+                Divider()
                 VStack(alignment: .leading, spacing: 12) {
                     if availableModes.count > 1 {
                         Picker("Voice Mode", selection: $voiceMode) {
@@ -376,6 +366,10 @@ struct TTSSynthesisView: View {
                             }
                         }
                         .pickerStyle(.segmented)
+                        .appSegmentedHover(
+                            selectedIndex: availableModes.firstIndex(of: voiceMode) ?? 0,
+                            count: availableModes.count
+                        )
                         .onChange(of: availableModes) { _, modes in
                             if !modes.contains(voiceMode) {
                                 voiceMode = modes.first ?? .preset
@@ -422,6 +416,8 @@ struct TTSSynthesisView: View {
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 12) {
+                Text("Speaker")
+                Spacer(minLength: 16)
                 Picker("Speaker", selection: $config.ttsPresetSpeaker) {
                     Text("Default").tag("")
                     Divider()
@@ -447,6 +443,8 @@ struct TTSSynthesisView: View {
                     }
                 }
                 .pickerStyle(.menu)
+                .labelsHidden()
+                .accessibilityLabel("Speaker")
                 .frame(maxWidth: 220)
             }
 

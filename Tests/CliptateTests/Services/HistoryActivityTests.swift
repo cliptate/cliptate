@@ -49,6 +49,23 @@ struct HistoryActivityTests {
     #expect(activity.weeks.flatMap(\.days).first(where: { $0.count > 0 })?.count == 3)
   }
 
+  @Test("Home source totals use the same rolling-year window as the heatmap")
+  func sourceCounts() {
+    let activity = HistoryActivity(records: [
+      HistoryActivityRecord(id: UUID(), startTime: date(2023, 3, 2), source: .voiceDictation),
+      HistoryActivityRecord(id: UUID(), startTime: date(2023, 3, 3), source: .voiceDictation),
+      HistoryActivityRecord(id: UUID(), startTime: date(2024, 2, 29), source: .fileTranscription),
+      HistoryActivityRecord(id: UUID(), startTime: date(2024, 3, 2), source: .ttsSynthesis),
+      HistoryActivityRecord(id: UUID(), startTime: date(2024, 3, 3), source: .ttsSynthesis),
+    ], now: date(2024, 3, 2), calendar: calendar)
+    #expect(activity.recordCount(for: .voiceDictation) == 1)
+    #expect(activity.recordCount(for: .fileTranscription) == 1)
+    #expect(activity.recordCount(for: .ttsSynthesis) == 1)
+    #expect(activity.totalCount == 3)
+    let empty = HistoryActivity(records: [], now: date(2024, 3, 2), calendar: calendar)
+    #expect(empty.recordCount(for: .voiceDictation) == 0)
+  }
+
   @Test("Empty years have no activity and intensity increases with record count")
   func emptyAndIntensity() {
     let activity = HistoryActivity(records: [], now: date(2026, 10, 14), calendar: calendar)

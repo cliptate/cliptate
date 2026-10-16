@@ -37,6 +37,11 @@ struct HistoryActivity {
   let weeks: [Week]
   let totalCount: Int
   let activeDayCount: Int
+  private let countsBySource: [String: Int]
+
+  func recordCount(for source: SessionSource) -> Int {
+    countsBySource[source.rawValue, default: 0]
+  }
 
   static func rangeStart(now: Date, calendar: Calendar) -> Date {
     let tomorrow = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now))!
@@ -46,9 +51,12 @@ struct HistoryActivity {
   init(records: [HistoryActivityRecord], now: Date = Date(), calendar: Calendar = .current) {
     let today = calendar.startOfDay(for: now)
     let start = Self.rangeStart(now: now, calendar: calendar)
-    let counts = Dictionary(grouping: records.filter {
+    let visibleRecords = records.filter {
       $0.startTime >= start && calendar.startOfDay(for: $0.startTime) <= today
-    }, by: { calendar.startOfDay(for: $0.startTime) }).mapValues(\.count)
+    }
+    countsBySource = Dictionary(grouping: visibleRecords, by: { $0.source.rawValue }).mapValues(\.count)
+    let counts = Dictionary(grouping: visibleRecords, by: { calendar.startOfDay(for: $0.startTime) })
+      .mapValues(\.count)
     totalCount = counts.values.reduce(0, +)
     activeDayCount = counts.count
 

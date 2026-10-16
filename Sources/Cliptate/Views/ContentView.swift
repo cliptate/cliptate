@@ -6,6 +6,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 enum AppSection: String, CaseIterable, Identifiable {
+  case home = "Home"
   case aiCut = "AI Cut"
   case voiceToText = "Voice To Text"
   case ttsStudio = "Text To Sound"
@@ -32,6 +33,7 @@ enum AppSection: String, CaseIterable, Identifiable {
 
   var icon: String {
     switch self {
+    case .home: return "house"
     case .aiCut: return "waveform"
     case .voiceToText: return "mic"
     case .history: return "clock.fill"
@@ -46,6 +48,7 @@ enum AppSection: String, CaseIterable, Identifiable {
 
   var description: String {
     switch self {
+    case .home: return String(localized: "Activity and voice usage at a glance")
     case .aiCut: return String(localized: "Transcribe files and edit subtitles")
     case .voiceToText: return String(localized: "Real-time dictation", comment: "Voice To Text sidebar description")
     case .history: return String(localized: "Transcript archives", comment: "History sidebar description")
@@ -79,12 +82,12 @@ func resolvedAppSection(
     return .permissions
   }
   if currentSection == .permissions {
-    return requiresGettingStarted ? .permissions : .aiCut
+    return requiresGettingStarted ? .permissions : .home
   }
   if currentSection == .pro && !SubscriptionPolicy.isBillingEnabled {
-    return .aiCut
+    return .home
   }
-  return currentSection ?? (requiresGettingStarted ? .permissions : .aiCut)
+  return currentSection ?? (requiresGettingStarted ? .permissions : .home)
 }
 
 enum AppNavigationRequestStore {
@@ -230,7 +233,7 @@ class VideoState: ObservableObject {
 
 struct ContentView: View {
   @SceneStorage("ContentView.selectedSection") private var selectedSectionStorage: String =
-    AppSection.aiCut.rawValue
+    AppSection.home.rawValue
   @State private var activeVideoURL: URL?
   @State private var selectedVideoURLs: [URL] = []
   @State private var videoStates: [URL: VideoState] = [:]
@@ -264,7 +267,9 @@ struct ContentView: View {
     } detail: {
       Group {
         switch currentSection {
-        case .aiCut, .none:
+        case .home, .none:
+          HomeView()
+        case .aiCut:
           AICutLauncherView()
             .environmentObject(config)
         case .voiceToText:
@@ -381,7 +386,7 @@ extension ContentView {
     get {
       guard !selectedSectionStorage.isEmpty else { return nil }
       if selectedSectionStorage == "AI Settings" { return .setting }
-      return AppSection(rawValue: selectedSectionStorage) ?? .aiCut
+      return AppSection(rawValue: selectedSectionStorage) ?? .home
     }
     nonmutating set {
       selectedSectionStorage = newValue?.rawValue ?? ""

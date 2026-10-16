@@ -1,6 +1,7 @@
 import SwiftUI
 
 enum AppSidebarGroup: String, CaseIterable, Identifiable {
+  case overview
   case create
   case library
   case app
@@ -9,6 +10,7 @@ enum AppSidebarGroup: String, CaseIterable, Identifiable {
 
   var title: LocalizedStringKey {
     switch self {
+    case .overview: return "Home"
     case .create: return "Create"
     case .library: return "Library"
     case .app: return "App"
@@ -17,6 +19,7 @@ enum AppSidebarGroup: String, CaseIterable, Identifiable {
 
   func sections(requiresGettingStarted: Bool) -> [AppSection] {
     switch self {
+    case .overview: return [.home]
     case .create:
       return [.aiCut, .voiceToText, .ttsStudio]
     case .library:
@@ -36,6 +39,10 @@ struct AppSidebar: View {
   var body: some View {
     VStack(spacing: 0) {
       List(selection: $selection) {
+        AppSidebarRow(section: .home, isSelected: selection == .home)
+          .tag(AppSection.home)
+          .listRowSeparator(.hidden)
+
         ForEach([AppSidebarGroup.create, .library]) { group in
           Section {
             ForEach(group.sections(requiresGettingStarted: requiresGettingStarted)) { section in
@@ -86,7 +93,7 @@ private struct AppSidebarFooterButton: View {
 
   var body: some View {
     Button(action: action) {
-      AppSidebarRow(section: section, isSelected: isSelected)
+      AppSidebarRow(section: section, isSelected: isSelected, showsHover: false)
         .padding(.horizontal, 10)
         .padding(.vertical, 4)
         .foregroundStyle(Color.primary)
@@ -107,6 +114,8 @@ private struct AppSidebarFooterButton: View {
 private struct AppSidebarRow: View {
   let section: AppSection
   let isSelected: Bool
+  var showsHover = true
+  @State private var isHovered = false
 
   var body: some View {
     HStack(spacing: 10) {
@@ -124,6 +133,11 @@ private struct AppSidebarRow: View {
       Spacer(minLength: 0)
     }
     .frame(minHeight: 34)
+    .background {
+      RoundedRectangle(cornerRadius: 6)
+        .fill(showsHover && isHovered && !isSelected ? AppSurface.hoverFill : Color.clear)
+    }
+    .onHover { isHovered = $0 }
     .contentShape(Rectangle())
     .help(section.description)
     .accessibilityElement(children: .combine)

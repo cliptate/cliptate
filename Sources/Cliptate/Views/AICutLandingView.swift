@@ -12,7 +12,7 @@ struct AICutLandingView: View {
         style: .hero,
         onTap: onTap
       )
-      .frame(maxWidth: 680)
+      .frame(maxWidth: 760)
 
       Text("Supports MP4, MOV, AVI, MKV and more")
         .font(.caption)

@@ -3,8 +3,10 @@ import SwiftUI
 /// A consistent title boundary above page content, including split layouts.
 struct AppPageHeader<Content: View>: View {
   private let content: Content
+  private let background: Color
 
-  init(@ViewBuilder content: () -> Content) {
+  init(background: Color = AppSurface.pageBackground, @ViewBuilder content: () -> Content) {
+    self.background = background
     self.content = content()
   }
 
@@ -13,7 +15,7 @@ struct AppPageHeader<Content: View>: View {
       .frame(maxWidth: .infinity, minHeight: 32, alignment: .leading)
       .padding(.horizontal, 28)
       .padding(.vertical, 16)
-      .background(AppSurface.pageBackground)
+      .background(background)
       .fixedSize(horizontal: false, vertical: true)
   }
 }
@@ -31,8 +33,8 @@ extension View {
 }
 
 extension AppPageHeader where Content == AppPageTitle {
-  init(_ section: AppSection) {
-    self.init {
+  init(_ section: AppSection, background: Color = AppSurface.pageBackground) {
+    self.init(background: background) {
       AppPageTitle(title: section.label, subtitle: section.description)
     }
   }

@@ -101,6 +101,8 @@ struct ModelsView: View {
   @SceneStorage("ModelsView.ttsProvider") private var ttsProviderStorage: String = "all"
   @SceneStorage("ModelsView.searchText") private var searchText: String = ""
   @State private var showDownloadedOnly: Bool = false
+  @State private var hoveredASRProvider: ASRProvider?
+  @State private var hoveredTTSProvider: TTSProvider?
   @State private var isRefreshing = false
   @State private var mlxModelDiskMB: [String: Int] = [:]
   @StateObject private var paywallManager = PaywallManager.shared
@@ -239,9 +241,7 @@ struct ModelsView: View {
               if models.isEmpty {
                 emptyState
               } else {
-                ForEach(models, id: \.self) { model in
-                  modelCard(for: model)
-                }
+                modelRows(models)
               }
             } else if selectedCategory == .align {
               alignSelectionHeader
@@ -251,9 +251,7 @@ struct ModelsView: View {
               if models.isEmpty {
                 emptyState
               } else {
-                ForEach(models, id: \.self) { model in
-                  modelCard(for: model)
-                }
+                modelRows(models)
               }
             } else {
               vadSelectionHeader
@@ -263,9 +261,7 @@ struct ModelsView: View {
               if models.isEmpty {
                 emptyState
               } else {
-                ForEach(models, id: \.self) { model in
-                  modelCard(for: model)
-                }
+                modelRows(models)
               }
             }
           }
@@ -274,23 +270,20 @@ struct ModelsView: View {
         }
       }
     }
-    .background(AppSurface.pageBackground)
+    .background(AppSurface.contentBackground)
   }
 
   // MARK: - Dashboard Header
 
   private var dashboardHeader: some View {
     VStack(alignment: .leading, spacing: 0) {
-      AppPageHeader {
+      AppPageHeader(background: AppSurface.contentBackground) {
         HStack(spacing: 16) {
           // Title block
           VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 8) {
-              Image(systemName: "square.stack.3d.down.right.fill")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(Color.accentColor)
               Text("Models Library")
-                .font(.title2.weight(.semibold))
+                .font(.title.weight(.semibold))
                 .accessibilityAddTraits(.isHeader)
             }
             Text("Manage local AI models, download status and active selections")
@@ -306,20 +299,17 @@ struct ModelsView: View {
             ModelsStatPill(
               icon: "checkmark.circle.fill",
               value: "\(stats.downloadedCount)",
-              label: String(localized: "Downloaded"),
-              color: .green
+              label: String(localized: "Downloaded")
             )
             ModelsStatPill(
               icon: "externaldrive.fill",
               value: "\(stats.totalDiskUsage) MB",
-              label: String(localized: "Disk Usage"),
-              color: Color.accentColor
+              label: String(localized: "Disk Usage")
             )
             ModelsStatPill(
               icon: "memorychip.fill",
               value: "\(config.modelLifecycleTotalMemoryMB) MB",
-              label: String(localized: "Cache Memory"),
-              color: Color.accentColor
+              label: String(localized: "Cache Memory")
             )
           }
 
@@ -465,7 +455,7 @@ struct ModelsView: View {
     }
     .padding(.horizontal, 24)
     .padding(.vertical, 10)
-    .background(AppSurface.pageBackground)
+    .background(AppSurface.contentBackground)
     .overlay(alignment: .bottom) {
       Divider()
     }
@@ -658,6 +648,10 @@ struct ModelsView: View {
     .pickerStyle(.segmented)
     .labelsHidden()
     .fixedSize()
+    .appSegmentedHover(
+      selectedIndex: ModelCategory.allCases.firstIndex(of: selectedCategory) ?? 0,
+      count: ModelCategory.allCases.count
+    )
   }
 
   private var asrProviderPicker: some View {
@@ -676,7 +670,8 @@ struct ModelsView: View {
               Capsule()
                 .fill(
                   selectedASRProvider == provider
-                    ? accentColor.opacity(0.12) : AppSurface.subtleFill)
+                    ? accentColor.opacity(0.12)
+                    : (hoveredASRProvider == provider ? AppSurface.hoverFill : AppSurface.subtleFill))
             )
             .overlay(
               Capsule()
@@ -686,6 +681,9 @@ struct ModelsView: View {
             )
         }
         .buttonStyle(.plain)
+        .onHover { hovering in
+          hoveredASRProvider = hovering ? provider : (hoveredASRProvider == provider ? nil : hoveredASRProvider)
+        }
         .accessibilityAddTraits(selectedASRProvider == provider ? [.isSelected] : [])
       }
       Spacer()
@@ -708,7 +706,8 @@ struct ModelsView: View {
               Capsule()
                 .fill(
                   selectedTTSProvider == provider
-                    ? accentColor.opacity(0.12) : AppSurface.subtleFill)
+                    ? accentColor.opacity(0.12)
+                    : (hoveredTTSProvider == provider ? AppSurface.hoverFill : AppSurface.subtleFill))
             )
             .overlay(
               Capsule()
@@ -718,6 +717,9 @@ struct ModelsView: View {
             )
         }
         .buttonStyle(.plain)
+        .onHover { hovering in
+          hoveredTTSProvider = hovering ? provider : (hoveredTTSProvider == provider ? nil : hoveredTTSProvider)
+        }
         .accessibilityAddTraits(selectedTTSProvider == provider ? [.isSelected] : [])
       }
       Spacer()
@@ -963,6 +965,23 @@ struct ModelsView: View {
 
   // MARK: - Helpers
 
+  private func modelRows(_ models: [ModelVariant]) -> some View {
+    LazyVStack(spacing: 0) {
+      ForEach(models, id: \.self) { model in
+        modelCard(for: model)
+        if model != models.last {
+          Divider()
+        }
+      }
+    }
+    .clipShape(RoundedRectangle(cornerRadius: 10))
+    .overlay {
+      RoundedRectangle(cornerRadius: 10)
+        .strokeBorder(AppSurface.border, lineWidth: 0.5)
+        .allowsHitTesting(false)
+    }
+  }
+
   private func modelCard(for model: ModelVariant) -> some View {
     CompactModelRowView(
       model: model,
@@ -1126,21 +1145,32 @@ struct ModelsView: View {
           if models.isEmpty {
             emptyState
           } else {
-            ForEach(models) { definition in
-              CompactMLXTTSRowView(
-                definition: definition,
-                isActive: config.ttsEngine == .qwen3TTS
-                  && config.ttsMLXModelId == definition.huggingFaceRepo,
-                isCached: downloadState.downloadedMap[definition.modelVariant] ?? false,
-                progress: downloadState.progressMap[definition.modelVariant],
-                diskUsageMB: mlxModelDiskMB[definition.huggingFaceRepo] ?? 0,
-                errorMessage: downloadState.errorMap[definition.modelVariant],
-                onSetActive: { setActiveTTSModel(definition) },
-                onDownload: { startMLXDownload(definition) },
-                onDelete: { deleteMLXModel(definition) },
-                onCancel: { cancelMLXDownload(definition) },
-                onOpenFolder: { openMLXModelFolder(definition) }
-              )
+            VStack(spacing: 0) {
+              ForEach(models) { definition in
+                CompactMLXTTSRowView(
+                  definition: definition,
+                  isActive: config.ttsEngine == .qwen3TTS
+                    && config.ttsMLXModelId == definition.huggingFaceRepo,
+                  isCached: downloadState.downloadedMap[definition.modelVariant] ?? false,
+                  progress: downloadState.progressMap[definition.modelVariant],
+                  diskUsageMB: mlxModelDiskMB[definition.huggingFaceRepo] ?? 0,
+                  errorMessage: downloadState.errorMap[definition.modelVariant],
+                  onSetActive: { setActiveTTSModel(definition) },
+                  onDownload: { startMLXDownload(definition) },
+                  onDelete: { deleteMLXModel(definition) },
+                  onCancel: { cancelMLXDownload(definition) },
+                  onOpenFolder: { openMLXModelFolder(definition) }
+                )
+                if definition.id != models.last?.id {
+                  Divider()
+                }
+              }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .overlay {
+              RoundedRectangle(cornerRadius: 10)
+                .strokeBorder(AppSurface.border, lineWidth: 0.5)
+                .allowsHitTesting(false)
             }
           }
         }
@@ -1942,13 +1972,12 @@ private struct ModelsStatPill: View {
   let icon: String
   let value: String
   let label: String
-  let color: Color
 
   var body: some View {
     HStack(spacing: 7) {
       Image(systemName: icon)
         .font(.system(size: 12, weight: .semibold))
-        .foregroundStyle(color)
+        .foregroundStyle(.secondary)
 
       VStack(alignment: .leading, spacing: 1) {
         Text(value)
@@ -1959,16 +1988,6 @@ private struct ModelsStatPill: View {
           .foregroundStyle(.secondary)
       }
     }
-    .padding(.horizontal, 11)
-    .padding(.vertical, 7)
-    .background(
-      RoundedRectangle(cornerRadius: 10, style: .continuous)
-        .fill(color.opacity(0.09))
-    )
-    .overlay(
-      RoundedRectangle(cornerRadius: 10, style: .continuous)
-        .stroke(color.opacity(0.18), lineWidth: 1)
-    )
     .accessibilityElement(children: .combine)
     .accessibilityLabel("\(label): \(value)")
   }
@@ -2082,7 +2101,7 @@ private struct CompactModelRowView: View {
       Button(action: onDownload) {
         Label("Download", systemImage: "arrow.down.circle.fill")
       }
-      .buttonStyle(.borderedProminent)
+      .buttonStyle(.bordered)
       .tint(categoryAccentColor)
       .controlSize(.small)
     case .unlockPro:
@@ -2205,28 +2224,9 @@ private struct CompactModelRowView: View {
       }
     }
     .background(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
-        .fill(AppSurface.cardBackground)
-        .overlay {
-          RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(isHovering ? AppSurface.subtleFill : Color.clear)
-        }
-    )
-    .overlay(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
-        .strokeBorder(
-          presentation.statusKind == .active
-            ? categoryAccentColor.opacity(0.40)
-            : AppSurface.border,
-          lineWidth: presentation.statusKind == .active ? 1.2 : 1
-        )
-    )
-    .shadow(
-      color: presentation.statusKind == .active
-        ? categoryAccentColor.opacity(0.10)
-        : .black.opacity(0.04),
-      radius: presentation.statusKind == .active ? 10 : 4,
-      x: 0, y: 3
+      presentation.statusKind == .active
+        ? AppSurface.selectedFill
+        : (isHovering ? AppSurface.hoverFill : Color.clear)
     )
     .onHover { hovering in
       withAnimation(.easeOut(duration: 0.14)) {
@@ -2377,30 +2377,7 @@ private struct CompactMLXTTSRowView: View {
         .padding(.vertical, 8)
       }
     }
-    .background(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
-        .fill(AppSurface.cardBackground)
-        .overlay {
-          RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(isHovering ? AppSurface.subtleFill : Color.clear)
-        }
-    )
-    .overlay(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
-        .strokeBorder(
-          isActive
-            ? categoryAccentColor.opacity(0.40)
-            : AppSurface.border,
-          lineWidth: isActive ? 1.2 : 1
-        )
-    )
-    .shadow(
-      color: isActive
-        ? categoryAccentColor.opacity(0.10)
-        : .black.opacity(0.04),
-      radius: isActive ? 10 : 4,
-      x: 0, y: 3
-    )
+    .background(isActive ? AppSurface.selectedFill : (isHovering ? AppSurface.hoverFill : Color.clear))
     .onHover { hovering in
       withAnimation(.easeOut(duration: 0.14)) {
         isHovering = hovering

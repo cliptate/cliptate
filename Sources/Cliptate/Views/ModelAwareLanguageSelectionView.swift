@@ -6,6 +6,7 @@ struct ModelAwareLanguageSelectionView: View {
   @Binding var selectedLanguage: Language
   let contextProvider: () -> ModelLanguageContext
   var helpText: String? = nil
+  var compactControl = false
 
   @State private var availableLanguages: [Language] = []
   @State private var isLoadingLanguages = false
@@ -14,13 +15,15 @@ struct ModelAwareLanguageSelectionView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
-        Picker(title, selection: $selectedLanguage) {
-          ForEach(availableLanguages, id: \.self) { language in
-            Text(language.displayName).tag(language)
-          }
+        if compactControl {
+          Text(title)
+          Spacer(minLength: 16)
+          languagePicker
+            .labelsHidden()
+            .frame(maxWidth: 220)
+        } else {
+          languagePicker
         }
-        .pickerStyle(.menu)
-        .disabled(availableLanguages.isEmpty)
         if isLoadingLanguages {
           ProgressView()
             .controlSize(.small)
@@ -42,6 +45,17 @@ struct ModelAwareLanguageSelectionView: View {
     .task(id: contextIdentity) {
       await refreshLanguages()
     }
+  }
+
+  private var languagePicker: some View {
+    Picker(title, selection: $selectedLanguage) {
+      ForEach(availableLanguages, id: \.self) { language in
+        Text(language.displayName).tag(language)
+      }
+    }
+    .pickerStyle(.menu)
+    .disabled(availableLanguages.isEmpty)
+    .accessibilityLabel(Text(title))
   }
 
   private var contextIdentity: String {

@@ -16,7 +16,7 @@ struct DictionaryManagerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            AppPageHeader {
+            AppPageHeader(background: AppSurface.contentBackground) {
                 headerBar
             }
             HSplitView {
@@ -26,7 +26,7 @@ struct DictionaryManagerView: View {
                     .frame(minWidth: 260, maxWidth: .infinity)
             }
         }
-        .background(AppSurface.pageBackground)
+        .background(AppSurface.contentBackground)
         .navigationTitle("Dictionary")
         .onAppear(perform: loadFromConfiguration)
         .onChange(of: config.voiceToTextCustomDictionary) { _, entries in
@@ -43,7 +43,7 @@ struct DictionaryManagerView: View {
         HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 3) {
                 Text("Custom Dictionary")
-                    .font(.title2.weight(.semibold))
+                    .font(.title.weight(.semibold))
                     .accessibilityAddTraits(.isHeader)
                 Text("Words and phrases that guide transcription accuracy")
                     .font(.caption)
@@ -78,7 +78,7 @@ struct DictionaryManagerView: View {
                 .accessibilityHint("One entry per line")
                 .onChange(of: editorText) { _, _ in saveChanges() }
         }
-        .background(AppSurface.cardBackground)
+        .background(AppSurface.settingsBackground)
     }
 
     private var editorPanelHeader: some View {
@@ -110,14 +110,14 @@ struct DictionaryManagerView: View {
                 }
             }
         }
-        .background(AppSurface.pageBackground)
+        .background(AppSurface.contentBackground)
     }
 
     private var tagsPanelHeader: some View {
         HStack {
             Label("Active Entries", systemImage: "checkmark.circle.fill")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(.green)
+                .foregroundStyle(.secondary)
             Spacer()
             if !activeEntries.isEmpty {
                 Button {

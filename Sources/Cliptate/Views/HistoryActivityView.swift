@@ -3,6 +3,8 @@ import SwiftUI
 struct HistoryActivityView: View {
   @Environment(\.colorScheme) private var colorScheme
   @State private var gridWidth: CGFloat = 0
+  @State private var hoveredDay: HistoryActivity.Day?
+  @State private var hoverLocation: CGPoint = .zero
   let records: [HistoryActivityRecord]
 
   var body: some View {
@@ -22,6 +24,32 @@ struct HistoryActivityView: View {
         }
 
         activityGrid(activity)
+          .overlay(alignment: .topLeading) {
+            if let day = hoveredDay {
+              VStack(alignment: .leading, spacing: 4) {
+                Text(day.date, format: .dateTime.weekday(.abbreviated).month(.abbreviated).day().year())
+                  .font(.caption.weight(.semibold))
+                Text(day.count == 1 ? String(localized: "1 record") : String(localized: "\(day.count) records"))
+                  .font(.caption)
+                  .foregroundStyle(.secondary)
+              }
+              .padding(10)
+              .frame(width: 200, alignment: .leading)
+              .background(AppSurface.contentBackground, in: RoundedRectangle(cornerRadius: 8))
+              .overlay {
+                RoundedRectangle(cornerRadius: 8)
+                  .strokeBorder(AppSurface.border, lineWidth: 1)
+              }
+              .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
+              .offset(
+                x: min(max(0, hoverLocation.x - 100), max(0, gridWidth - 200)),
+                y: hoverLocation.y + 14
+              )
+              .allowsHitTesting(false)
+              .accessibilityHidden(true)
+            }
+          }
+          .zIndex(1)
 
         HStack(alignment: .top, spacing: 12) {
           Text("Daily counts remain after transcripts expire.")
@@ -33,12 +61,9 @@ struct HistoryActivityView: View {
         }
       }
       .padding(16)
-      .background(AppSurface.cardBackground, in: RoundedRectangle(cornerRadius: 12))
-      .overlay {
-        RoundedRectangle(cornerRadius: 12)
-          .strokeBorder(AppSurface.border, lineWidth: 1)
-      }
+      .background(AppSurface.settingsBackground, in: RoundedRectangle(cornerRadius: 10))
     }
+    .onDisappear { hoveredDay = nil }
   }
 
   private var title: some View {
@@ -103,6 +128,12 @@ struct HistoryActivityView: View {
     } action: { width in
       gridWidth = width
     }
+    .onContinuousHover(coordinateSpace: .local) { phase in
+      switch phase {
+      case .active(let location): hoverLocation = location
+      case .ended: hoveredDay = nil
+      }
+    }
   }
 
   private func gridCellSize(width: CGFloat, columns: CGFloat) -> CGFloat {
@@ -133,10 +164,19 @@ struct HistoryActivityView: View {
         .fill(color(for: day.intensity))
         .overlay {
           RoundedRectangle(cornerRadius: 2)
-            .strokeBorder(.primary.opacity(0.05), lineWidth: 0.5)
+            .strokeBorder(
+              hoveredDay?.id == day.id ? Color.accentColor : .primary.opacity(0.05),
+              lineWidth: hoveredDay?.id == day.id ? 1.5 : 0.5
+            )
         }
         .frame(width: size, height: size)
-        .help(label)
+        .onHover { hovering in
+          if hovering {
+            hoveredDay = day
+          } else if hoveredDay?.id == day.id {
+            hoveredDay = nil
+          }
+        }
         .accessibilityLabel(label)
     } else {
       Color.clear

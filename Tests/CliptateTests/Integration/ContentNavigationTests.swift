@@ -18,6 +18,7 @@ struct ContentNavigationTests {
 
   @Test("sidebar groups keep creation, library, and app destinations together")
   func sidebarGroups() {
+    #expect(AppSidebarGroup.overview.sections(requiresGettingStarted: false) == [.home])
     #expect(AppSidebarGroup.create.sections(requiresGettingStarted: false) == [.aiCut, .voiceToText, .ttsStudio])
     #expect(AppSidebarGroup.library.sections(requiresGettingStarted: false) == [.history, .models, .dictionary])
     let appSections: [AppSection] = SubscriptionPolicy.isBillingEnabled ? [.pro, .setting] : [.setting]
@@ -52,7 +53,7 @@ struct ContentNavigationTests {
   func missingPermissionsForceGettingStartedNavigation() {
     #expect(resolvedAppSection(currentSection: .aiCut, requiresGettingStarted: true) == .permissions)
     #expect(
-      resolvedAppSection(currentSection: .permissions, requiresGettingStarted: false) == .aiCut
+      resolvedAppSection(currentSection: .permissions, requiresGettingStarted: false) == .home
     )
     #expect(resolvedAppSection(currentSection: .models, requiresGettingStarted: false) == .models)
   }
@@ -94,10 +95,10 @@ struct ContentNavigationTests {
       ? "Subscription and benefits" : "All features are free"))
   }
 
-  @Test("restored pro selection returns to AI Cut in the free channel")
+  @Test("restored pro selection returns home in the free channel")
   func restoredProSelection() {
     #expect(resolvedAppSection(currentSection: .pro, requiresGettingStarted: false)
-      == (SubscriptionPolicy.isBillingEnabled ? .pro : .aiCut))
+      == (SubscriptionPolicy.isBillingEnabled ? .pro : .home))
     #expect(resolvedAppSection(currentSection: .pro, requiresGettingStarted: true) == .permissions)
   }
 
@@ -110,6 +111,15 @@ struct ContentNavigationTests {
   func contentViewDefersShortcutHandlingForVoiceToText() {
     #expect(contentViewShouldHandleShortcutResult(currentSection: .voiceToText) == false)
     #expect(contentViewShouldHandleShortcutResult(currentSection: .aiCut) == true)
+  }
+
+  @Test("new windows start at home while restored destinations stay selected")
+  func homeNavigation() {
+    #expect(resolvedAppSection(currentSection: nil, requiresGettingStarted: false) == .home)
+    #expect(resolvedAppSection(currentSection: nil, requiresGettingStarted: true) == .permissions)
+    #expect(resolvedAppSection(currentSection: .history, requiresGettingStarted: false) == .history)
+    #expect(visibleAppSections(requiresGettingStarted: false).first == .home)
+    #expect(AppSection.home.label == LocalizedStringKey("Home"))
   }
 
   @Test("permissions keyboard shortcut button uses direct content navigation")

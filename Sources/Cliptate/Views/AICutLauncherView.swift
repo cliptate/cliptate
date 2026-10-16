@@ -16,12 +16,9 @@ struct AICutLauncherView: View {
         .frame(minHeight: proxy.size.height)
       }
     }
+    .background(AppSurface.contentBackground)
     .appPageHeader {
-      AppPageHeader {
-        Text(AppSection.aiCut.label)
-          .font(.title.weight(.semibold))
-          .accessibilityAddTraits(.isHeader)
-      }
+      AppPageHeader(.aiCut, background: AppSurface.contentBackground)
     }
   }
 

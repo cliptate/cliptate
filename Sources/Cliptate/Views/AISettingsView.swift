@@ -18,7 +18,7 @@ private struct SettingsCard<Content: View>: View {
       HStack(spacing: 8) {
         Image(systemName: systemImage)
           .font(.subheadline)
-          .foregroundStyle(Color.accentColor)
+          .foregroundStyle(.secondary)
         VStack(alignment: .leading, spacing: 2) {
           Text(title)
             .font(.subheadline)
@@ -29,18 +29,14 @@ private struct SettingsCard<Content: View>: View {
             .fixedSize(horizontal: false, vertical: true)
         }
       }
-      content()
+      VStack(alignment: .leading, spacing: 12) {
+        content()
+      }
+      .padding(14)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(AppSurface.settingsBackground, in: RoundedRectangle(cornerRadius: 10))
     }
-    .padding(16)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
-        .fill(AppSurface.cardBackground)
-    )
-    .overlay(
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
-        .stroke(AppSurface.border)
-    )
   }
 }
 
@@ -53,15 +49,15 @@ struct AISettingsView: View {
 
     ScrollView {
       VStack(alignment: .leading, spacing: 20) {
-        LazyVGrid(
-          columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())],
-          alignment: .leading,
-          spacing: 16
-        ) {
+        VStack(alignment: .leading, spacing: 14) {
           languageSection
+          Divider()
           appearanceSection
+          Divider()
           startupSection
         }
+        .padding(14)
+        .background(AppSurface.settingsBackground, in: RoundedRectangle(cornerRadius: 10))
         SettingsCard(
           title: "Updates",
           subtitle: "Keep Cliptate up to date.",
@@ -80,12 +76,15 @@ struct AISettingsView: View {
         }
         #endif
       }
+      .frame(maxWidth: 840, alignment: .leading)
       .padding(.horizontal, 28)
-      .padding(.vertical, 32)
+      .padding(.top, 8)
+      .padding(.bottom, 28)
+      .frame(maxWidth: .infinity, alignment: .topLeading)
     }
-    .background(AppSurface.pageBackground)
+    .background(AppSurface.contentBackground)
     .appPageHeader {
-      AppPageHeader(.setting)
+      AppPageHeader(.setting, background: AppSurface.contentBackground)
     }
     .onChange(of: config.selectedAIProvider) {
       verifyState = .idle
@@ -119,11 +118,9 @@ struct AISettingsView: View {
   }
 
   private var languageSection: some View {
-    SettingsCard(
-      title: "Language",
-      subtitle: "App interface language.",
-      systemImage: "globe"
-    ) {
+    HStack {
+      Label("Language", systemImage: "globe")
+      Spacer(minLength: 16)
       Picker(
         String(localized: "Display Language", comment: "Settings: language picker label"),
         selection: $appLanguageCode
@@ -134,6 +131,8 @@ struct AISettingsView: View {
       }
       .pickerStyle(.menu)
       .labelsHidden()
+      .accessibilityLabel("Display Language")
+      .frame(maxWidth: 220)
       .onChange(of: appLanguageCode) { _, newCode in
         if newCode.isEmpty {
           UserDefaults.standard.removeObject(forKey: "AppleLanguages")
@@ -160,11 +159,9 @@ struct AISettingsView: View {
   ]
 
   private var appearanceSection: some View {
-    SettingsCard(
-      title: "Appearance",
-      subtitle: "Choose how Cliptate looks.",
-      systemImage: "paintbrush"
-    ) {
+    HStack {
+      Label("Appearance", systemImage: "paintbrush")
+      Spacer(minLength: 16)
       Picker("Appearance", selection: $appAppearanceMode) {
         ForEach(appearanceOptions) { option in
           Text(option.label).tag(option.id)
@@ -172,6 +169,12 @@ struct AISettingsView: View {
       }
       .pickerStyle(.segmented)
       .labelsHidden()
+      .accessibilityLabel("Appearance")
+      .frame(maxWidth: 220)
+      .appSegmentedHover(
+        selectedIndex: appearanceOptions.firstIndex(where: { $0.id == appAppearanceMode }) ?? 0,
+        count: appearanceOptions.count
+      )
       .onChange(of: appAppearanceMode) { _, mode in
         AppearanceManager.apply(mode: mode)
       }
@@ -181,12 +184,11 @@ struct AISettingsView: View {
   // MARK: - Startup
 
   private var startupSection: some View {
-    SettingsCard(
-      title: "Startup",
-      subtitle: "Control how Cliptate behaves at login.",
-      systemImage: "power"
-    ) {
+    HStack {
+      Label("Startup", systemImage: "power")
+      Spacer(minLength: 16)
       LoginItemSettingsView()
+        .frame(maxWidth: 220, alignment: .trailing)
     }
   }
 
