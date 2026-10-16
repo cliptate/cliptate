@@ -7,10 +7,23 @@ Read `CONTEXT.md` when changing domain concepts and `docs/architecture/README.md
 Use Conventional Commits for every new commit and squash-merge title; follow the
 commit-message conventions in `CONTRIBUTING.md`.
 
+## Development workflow
+
+For feature development and bug fixes:
+
+- Before implementation, follow `.agents/skills/grilling/SKILL.md`
+  to resolve requirements and design decisions with the user.
+  Begin implementation once the user confirms shared understanding.
+- Follow `.agents/skills/tdd/SKILL.md`: confirm public test seams
+  with the user, then implement one failing test and the minimum
+  code to pass it per cycle. Reserve refactoring for review.
+
+Documentation-only changes do not require runtime tests.
+
 ## Validation
 
 Use `swift build` and `swift test` for library changes. Use focused regression tests
-for changed behavior; use test-first implementation when practical.
+for changed behavior.
 For app lifecycle, resources, or Xcode changes, also run
 `./scripts/build-and-run.sh build` with full Xcode selected.
 SwiftPM discovers tests automatically in `Tests/CliptateTests`.
