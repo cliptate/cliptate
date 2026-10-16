@@ -14,6 +14,24 @@ import Testing
 @Suite("KeyboardShortcutManager Typeless-style flow", .serialized)
 @MainActor
 struct KeyboardShortcutManagerHoldTests {
+  @Test("Escape cancels voice completion after recording has stopped")
+  func escapeCancelsVoiceCompletion() async throws {
+    let manager = KeyboardShortcutManager()
+    var events: [KeyboardShortcutManager.ShortcutEvent] = []
+    manager.bindShortcuts { event in
+      events.append(event)
+      if event.phase == .escapePressed { manager.setVoiceCompletionActive(false) }
+    }
+    defer { manager.unbindShortcuts() }
+    manager.setVoiceCompletionActive(true)
+    manager.setDictationActive(false)
+
+    #expect(manager.processEscapeKey(isKeyDown: true, isRepeat: false))
+    try await Task.sleep(for: .milliseconds(10))
+    #expect(events.map(\.phase) == [.escapePressed])
+    #expect(manager.processEscapeKey(isKeyDown: false, isRepeat: false))
+    #expect(!manager.processEscapeKey(isKeyDown: true, isRepeat: false))
+  }
 
   @Test("tap activates and deactivates mode (no hold)")
   func tapToggle() async throws {

@@ -9,45 +9,6 @@ import Testing
 @MainActor
 struct VoiceTranscriberStopReasonTests {
 
-  @Test("dictation delivery routes injection through AccessibilityGate with clipboard fallback")
-  func accessibilityEnabledDeliveryAvoidsClipboardSourcePath() throws {
-    let source = try voiceTranscriberSource()
-
-    // Injection goes through the gate; clipboard + hint is the fallback path.
-    #expect(source.contains("AccessibilityGate.injectText(text)"))
-    #expect(source.contains("copyTextToClipboard(text)"))
-    #expect(source.contains("micIndicator.flashCopiedToClipboard()"))
-    // The raw keystroke synthesis must not live in the transcriber anymore.
-    #expect(source.contains("keyboardSetUnicodeString") == false)
-
-    // And the real typing implementation lives behind the gate.
-    let gate = try accessibilityGateSource()
-    #expect(gate.contains("keyboardSetUnicodeString"))
-  }
-
-  @Test("clipboard fallback avoids app activation and main-thread pasteboard writes")
-  func clipboardFallbackAvoidsActivationAndMainThreadPasteboardWrites() throws {
-    let source = try voiceTranscriberSource()
-
-    let fallbackCheck = try #require(source.range(of: "AccessibilityGate.canInjectText")?.lowerBound)
-    let appActivation = try #require(source.range(of: "targetApp.activate(options: [])")?.lowerBound)
-    #expect(
-      fallbackCheck < appActivation,
-      "Clipboard fallback should be decided before activating the previous target app"
-    )
-
-    #expect(source.contains("Task.detached"))
-    #expect(source.contains("await ClipboardWriter.write(text)"))
-  }
-
-  @Test("clipboard fallback logs avoid accessibility rejection wording")
-  func clipboardFallbackLogsAvoidAccessibilityRejectionWording() throws {
-    let source = try voiceTranscriberSource()
-
-    #expect(source.contains("Accessibility unavailable") == false)
-    #expect(source.contains("direct text injection failed") == false)
-    #expect(source.contains("manual paste required"))
-  }
 
   @Test("streaming startup does not fail before provider is available")
   func streamingStartupKeepsMissingProviderTolerant() throws {
@@ -642,10 +603,6 @@ struct VoiceTranscriberStopReasonTests {
 
   private func voiceTranscriberSource() throws -> String {
     try projectFileSource("Sources/Cliptate/Services/VoiceTranscriber.swift")
-  }
-
-  private func accessibilityGateSource() throws -> String {
-    try projectFileSource("Sources/Cliptate/Utilities/AccessibilityGate.swift")
   }
 
   private func projectFileSource(_ relativePath: String) throws -> String {

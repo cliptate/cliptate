@@ -4,6 +4,10 @@ These terms complement the application vocabulary in `CONTEXT.md`.
 
 ## Language
 
+**Voice completion**:
+The final part of a dictation or assistant session, from its final transcript through optional AI processing to text delivery or cancellation. It belongs to the voice session regardless of which page is visible.
+_Avoid_: page post-processing, shortcut finalization helper
+
 **CLI request session**:
 One authenticated exchange between the Cliptate command and the selected application,
 ending in a result, failure, or cancellation. Its progress and terminal outcome

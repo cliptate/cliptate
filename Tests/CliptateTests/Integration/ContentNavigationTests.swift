@@ -93,12 +93,6 @@ struct ContentNavigationTests {
     #expect(observedBlock.contains("syncGettingStartedSection()") == false)
   }
 
-  @Test("content view defers shortcut result handling to VoiceToText when that section is active")
-  func contentViewDefersShortcutHandlingForVoiceToText() {
-    #expect(contentViewShouldHandleShortcutResult(currentSection: .voiceToText) == false)
-    #expect(contentViewShouldHandleShortcutResult(currentSection: .aiCut) == true)
-  }
-
   @Test("new windows start at home while restored destinations stay selected")
   func homeNavigation() {
     #expect(resolvedAppSection(currentSection: nil, requiresGettingStarted: false) == .home)

@@ -45,12 +45,7 @@ public final class VoiceTranscriber: ObservableObject {
 
   @Published public private(set) var state: State = .idle {
     didSet {
-      switch state {
-      case .requestingPermission, .preparing, .running:
-        KeyboardShortcutManager.shared.setDictationActive(true)
-      case .idle, .stopping, .error:
-        KeyboardShortcutManager.shared.setDictationActive(false)
-      }
+      updateKeyboardActivity()
       updateMicIndicator(for: state)
     }
   }
@@ -90,6 +85,15 @@ public final class VoiceTranscriber: ObservableObject {
   private let micIndicator = MicIndicatorOverlay()
   private var lastExternalFrontmostApp: NSRunningApplication?
   private var currentRecordingURL: URL?
+  private var voiceCompletionID: UUID?
+  private var voiceRecordingSessionID: UUID?
+  private var deliveryGeneration = UUID()
+  private var deliveryTask: Task<Void, Never>? {
+    didSet { updateKeyboardActivity() }
+  }
+  private lazy var textDelivery = VoiceTextDelivery(onCopied: { [weak self] in
+    self?.micIndicator.flashCopiedToClipboard()
+  })
   private let batchTranscriptionRuntime = BatchTranscriptionRuntime.shared
   private let historyRuntime = HistoryRuntime.shared
 
@@ -153,6 +157,9 @@ public final class VoiceTranscriber: ObservableObject {
   ) async {
     logger.notice("🎙️ Requested start for engine: \(type.rawValue) model: \(model.rawValue)")
 
+    guard state != .running && state != .preparing && state != .requestingPermission else { return }
+    let requestedCompletionID = VoiceCompletionRuntime.shared.recordingWillStart()
+    cancelPendingDelivery()
     await waitForStopCompletionIfNeeded()
     if Task.isCancelled { return }
 
@@ -161,6 +168,9 @@ public final class VoiceTranscriber: ObservableObject {
       return
     }
 
+    if let requestedCompletionID, VoiceCompletionRuntime.shared.currentID != requestedCompletionID { return }
+    voiceCompletionID = requestedCompletionID
+    voiceRecordingSessionID = nil
     captureTranscriptDeliveryForSession()
     inputIssue = nil
     inputDeviceName = Self.defaultInputDeviceName()
@@ -172,6 +182,7 @@ public final class VoiceTranscriber: ObservableObject {
     // Escape can cancel while the system permission request is suspended.
     guard state == .requestingPermission else { return }
     guard hasMicrophoneAccess else {
+      if let voiceCompletionID { VoiceCompletionRuntime.shared.cancel(completionID: voiceCompletionID) }
       state = .error(message: "Microphone access denied. Please enable it in System Settings.")
       return
     }
@@ -210,6 +221,7 @@ public final class VoiceTranscriber: ObservableObject {
         modelVariant: model,
         language: language
       )
+      voiceRecordingSessionID = session?.id
       liveText = ""
       deliveredText = ""
       micIndicator.updateTranscript(nil)
@@ -233,6 +245,7 @@ public final class VoiceTranscriber: ObservableObject {
       logger.notice("🎙️ Startup cancelled before transcription became active")
     } catch {
       await stop(resetState: false)
+      if let voiceCompletionID { VoiceCompletionRuntime.shared.cancel(completionID: voiceCompletionID) }
       state = .error(message: error.localizedDescription)
       statusMessage = "Failed to start transcription"
       logger.error("🎙️ Failed to start transcription: \(error.localizedDescription)")
@@ -249,6 +262,11 @@ public final class VoiceTranscriber: ObservableObject {
 
   /// Stops streaming audio and finalizes the session if one is active.
   public func stop(reason: StopReason = .normal, resetState: Bool = true) async {
+    let completionID = voiceCompletionID
+    if reason == .cancelled {
+      cancelPendingDelivery()
+      if let completionID { VoiceCompletionRuntime.shared.cancel(completionID: completionID) }
+    }
     if isStopInProgress {
       logger.debug("🎙️ Stop already in progress, awaiting completion")
       repeat {
@@ -263,6 +281,9 @@ public final class VoiceTranscriber: ObservableObject {
     }
 
     guard state == .running || state == .preparing else {
+      if state == .requestingPermission, let completionID {
+        VoiceCompletionRuntime.shared.cancel(completionID: completionID)
+      }
       if let activeASRLease {
         await ModelCacheManager.shared.releaseASRLease(activeASRLease)
         self.activeASRLease = nil
@@ -349,7 +370,47 @@ public final class VoiceTranscriber: ObservableObject {
         state = .idle
         statusMessage = inputIssue?.message ?? String(localized: "Ready")
       }
+      if reason == .normal, let completionID {
+        if let finishedSession = session, finishedSession.id == voiceRecordingSessionID {
+          Task {
+            await VoiceCompletionRuntime.shared.receiveFinalTranscript(
+              sessionID: finishedSession.id, text: finishedSession.combinedText, completionID: completionID
+            )
+          }
+        } else {
+          VoiceCompletionRuntime.shared.cancel(completionID: completionID)
+        }
+      }
     }
+  }
+
+  private func updateKeyboardActivity() {
+    switch state {
+    case .requestingPermission, .preparing, .running, .stopping:
+      KeyboardShortcutManager.shared.setDictationActive(true)
+    case .idle, .error:
+      KeyboardShortcutManager.shared.setDictationActive(deliveryTask != nil)
+    }
+  }
+
+  var completionTargetProcessID: Int32? { lastExternalFrontmostApp?.processIdentifier }
+
+  func cancelPendingDelivery() {
+    sessionAllowsRawDelivery = false
+    deliveryGeneration = UUID()
+    deliveryTask?.cancel()
+    deliveryTask = nil
+  }
+
+  func deliverCompletionOutput(_ text: String, to target: Int32?) async throws {
+    let normalized = collapseWhitespace(text)
+    guard !normalized.isEmpty else { return }
+    try Task.checkCancellation()
+    if autoTypeEnabled {
+      try await textDelivery.deliver(normalized, to: target)
+    }
+    try Task.checkCancellation()
+    deliveredText = normalized
   }
 
   /// Convenience helper to toggle start/stop behaviour.
@@ -1020,50 +1081,29 @@ extension VoiceTranscriber {
   }
 
   fileprivate func deliverTranscriptionOutput(_ text: String) {
-    let trimmedTarget = collapseWhitespace(text)
-
-    guard !trimmedTarget.isEmpty else { return }
-
-    if trimmedTarget == deliveredText { return }
-
-    logger.info("🚀 Delivering transcription output: \(trimmedTarget)")
-
-    deliveredText = trimmedTarget
-
+    let normalized = collapseWhitespace(text)
+    guard !normalized.isEmpty, normalized != deliveredText else { return }
+    deliveredText = normalized
     guard autoTypeEnabled else { return }
 
-    guard AccessibilityGate.canInjectText else {
-      copyTextToClipboard(trimmedTarget)
-      micIndicator.flashCopiedToClipboard()
-      logger.info("📋 Text copied to clipboard (manual paste required)")
-      lastExternalFrontmostApp = nil
-      return
-    }
-
-    if let targetApp = lastExternalFrontmostApp,
-      targetApp.processIdentifier != ProcessInfo.processInfo.processIdentifier
-    {
-      // Attempt activation regardless of return value; on modern macOS the return
-      // value is unreliable but the app still comes to the foreground.
-      targetApp.activate(options: [])
-      lastExternalFrontmostApp = nil
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-        Task { @MainActor [weak self] in
-          guard let self else { return }
-          let typed = self.pasteIntoFocusedField(trimmedTarget)
-          if !typed {
-            self.logger.warning("⚠️ Failed to paste transcription output for external app")
-          }
-        }
-      }
-      return
-    }
-
-    let typed = pasteIntoFocusedField(trimmedTarget)
-    if !typed {
-      logger.warning("⚠️ Failed to paste transcription output for frontmost app")
-    }
+    deliveryTask?.cancel()
+    deliveryGeneration = UUID()
+    let generation = deliveryGeneration
+    let target = completionTargetProcessID
     lastExternalFrontmostApp = nil
+    deliveryTask = Task { [weak self] in
+      guard let self else { return }
+      do {
+        try await textDelivery.deliver(normalized, to: target)
+      } catch is CancellationError {
+        // A replacement recording owns the next delivery.
+      } catch {
+        logger.warning("Text delivery failed: \(error.localizedDescription)")
+      }
+      if generation == deliveryGeneration {
+        deliveryTask = nil
+      }
+    }
   }
 
   /// Captures the current frontmost application as the target for dictation output.
@@ -1093,32 +1133,6 @@ extension VoiceTranscriber {
   public func deliverAssistantOutput(_ text: String) {
     deliverTranscriptionOutput(text)
   }
-
-  @discardableResult
-  fileprivate func pasteIntoFocusedField(_ text: String) -> Bool {
-    guard !text.isEmpty else { return false }
-
-    guard AccessibilityGate.injectText(text) else {
-      copyTextToClipboard(text)
-      micIndicator.flashCopiedToClipboard()
-      logger.info("📋 Text copied to clipboard (manual paste required)")
-      return true
-    }
-
-    logger.info("⌨️ Text typed directly into focused field")
-    return true
-  }
-
-  private func copyTextToClipboard(_ text: String) {
-    Task.detached(priority: .userInitiated) {
-      let copied = await ClipboardWriter.write(text)
-      if !copied {
-        Logger(subsystem: "com.Cliptate", category: "VoiceTranscriber")
-          .warning("⚠️ Failed to copy dictation output to clipboard")
-      }
-    }
-  }
-
   @objc private func handleApplicationDidResignActive(_: Notification) {
     recordExternalFrontmostApplicationSnapshot()
   }

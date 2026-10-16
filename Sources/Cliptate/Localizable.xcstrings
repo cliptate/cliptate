@@ -1,6 +1,26 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Transcript corrected and delivered via AI.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Transcript corrected and delivered via AI." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "转录文本已通过 AI 修正并交付。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "文字起こしを AI で修正して入力しました。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "AI로 전사 텍스트를 수정하고 전달했습니다." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Das Transkript wurde mit KI korrigiert und übermittelt." } }
+      }
+    },
+    "Assistant response is ready.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Assistant response is ready." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "助手回答已就绪。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "アシスタントの回答が用意できました。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "어시스턴트 응답이 준비되었습니다." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Die Assistentenantwort ist bereit." } }
+      }
+    },
     "Sidebar": {
       "extractionState": "manual",
       "localizations": {

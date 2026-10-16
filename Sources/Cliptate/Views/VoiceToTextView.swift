@@ -4,11 +4,8 @@ import AppKit
 import KeyboardShortcuts
 import SwiftUI
 import UniformTypeIdentifiers
-import os.log
 
 struct VoiceToTextView: View {
-  // Logger for voice transcription service
-  private let logger = Logger(subsystem: "com.cliptate.app", category: "VoiceToTextView")
   private let batchTranscriptionRuntime = BatchTranscriptionRuntime.shared
   private let historyRuntime = HistoryRuntime.shared
 
@@ -22,11 +19,13 @@ struct VoiceToTextView: View {
   @State private var showingMissingModelAlert = false
   @ObservedObject private var shortcutState = VoiceShortcutState.shared
   @ObservedObject private var shortcutManager = KeyboardShortcutManager.shared
-  @State private var postProcessingTask: Task<Void, Never>?
-  @State private var isPostProcessing = false
-  @State private var postProcessingErrorMessage: String?
-  @State private var postProcessingStatusMessage: String?
-  @State private var lastAssistantSourceText: String = ""
+  @ObservedObject private var completion = VoiceCompletionRuntime.shared
+  private var isPostProcessing: Bool { completion.isProcessing }
+  private var postProcessingErrorMessage: String? { completion.errorMessage }
+  private var postProcessingStatusMessage: String? { completion.statusMessage }
+  private var lastAssistantSourceText: String {
+    completion.mode == .assistant ? completion.sourceText : ""
+  }
   @State private var dictionaryEntryDraft: String = ""
   @State private var dictionaryAlertMessage: String?
   @State private var dictionaryStatusMessage: String?
@@ -202,11 +201,6 @@ struct VoiceToTextView: View {
       waveformTask?.cancel()
       waveformTask = nil
       stopPlayback()
-      postProcessingTask?.cancel()
-      postProcessingTask = nil
-      isPostProcessing = false
-      postProcessingStatusMessage = nil
-      postProcessingErrorMessage = nil
       historyActionTask?.cancel()
       historyActionTask = nil
       reprocessingSessionID = nil
@@ -215,32 +209,16 @@ struct VoiceToTextView: View {
       historyStatusMessage = nil
       historyErrorSessionID = nil
       historyErrorMessage = nil
-      lastAssistantSourceText = ""
       finishShortcutSessionOnDisappear()
-    }
-    .onChange(of: transcriber.session?.combinedText ?? "") { _, newValue in
-      if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-        postProcessingErrorMessage = nil
-        postProcessingStatusMessage = nil
-        lastAssistantSourceText = ""
-      }
     }
     .onChange(of: transcriber.state) { _, newValue in
       handleTranscriberStateChange(newValue)
     }
     .onChange(of: transcriber.isRetranscribing) { _, isRetranscribing in
       // Retranscription fills session text AFTER the idle transition.
-      // Retry shortcut processing and stats persistence once retranscription completes.
+      // Persist stats once the final transcript is available.
       if !isRetranscribing && transcriber.state == .idle {
-        processShortcutPostProcessingIfNeeded()
         updateUsageStatsFromCurrentSessionIfNeeded()
-      }
-    }
-    .onChange(of: shortcutState.activeMode) { oldMode, newMode in
-      // When mode becomes nil (session ended) and transcriber is already idle,
-      // trigger post-processing that won't get another .idle state change.
-      if oldMode != nil && newMode == nil && transcriber.state == .idle {
-        processShortcutPostProcessingIfNeeded()
       }
     }
     .onAppear {
@@ -586,8 +564,7 @@ struct VoiceToTextView: View {
               .foregroundStyle(.secondary)
             Spacer()
             Button("Cancel") {
-              postProcessingTask?.cancel()
-              cancelPostProcessing()
+              completion.cancel()
             }
             .controlSize(.mini)
           } else {
@@ -1085,19 +1062,8 @@ struct VoiceToTextView: View {
   }
 
   private func handleTranscriberStateChange(_ newValue: VoiceTranscriber.State) {
-    switch newValue {
-    case .running:
-      postProcessingTask?.cancel()
-      postProcessingTask = nil
-      isPostProcessing = false
-      postProcessingStatusMessage = nil
-      postProcessingErrorMessage = nil
-      lastAssistantSourceText = ""
-    case .idle:
-      processShortcutPostProcessingIfNeeded()
+    if newValue == .idle {
       updateUsageStatsFromCurrentSessionIfNeeded()
-    default:
-      break
     }
   }
 
@@ -1108,10 +1074,7 @@ struct VoiceToTextView: View {
   }
 
   func finishShortcutSessionOnDisappear() {
-    // Navigation can run before the asynchronous stop supplies final text.
-    // Let ContentView finish the pending shortcut after transcription completes.
-    VoiceShortcutState.shared.requestEndSession()
-    restoreTranscriptDeliveryIfNeeded()
+    completion.requestEnd()
   }
 
   private func updateUsageStatsFromCurrentSessionIfNeeded() {
@@ -1141,258 +1104,6 @@ struct VoiceToTextView: View {
     lastCountedSessionID = session.id
   }
 
-  private func processShortcutPostProcessingIfNeeded() {
-    guard transcriber.state == .idle else { return }
-    let shortcutState = VoiceShortcutState.shared
-
-    // Absorb segment text (deduplicated via VoiceShortcutState.absorbSessionTextOnce)
-    shortcutState.absorbSessionTextOnce(
-      sessionID: transcriber.session?.id,
-      text: transcriber.session?.combinedText ?? ""
-    )
-
-    // If still in a mode session, don't post-process yet
-    guard shortcutState.activeMode == nil else { return }
-
-    // If a session end was requested (two-phase), finalize now that text is available
-    if shortcutState.pendingEndMode != nil {
-      shortcutState.finalizeEndSession()
-    }
-
-    // Session ended — consume pending result
-    guard let pending = shortcutState.consumePendingResult() else {
-      restoreTranscriptDeliveryIfNeeded()
-      transcriber.dismissOverlay()
-      return
-    }
-
-    guard !pending.transcript.isEmpty else {
-      restoreTranscriptDeliveryIfNeeded()
-      transcriber.dismissOverlay()
-      return
-    }
-
-    switch pending.mode {
-    case .dictation:
-      startDictationAutofix(transcript: pending.transcript, sessionIDs: pending.sessionIDs)
-    case .assistant:
-      startAssistantCommand(transcript: pending.transcript)
-    }
-  }
-
-  private func startDictationAutofix(transcript: String, sessionIDs: [UUID]) {
-    guard config.voiceToTextDictationAIEnhanceEnabled else {
-      transcriber.deliverAssistantOutput(transcript)
-      restoreTranscriptDeliveryIfNeeded()
-      transcriber.dismissOverlay()
-      return
-    }
-
-    guard config.aiEnabled else {
-      transcriber.deliverAssistantOutput(transcript)
-      restoreTranscriptDeliveryIfNeeded()
-      transcriber.dismissOverlay()
-      return
-    }
-
-    let provider = config.selectedAIProvider
-    guard let apiKey = config.aiProviderKeys[provider], !apiKey.isEmpty else {
-      postProcessingErrorMessage = String(localized: "No API key available for \(provider.displayName).", comment: "Error: AI provider missing API key")
-      restoreTranscriptDeliveryIfNeeded()
-      transcriber.dismissOverlay()
-      return
-    }
-
-    startPostProcessing(
-      mode: .dictation,
-      status: String(localized: "Cleaning transcript with AI (\(transcript.count) characters)…", comment: "AI post-processing status: cleaning dictation transcript")
-    )
-
-    let model = config.aiModel(for: provider)
-    let endpoint = config.aiOpenAIEndpoint
-    let dictionaryContext = config.dictionaryContextText
-    let language = config.voiceToTextLanguage
-
-    postProcessingTask = Task {
-      do {
-        let context: AssistantContextSnapshot = await AssistantContextCollector.shared
-          .collectContext()
-        let includeClipboard = config.aiIncludeClipboardContext
-        let includeWindow = config.aiIncludeWindowContext
-        let userPrompt = AIPrompts.makeDictationUserPrompt(
-          transcript: transcript,
-          clipboardContext: includeClipboard ? context.clipboardText : nil,
-          windowContext: includeWindow ? context.screenText : nil,
-          dictionaryContext: dictionaryContext
-        )
-        let response = try await AICorrector.askAssistant(
-          prompt: userPrompt,
-          provider: provider,
-          model: model,
-          systemPrompt: String(format: AIPrompts.dictationSystemPrompt, AIPrompts.languageOutputRule(for: language)),
-          apiKey: apiKey,
-          openAIBaseURL: endpoint
-        )
-
-        logger.notice("Dictation autofix prompt: (\(userPrompt))\nresponse: \(response)")
-
-        try Task.checkCancellation()
-        await MainActor.run {
-          guard !Task.isCancelled else { return }
-          finishPostProcessing(
-            mode: .dictation,
-            response: response,
-            transcript: transcript,
-            statusMessage: "Transcript corrected and delivered via AI."
-          )
-          do {
-            try historyRuntime.recordDictationCorrection(sessionIDs: sessionIDs, original: transcript,
-              corrected: response, provider: provider.rawValue, model: model, language: language.rawValue)
-          } catch {
-            postProcessingErrorMessage = String(format: String(localized:
-              "AI text was applied, but correction history could not be saved: %@."), error.localizedDescription)
-          }
-        }
-      } catch is CancellationError {
-        await MainActor.run {
-          cancelPostProcessing()
-        }
-      } catch {
-        await MainActor.run {
-          failPostProcessing(with: error.localizedDescription)
-        }
-      }
-    }
-  }
-
-  private func startAssistantCommand(transcript: String) {
-    guard config.voiceToTextAssistantAIEnhanceEnabled else {
-      lastAssistantSourceText = transcript
-      transcriber.deliverAssistantOutput(transcript)
-      restoreTranscriptDeliveryIfNeeded()
-      transcriber.dismissOverlay()
-      return
-    }
-
-    guard config.aiEnabled else {
-      lastAssistantSourceText = transcript
-      transcriber.deliverAssistantOutput(transcript)
-      restoreTranscriptDeliveryIfNeeded()
-      transcriber.dismissOverlay()
-      return
-    }
-
-    let provider = config.selectedAIProvider
-    guard let apiKey = config.aiProviderKeys[provider], !apiKey.isEmpty else {
-      postProcessingErrorMessage = String(localized: "No API key available for \(provider.displayName).", comment: "Error: AI provider missing API key")
-      restoreTranscriptDeliveryIfNeeded()
-      transcriber.dismissOverlay()
-      return
-    }
-
-    startPostProcessing(
-      mode: .assistant,
-      status: String(localized: "Sending assistant request (\(transcript.count) characters + context)…", comment: "AI post-processing status: sending assistant request")
-    )
-
-    let model = config.aiModel(for: provider)
-    let endpoint = config.aiOpenAIEndpoint
-    let dictionaryContext = config.dictionaryContextText
-
-    postProcessingTask = Task {
-      do {
-        let context = await AssistantContextCollector.shared.collectContext()
-        let includeClipboard = config.voiceToTextAssistantIncludeClipboardContext
-        let includeWindow = config.voiceToTextAssistantIncludeWindowContext
-        let userPrompt = AIPrompts.makeAssistantUserPrompt(
-          transcript: transcript,
-          clipboardContext: includeClipboard ? context.clipboardText : nil,
-          windowContext: includeWindow ? context.screenText : nil,
-          dictionaryContext: dictionaryContext
-        )
-        let response = try await AICorrector.askAssistant(
-          prompt: userPrompt,
-          provider: provider,
-          model: model,
-          systemPrompt: AIPrompts.assistantMode + "\n\n" + AIPrompts.assistantLanguageOutputRule(for: config.voiceToTextLanguage),
-          apiKey: apiKey,
-          openAIBaseURL: endpoint
-        )
-
-        logger.notice("Assistant prompt: (\(userPrompt))\nresponse: \(response)")
-
-        await MainActor.run {
-          finishPostProcessing(
-            mode: .assistant,
-            response: response,
-            transcript: transcript,
-            statusMessage: "Assistant response delivered to the focused input."
-          )
-        }
-      } catch is CancellationError {
-        await MainActor.run {
-          cancelPostProcessing()
-        }
-      } catch {
-        await MainActor.run {
-          failPostProcessing(with: error.localizedDescription)
-        }
-      }
-    }
-  }
-
-  private func startPostProcessing(mode: VoiceShortcutMode, status: String) {
-    postProcessingTask?.cancel()
-    postProcessingTask = nil
-    isPostProcessing = true
-    postProcessingStatusMessage = status
-    postProcessingErrorMessage = nil
-    transcriber.beginAIEnhanceOverlay()
-  }
-
-  private func finishPostProcessing(
-    mode: VoiceShortcutMode,
-    response: String,
-    transcript: String,
-    statusMessage: String
-  ) {
-    transcriber.deliverAssistantOutput(response)
-    postProcessingStatusMessage = statusMessage
-    postProcessingTask = nil
-    isPostProcessing = false
-    postProcessingErrorMessage = nil
-    if mode == .assistant {
-      lastAssistantSourceText = transcript
-    } else {
-      lastAssistantSourceText = ""
-    }
-    restoreTranscriptDeliveryIfNeeded()
-    transcriber.dismissOverlay()
-  }
-
-  private func failPostProcessing(with message: String) {
-    postProcessingStatusMessage = nil
-    postProcessingErrorMessage = message
-    postProcessingTask = nil
-    isPostProcessing = false
-    restoreTranscriptDeliveryIfNeeded()
-    transcriber.dismissOverlay()
-  }
-
-  private func cancelPostProcessing() {
-    postProcessingStatusMessage = nil
-    postProcessingTask = nil
-    isPostProcessing = false
-    restoreTranscriptDeliveryIfNeeded()
-    transcriber.dismissOverlay()
-  }
-
-  private func restoreTranscriptDeliveryIfNeeded() {
-    let shortcut = VoiceShortcutState.shared
-    guard shortcut.activeMode == nil, shortcut.pendingEndMode == nil,
-      shortcut.pendingResult == nil, !isPostProcessing else { return }
-    transcriber.deliverTranscriptsDirectly = true
-  }
 
   private func revealRecording(for session: TranscriptSession) {
     guard let url = session.recordingURL else {

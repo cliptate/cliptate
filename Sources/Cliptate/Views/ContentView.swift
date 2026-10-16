@@ -240,8 +240,7 @@ struct ContentView: View {
   @StateObject private var securityScopeManager = SecurityScopedURLAccessManager()
   @StateObject private var permissionStatusManager = PermissionStatusManager.shared
   @ObservedObject private var shortcutTranscriber = VoiceTranscriber.shared
-  @ObservedObject private var shortcutState = VoiceShortcutState.shared
-  @State private var shortcutPostProcessingTask: Task<Void, Never>?
+  private let voiceCompletion = VoiceCompletionRuntime.shared
   @State private var lastCountedShortcutSessionID: UUID?
 
   var body: some View {
@@ -336,7 +335,6 @@ struct ContentView: View {
     }
     .onChange(of: shortcutTranscriber.state) { _, newValue in
       if newValue == .idle {
-        shortcutFinalizeIfNeeded()
         // Only update stats from ContentView when VoiceToTextView is not active
         // (VoiceToTextView handles its own stats when mounted)
         if currentSection != .voiceToText {
@@ -346,17 +344,11 @@ struct ContentView: View {
     }
     .onChange(of: shortcutTranscriber.isRetranscribing) { _, isRetranscribing in
       // Retranscription fills session text AFTER the idle transition.
-      // Retry shortcut finalization and stats persistence once retranscription completes.
+      // Persist stats once the final transcript is available.
       if !isRetranscribing && shortcutTranscriber.state == .idle {
-        shortcutFinalizeIfNeeded()
         if currentSection != .voiceToText {
           shortcutUpdateStatsIfNeeded()
         }
-      }
-    }
-    .onChange(of: shortcutState.activeMode) { oldMode, newMode in
-      if oldMode != nil && newMode == nil && shortcutTranscriber.state == .idle {
-        shortcutFinalizeIfNeeded()
       }
     }
   }
@@ -387,15 +379,10 @@ extension ContentView {
     switch event.phase {
     case .modeActivated:
       VoiceTranscriber.shared.captureExternalApp()
-      shortcutState.activateMode(event.mode)
-      // Suppress direct transcript delivery when AI Enhance will post-process the result
-      let aiEnhanceActive: Bool = {
-        switch event.mode {
-        case .dictation: return config.voiceToTextDictationAIEnhanceEnabled && config.aiEnabled
-        case .assistant: return config.voiceToTextAssistantAIEnhanceEnabled && config.aiEnabled
-        }
-      }()
-      VoiceTranscriber.shared.deliverTranscriptsDirectly = !aiEnhanceActive
+      voiceCompletion.begin(
+        mode: event.mode, settings: .capture(config, mode: event.mode),
+        target: VoiceTranscriber.shared.completionTargetProcessID
+      )
 
     case .spaceToggle:
       // Space enters hands-free mode in KeyboardShortcutManager.
@@ -409,7 +396,7 @@ extension ContentView {
           await VoiceTranscriber.shared.stop()
         }
       }
-      shortcutState.requestEndSession()
+      voiceCompletion.requestEnd()
 
     case .holdRecordingStarted:
       shortcutState.startRecording()
@@ -433,192 +420,12 @@ extension ContentView {
 
     case .escapePressed:
       // Cancel both shortcut and UI recordings without delivering or saving a result.
-      shortcutState.cancelSession()
+      voiceCompletion.cancel()
       Task {
         await VoiceTranscriber.shared.stop(reason: .cancelled)
       }
     }
   }
-
-  // MARK: - Shortcut session finalization (always-active, independent of VoiceToTextView)
-
-  /// Absorb transcriber text, finalize the shortcut session, and deliver the result.
-  /// When VoiceToTextView is the active section it may also run its own finalization,
-  /// but `consumePendingResult()` ensures only one consumer wins.
-  private func shortcutFinalizeIfNeeded() {
-    let shortcutState = VoiceShortcutState.shared
-    let transcriber = VoiceTranscriber.shared
-
-    guard transcriber.state == .idle else { return }
-    guard contentViewShouldHandleShortcutResult(currentSection: currentSection) else { return }
-
-    // Absorb segment text (deduplicated by VoiceShortcutState)
-    shortcutState.absorbSessionTextOnce(
-      sessionID: transcriber.session?.id,
-      text: transcriber.session?.combinedText ?? ""
-    )
-
-    // If still in a mode session, don't finalize yet
-    guard shortcutState.activeMode == nil else { return }
-
-    // If a two-phase end was requested, finalize now
-    if shortcutState.pendingEndMode != nil {
-      shortcutState.finalizeEndSession()
-    }
-
-    // Consume the pending result (destructive — only one consumer wins)
-    guard let pending = shortcutState.consumePendingResult() else {
-      restoreTranscriptDelivery()
-      transcriber.dismissOverlay()
-      return
-    }
-
-    guard !pending.transcript.isEmpty else {
-      restoreTranscriptDelivery()
-      transcriber.dismissOverlay()
-      return
-    }
-
-    // Handle result delivery
-    switch pending.mode {
-    case .dictation:
-      shortcutDeliverDictation(transcript: pending.transcript, sessionIDs: pending.sessionIDs)
-    case .assistant:
-      shortcutDeliverAssistant(transcript: pending.transcript)
-    }
-  }
-
-  private func shortcutDeliverDictation(transcript: String, sessionIDs: [UUID]) {
-    let transcriber = VoiceTranscriber.shared
-
-    guard config.voiceToTextDictationAIEnhanceEnabled, config.aiEnabled else {
-      transcriber.deliverAssistantOutput(transcript)
-      restoreTranscriptDelivery()
-      transcriber.dismissOverlay()
-      return
-    }
-
-    let provider = config.selectedAIProvider
-    guard let apiKey = config.aiProviderKeys[provider], !apiKey.isEmpty else {
-      transcriber.deliverAssistantOutput(transcript)
-      restoreTranscriptDelivery()
-      transcriber.dismissOverlay()
-      return
-    }
-
-    let model = config.aiModel(for: provider)
-    let endpoint = config.aiOpenAIEndpoint
-    let dictionaryContext = config.dictionaryContextText
-    let language = config.voiceToTextLanguage
-
-    shortcutPostProcessingTask?.cancel()
-    transcriber.beginAIEnhanceOverlay()
-    shortcutPostProcessingTask = Task {
-      do {
-        let context = await AssistantContextCollector.shared.collectContext()
-        let includeClipboard = config.aiIncludeClipboardContext
-        let includeWindow = config.aiIncludeWindowContext
-        let userPrompt = AIPrompts.makeDictationUserPrompt(
-          transcript: transcript,
-          clipboardContext: includeClipboard ? context.clipboardText : nil,
-          windowContext: includeWindow ? context.screenText : nil,
-          dictionaryContext: dictionaryContext
-        )
-        let response = try await AICorrector.askAssistant(
-          prompt: userPrompt,
-          provider: provider,
-          model: model,
-          systemPrompt: String(format: AIPrompts.dictationSystemPrompt, AIPrompts.languageOutputRule(for: language)),
-          apiKey: apiKey,
-          openAIBaseURL: endpoint
-        )
-        try Task.checkCancellation()
-        await MainActor.run {
-          guard !Task.isCancelled else { return }
-          transcriber.deliverAssistantOutput(response)
-          do {
-            try HistoryRuntime.shared.recordDictationCorrection(sessionIDs: sessionIDs, original: transcript,
-              corrected: response, provider: provider.rawValue, model: model, language: language.rawValue)
-          } catch {
-            print(String(format: String(localized:
-              "AI text was applied, but correction history could not be saved: %@."), error.localizedDescription))
-          }
-          restoreTranscriptDelivery()
-          transcriber.dismissOverlay()
-        }
-      } catch is CancellationError {
-        // cancelled
-      } catch {
-        await MainActor.run {
-          transcriber.deliverAssistantOutput(transcript)
-          restoreTranscriptDelivery()
-          transcriber.dismissOverlay()
-        }
-      }
-    }
-  }
-
-  private func shortcutDeliverAssistant(transcript: String) {
-    let transcriber = VoiceTranscriber.shared
-
-    guard config.voiceToTextAssistantAIEnhanceEnabled, config.aiEnabled else {
-      transcriber.deliverAssistantOutput(transcript)
-      restoreTranscriptDelivery()
-      transcriber.dismissOverlay()
-      return
-    }
-
-    let provider = config.selectedAIProvider
-    guard let apiKey = config.aiProviderKeys[provider], !apiKey.isEmpty else {
-      transcriber.deliverAssistantOutput(transcript)
-      restoreTranscriptDelivery()
-      transcriber.dismissOverlay()
-      return
-    }
-
-    let model = config.aiModel(for: provider)
-    let endpoint = config.aiOpenAIEndpoint
-    let dictionaryContext = config.dictionaryContextText
-
-    shortcutPostProcessingTask?.cancel()
-    transcriber.beginAIEnhanceOverlay()
-    shortcutPostProcessingTask = Task {
-      do {
-        let context = await AssistantContextCollector.shared.collectContext()
-        let includeClipboard = config.voiceToTextAssistantIncludeClipboardContext
-        let includeWindow = config.voiceToTextAssistantIncludeWindowContext
-        let systemPrompt = AIPrompts.assistantMode + "\n\n" + AIPrompts.assistantLanguageOutputRule(for: config.voiceToTextLanguage)
-        let userPrompt = AIPrompts.makeAssistantUserPrompt(
-          transcript: transcript,
-          clipboardContext: includeClipboard ? context.clipboardText : nil,
-          windowContext: includeWindow ? context.screenText : nil,
-          dictionaryContext: dictionaryContext
-        )
-        let response = try await AICorrector.askAssistant(
-          prompt: userPrompt,
-          provider: provider,
-          model: model,
-          systemPrompt: systemPrompt,
-          apiKey: apiKey,
-          openAIBaseURL: endpoint
-        )
-        await MainActor.run {
-          transcriber.deliverAssistantOutput(response)
-          restoreTranscriptDelivery()
-          transcriber.dismissOverlay()
-        }
-      } catch is CancellationError {
-        // cancelled
-      } catch {
-        await MainActor.run {
-          transcriber.deliverAssistantOutput(transcript)
-          restoreTranscriptDelivery()
-          transcriber.dismissOverlay()
-        }
-      }
-    }
-  }
-
   /// Update voice-to-text usage stats from the current transcriber session.
   private func shortcutUpdateStatsIfNeeded() {
     let transcriber = VoiceTranscriber.shared
@@ -647,16 +454,6 @@ extension ContentView {
     lastCountedShortcutSessionID = session.id
   }
 
-  private func restoreTranscriptDelivery() {
-    let shortcut = VoiceShortcutState.shared
-    guard shortcut.activeMode == nil, shortcut.pendingEndMode == nil,
-      shortcut.pendingResult == nil else { return }
-    VoiceTranscriber.shared.deliverTranscriptsDirectly = true
-  }
-}
-
-func contentViewShouldHandleShortcutResult(currentSection: AppSection?) -> Bool {
-  currentSection != .voiceToText
 }
 
 #Preview {

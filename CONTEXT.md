@@ -31,6 +31,10 @@ _Avoid_: prepared batch blob, temporary resources, pipeline cache
 The long-lived opaque value that owns one live dictation run through `ModelRuntime`, so recording, streaming transcription, and release stay behind an abstract interface instead of exposing concrete model implementations.
 _Avoid_: active lease, streaming handle, voice helper
 
+**VoiceCompletionRuntime**:
+The module that owns Voice completion: final transcript accumulation, optional AI processing, cancellation, and delivery for a dictation or assistant session, independent of the visible page.
+_Avoid_: page post-processing, shortcut finalization helper
+
 **ModelRuntime**:
 The module that owns acquire, preload, release, and status over model download, cache, and warmup adapters.
 _Avoid_: cache manager cluster, model bootstrap

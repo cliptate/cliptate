@@ -2,8 +2,8 @@ import AppKit
 
 enum ClipboardWriter {
   @discardableResult
-  static func write(_ text: String) async -> Bool {
-    guard !text.isEmpty else { return false }
+  @concurrent static func write(_ text: String) async -> Bool {
+    guard !Task.isCancelled, !text.isEmpty else { return false }
 
     let pasteboard = NSPasteboard.general
     pasteboard.clearContents()

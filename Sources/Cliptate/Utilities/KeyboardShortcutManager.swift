@@ -45,6 +45,7 @@ public final class KeyboardShortcutManager: ObservableObject {
   private struct EventSnapshot {
     var mode: VoiceShortcutMode?
     var isDictationActive = false
+    var isVoiceCompletionActive = false
     var isEscapeHeld = false
   }
   private let _snapshotLock = OSAllocatedUnfairLock(initialState: EventSnapshot())
@@ -105,6 +106,10 @@ public final class KeyboardShortcutManager: ObservableObject {
   /// Includes recordings started from the UI, which have no modifier-key session.
   func setDictationActive(_ isActive: Bool) {
     _snapshotLock.withLock { $0.isDictationActive = isActive }
+  }
+
+  func setVoiceCompletionActive(_ isActive: Bool) {
+    _snapshotLock.withLock { $0.isVoiceCompletionActive = isActive }
   }
 
   // MARK: - Preset Management
@@ -335,13 +340,14 @@ public final class KeyboardShortcutManager: ObservableObject {
   /// Handles Escape key: cancels the entire mode session.
   private func handleEscapePressed() {
     let snapshot = _snapshotLock.withLock { $0 }
-    guard snapshot.mode != nil || snapshot.isDictationActive else { return }
+    guard snapshot.mode != nil || snapshot.isDictationActive || snapshot.isVoiceCompletionActive else { return }
     cancelHoldTimer()
     let mode = snapshot.mode ?? .dictation
     isHoldRecording = false
     isHandsFreeMode = false
     setActiveMode(nil)
     setDictationActive(false)
+    setVoiceCompletionActive(false)
     emitEvent(ShortcutEvent(phase: .escapePressed, mode: mode))
   }
 
@@ -381,7 +387,7 @@ public final class KeyboardShortcutManager: ObservableObject {
         return .consume
       }
       guard isKeyDown, !isRepeat,
-            snapshot.mode != nil || snapshot.isDictationActive else { return .passThrough }
+            snapshot.mode != nil || snapshot.isDictationActive || snapshot.isVoiceCompletionActive else { return .passThrough }
       snapshot.isEscapeHeld = true
       return .cancel
     }

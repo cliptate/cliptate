@@ -50,6 +50,12 @@ into a distributable `.app`. `config/app.json` owns version and update defaults;
 - **Transcription and dubbing:** batch and streaming runtimes manage model use,
   segmentation, alignment, speaker attribution, and post-processing. TTS and dubbing
   runtimes own synthesis and retained output.
+  `VoiceCompletionRuntime` owns final transcript accumulation, AI processing,
+  cancellation, and delivery for dictation and assistant shortcut sessions. Pages
+  observe shared completion feedback rather than consuming results themselves.
+  Each session retains its configuration and delivery target; starting another
+  session invalidates unfinished work. The delivery adapter checks cancellation
+  before queued input and preserves Accessibility-backed clipboard fallback.
 - **Editing and export:** segment processing produces timing-aware decisions consumed
   by video, FCPXML, and subtitle exporters. `SegmentIdentifier` preserves selection
   across reshaped segments.
