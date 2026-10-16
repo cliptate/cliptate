@@ -105,10 +105,11 @@ def run(*arguments, env=None, capture=False):
 
 
 def copy_resources(bin_path, resources):
-    # SwiftPM accessors search Bundle.main.resourceURL; exclude test fixtures left
-    # by earlier swift test runs in the same output directory.
+    # App catalogs are compiled into Bundle.main below. Dependency accessors
+    # still need their bundles; test fixtures can remain from earlier test runs.
     for bundle in sorted(bin_path.glob("*.bundle")):
-        if bundle.name in {"Cliptate_CliptateTests.bundle", "Cliptate_CliptateCoreTests.bundle"}:
+        if bundle.name in {"Cliptate_Cliptate.bundle", "Cliptate_CliptateTests.bundle",
+                           "Cliptate_CliptateCoreTests.bundle"}:
             continue
         shutil.copytree(bundle, resources / bundle.name, symlinks=True)
 
@@ -132,6 +133,8 @@ def compile_resources(resources, work):
     # The app uses default Bundle.main localization, including String(localized:).
     run("xcrun", "xcstringstool", "compile", ROOT / "Sources/Cliptate/Localizable.xcstrings",
         "--output-directory", resources)
+    for catalog in resources.glob("*.lproj/*.strings*"):
+        run("plutil", "-convert", "binary1", catalog)
     return plistlib.loads(partial_info.read_bytes())
 
 
@@ -194,6 +197,29 @@ def prepare_release_binary(binary, symbols):
     run("xcrun", "strip", "-u", "-r", binary)
 
 
+def prepare_framework(framework, architectures):
+    # Do not follow framework symlinks: each nested executable is rewritten once,
+    # before sign-sparkle.sh restores its signature and sandbox entitlements.
+    magic = {b"\xfe\xed\xfa\xce", b"\xce\xfa\xed\xfe", b"\xfe\xed\xfa\xcf", b"\xcf\xfa\xed\xfe",
+             b"\xca\xfe\xba\xbe", b"\xbe\xba\xfe\xca", b"\xca\xfe\xba\xbf", b"\xbf\xba\xfe\xca"}
+    for directory, _, files in os.walk(framework):
+        for name in files:
+            binary = Path(directory) / name
+            if binary.is_symlink():
+                continue
+            with binary.open("rb") as stream:
+                if stream.read(4) not in magic:
+                    continue
+            available = run("xcrun", "lipo", "-archs", binary, capture=True).split()
+            if not architectures or not set(architectures).issubset(available):
+                raise ValueError(f"Framework executable lacks app architectures: {binary}")
+            if set(available) == set(architectures):
+                continue
+            flags = ["-thin", architectures[0]] if len(architectures) == 1 else [
+                flag for architecture in architectures for flag in ("-extract", architecture)]
+            run("xcrun", "lipo", binary, *flags, "-output", binary)
+
+
 def build_app(values, destination, identity):
     env = {**os.environ, "CLIPTATE_APP_STORE": values["CLIPTATE_APP_STORE"]}
     command = [ROOT / "scripts/swift-safe.sh", "build", "--package-path", ROOT,
@@ -226,6 +252,9 @@ def build_app(values, destination, identity):
         if not sparkle.exists():
             sparkle = ROOT / ".build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
         shutil.copytree(sparkle, frameworks / "Sparkle.framework", symlinks=True)
+        if values["CONFIGURATION"] == "Release":
+            architectures = run("xcrun", "lipo", "-archs", executable, capture=True).split()
+            prepare_framework(frameworks / "Sparkle.framework", architectures)
         binaries = [executable]
         if values["CLIPTATE_APP_STORE"] == "NO":
             helper = app / "Contents/Helpers/cliptate"

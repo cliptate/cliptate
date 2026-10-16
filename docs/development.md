@@ -53,6 +53,12 @@ search paths and adds a path relative to the app executable. Swift Build can com
 MLX shaders itself; for SwiftPM's native backend the bundler compiles the pinned
 MLX package's prepared Metal sources into `mlx-swift_Cmlx.bundle`.
 
+The app's asset and localization catalogs live in the main bundle; the redundant
+SwiftPM app resource bundle is omitted. Compiled localization property lists use
+binary format. Release bundles keep only the app's architectures in Sparkle and
+its nested helpers, before re-signing them. Debug builds retain the upstream
+framework slices. Release dSYMs stay beside the app, outside the DMG.
+
 ### Preserve installed privacy permissions during development
 
 Development and production are separate applications, with separate macOS privacy
