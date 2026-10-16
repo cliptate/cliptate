@@ -107,6 +107,7 @@ source and workflow.
 
 ## Version archive
 
+- [v1.4](v1.4.md) — Home statistics, annual activity, global dictation cancellation, and native workspace refinements.
 - [v1.3](v1.3.md) — light-gray appearance, leaner downloads, and website release notes.
 - [v1.2](v1.2.md) — more transcription engines, CLI speech/history workflows, and workspace improvements.
 - [v1.1](v1.1.md) — native CLI, dictation reliability, and app lifecycle improvements.
