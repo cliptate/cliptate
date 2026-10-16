@@ -57,10 +57,14 @@ struct AISettingsView: View {
           startupSection
           Divider()
           VStack(alignment: .leading, spacing: 6) {
-            Toggle("Share usage statistics", isOn: $config.analyticsCollectionEnabled)
-              .onChange(of: config.analyticsCollectionEnabled) {
-                try? ConfigurationRuntime.shared.flush(using: config)
-              }
+            Toggle(isOn: $config.analyticsCollectionEnabled) {
+              Label("Share usage statistics", systemImage: "chart.bar")
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .appFeatureSwitch()
+            .onChange(of: config.analyticsCollectionEnabled) {
+              try? ConfigurationRuntime.shared.flush(using: config)
+            }
             Text("Send app activity and performance data to Google Analytics. Audio, video, transcripts, and file names are never included.")
               .font(.caption)
               .foregroundStyle(.secondary)
@@ -194,12 +198,7 @@ struct AISettingsView: View {
   // MARK: - Startup
 
   private var startupSection: some View {
-    HStack {
-      Label("Startup", systemImage: "power")
-      Spacer(minLength: 16)
-      LoginItemSettingsView()
-        .frame(maxWidth: 220, alignment: .trailing)
-    }
+    LoginItemSettingsView()
   }
 
   // MARK: - AI Provider
@@ -210,8 +209,11 @@ struct AISettingsView: View {
       subtitle: "Enhance your transcriptions with AI providers and secure API keys.",
       systemImage: "brain"
     ) {
-      Toggle("Enable AI Features", isOn: $config.aiEnabled)
-        .toggleStyle(.switch)
+      Toggle(isOn: $config.aiEnabled) {
+        Text("Enable AI Features")
+          .frame(maxWidth: .infinity, alignment: .leading)
+      }
+      .appFeatureSwitch()
 
       if config.aiEnabled {
         providerConfiguration

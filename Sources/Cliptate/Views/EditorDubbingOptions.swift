@@ -26,7 +26,7 @@ struct EditorDubbingOptions: View {
               .foregroundColor(.secondary)
           }
         }
-        .toggleStyle(.switch)
+        .appFeatureSwitch()
       } label: {
         Label(
           String(localized: "Voice Dubbing", comment: "Dubbing enable toggle group box label"),

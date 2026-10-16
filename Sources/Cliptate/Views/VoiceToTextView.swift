@@ -947,8 +947,7 @@ struct VoiceToTextView: View {
       set: { binding.wrappedValue = $0 }
     ))
     .disabled(enhancementAvailability != .available)
-    .toggleStyle(.switch)
-    .controlSize(.small)
+    .appFeatureSwitch()
     .font(.caption)
     .fixedSize(horizontal: true, vertical: false)
   }
@@ -1740,8 +1739,7 @@ private struct VoiceContextSettingsView: View {
         .accessibilityLabel("Window Context")
         .padding(14)
       }
-      .toggleStyle(.switch)
-      .controlSize(.small)
+      .appFeatureSwitch()
       .background(AppSurface.settingsBackground, in: RoundedRectangle(cornerRadius: 10))
 
       Text("Context is used only when AI features and AI Enhance are enabled and a provider API key is configured.")

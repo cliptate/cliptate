@@ -18,11 +18,14 @@ struct AppUpdateSettingsView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       if updates.isAvailable {
-        Toggle(
-          "Automatically check for updates",
-          isOn: Binding(
-            get: { updates.automaticallyChecksForUpdates },
-            set: { updates.setAutomaticallyChecksForUpdates($0) }))
+        Toggle(isOn: Binding(
+          get: { updates.automaticallyChecksForUpdates },
+          set: { updates.setAutomaticallyChecksForUpdates($0) }
+        )) {
+          Text("Automatically check for updates")
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .appFeatureSwitch()
         CheckForAppUpdatesButton()
       } else {
         Text("Updates are unavailable in this build.")

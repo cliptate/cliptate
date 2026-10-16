@@ -167,7 +167,7 @@ struct SubtitleStyleEditor: View {
             set: { style.bold = $0 }
           )
         )
-        .toggleStyle(.switch)
+        .appFeatureSwitch()
         .font(.caption)
       }
 
@@ -178,7 +178,7 @@ struct SubtitleStyleEditor: View {
           set: { style.italic = $0 }
         )
       )
-      .toggleStyle(.switch)
+      .appFeatureSwitch()
       .font(.caption)
     }
   }

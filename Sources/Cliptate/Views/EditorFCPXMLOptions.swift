@@ -21,7 +21,7 @@ struct EditorFCPXMLOptions: View {
               .foregroundColor(.secondary)
           }
         }
-        .toggleStyle(.switch)
+        .appFeatureSwitch()
 
         if !config.fcpxmlEnabled {
           Text(
@@ -92,6 +92,8 @@ struct EditorFCPXMLOptions: View {
           Spacer()
           Toggle("", isOn: $config.fcpxmlIncludeSubtitles)
             .labelsHidden()
+            .accessibilityLabel("Include Subtitles")
+            .appFeatureSwitch()
         }
 
         HStack {
@@ -101,6 +103,8 @@ struct EditorFCPXMLOptions: View {
           Spacer()
           Toggle("", isOn: $config.fcpxmlIsResolveCompatible)
             .labelsHidden()
+            .accessibilityLabel("DaVinci Resolve")
+            .appFeatureSwitch()
         }
       }
       .padding(8)

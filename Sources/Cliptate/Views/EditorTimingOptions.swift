@@ -59,7 +59,7 @@ struct EditorTimingOptions: View {
               .foregroundColor(.secondary)
           }
         }
-        .toggleStyle(.switch)
+        .appFeatureSwitch()
 
         VStack(spacing: 6) {
           Text(
@@ -107,6 +107,8 @@ struct EditorTimingOptions: View {
         Spacer()
         Toggle("", isOn: $config.filterSilent)
           .labelsHidden()
+          .accessibilityLabel("Filter Silent")
+          .appFeatureSwitch()
       }
       .padding(8)
       .background(
@@ -131,7 +133,7 @@ struct EditorHighlightOptions: View {
               .foregroundColor(.secondary)
           }
         }
-        .toggleStyle(.switch)
+        .appFeatureSwitch()
       }
       .padding(8)
       .background(
@@ -148,7 +150,7 @@ struct EditorHighlightOptions: View {
               .foregroundColor(.secondary)
           }
         }
-        .toggleStyle(.switch)
+        .appFeatureSwitch()
 
         VStack(alignment: .leading, spacing: 6) {
           HStack {
@@ -191,7 +193,7 @@ struct EditorZoomOptions: View {
               .foregroundColor(.secondary)
           }
         }
-        .toggleStyle(.switch)
+        .appFeatureSwitch()
 
         VStack(alignment: .leading, spacing: 6) {
           HStack {

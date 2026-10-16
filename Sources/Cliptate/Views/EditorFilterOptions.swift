@@ -23,7 +23,7 @@ struct EditorFilterOptions: View {
               .foregroundColor(.secondary)
           }
         }
-        .toggleStyle(.switch)
+        .appFeatureSwitch()
       }
       .padding(8)
       .background(
@@ -40,7 +40,7 @@ struct EditorFilterOptions: View {
               .foregroundColor(.secondary)
           }
         }
-        .toggleStyle(.switch)
+        .appFeatureSwitch()
       }
       .padding(8)
       .background(

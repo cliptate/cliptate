@@ -15,6 +15,11 @@ enum AppSurface {
 }
 
 extension View {
+  func appFeatureSwitch() -> some View {
+    toggleStyle(.switch)
+      .controlSize(.small)
+  }
+
   func appSegmentedHover(selectedIndex: Int, count: Int) -> some View {
     modifier(AppSegmentedHover(selectedIndex: selectedIndex, count: count))
   }

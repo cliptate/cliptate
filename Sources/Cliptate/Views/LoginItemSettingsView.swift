@@ -12,9 +12,10 @@ struct LoginItemSettingsView: View {
           Task { await settings.setEnabled(enabled) }
         }
       )) {
-        Text("Launch at Login")
-          .font(.subheadline)
+        Label("Launch at Login", systemImage: "power")
+          .frame(maxWidth: .infinity, alignment: .leading)
       }
+      .appFeatureSwitch()
       .disabled(!settings.hasLoaded || settings.isBusy)
 
       if let errorMessage = settings.errorMessage {

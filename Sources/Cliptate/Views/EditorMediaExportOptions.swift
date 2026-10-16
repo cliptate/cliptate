@@ -22,7 +22,7 @@ struct EditorVideoExportOptions: View {
             .foregroundColor(.secondary)
           }
         }
-        .toggleStyle(.switch)
+        .appFeatureSwitch()
       } label: {
         Label("Video Export", systemImage: "play.rectangle")
       }
@@ -52,7 +52,7 @@ struct EditorVideoExportOptions: View {
               .foregroundColor(.secondary)
           }
         }
-        .toggleStyle(.switch)
+        .appFeatureSwitch()
         .disabled(!config.videoExportEnabled)
 
         Divider()
@@ -111,7 +111,7 @@ struct EditorAudioExportOptions: View {
               .foregroundColor(.secondary)
           }
         }
-        .toggleStyle(.switch)
+        .appFeatureSwitch()
       } label: {
         Label("Audio Export", systemImage: "waveform.circle")
       }
