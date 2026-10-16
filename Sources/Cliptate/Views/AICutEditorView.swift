@@ -1,5 +1,5 @@
-import CliptateCore
 import AppKit
+import CliptateCore
 import SwiftUI
 
 enum AICutEditorSourceMode: Equatable {
@@ -35,7 +35,9 @@ enum AICutUserDefaultsKeys {
 
 struct AICutEditorView: View {
   @EnvironmentObject private var config: AppConfiguration
-  @AppStorage(AICutUserDefaultsKeys.statusPanelVisible) private var isStatusPanelVisible: Bool = true
+  @AppStorage(AICutUserDefaultsKeys.statusPanelVisible) private var isStatusPanelVisible: Bool =
+    true
+  @State private var showVideoDubbing = false
 
   let securityScopeManager: SecurityScopedURLAccessManager
   @Binding var selectedVideoURLs: [URL]
@@ -76,6 +78,7 @@ struct AICutEditorView: View {
   let onSegmentUpdate: (SegmentsPanelView.DisplaySeg, String) -> Void
   let onTranslationUpdate: (SegmentsPanelView.DisplaySeg, String?) -> Void
   let onSegmentDelete: (SegmentsPanelView.DisplaySeg) -> Void
+  var onDubbingChanged: (URL) -> Void = { _ in }
 
   var body: some View {
     let cachedSegments = processedSegments
@@ -161,38 +164,46 @@ struct AICutEditorView: View {
       .frame(minWidth: 260, idealWidth: 320, maxWidth: .infinity)
       .layoutPriority(2)
 
-      ZStack {
-        if cachedSegments.isEmpty {
-          VStack(spacing: 8) {
-            Image(systemName: "text.bubble")
-              .font(.system(size: 28))
-              .foregroundStyle(.secondary)
-            Text("No Segments")
-              .font(.headline)
-              .foregroundStyle(.primary)
-            Text("Please transcribe the video to view segment details")
-              .font(.caption)
-              .foregroundStyle(.secondary)
-              .multilineTextAlignment(.center)
-          }
-          .padding(24)
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .background(AppSurface.inputBackground)
-          .transition(.opacity.combined(with: .scale(scale: 0.98)))
+      VStack(spacing: 0) {
+        HStack {
+          Spacer()
+          Button("Video Dubbing") { showVideoDubbing = true }
+            .disabled(cachedSegments.isEmpty || isExporting || isTranscribing)
         }
+        .padding(12)
+        ZStack {
+          if cachedSegments.isEmpty {
+            VStack(spacing: 8) {
+              Image(systemName: "text.bubble")
+                .font(.system(size: 28))
+                .foregroundStyle(.secondary)
+              Text("No Segments")
+                .font(.headline)
+                .foregroundStyle(.primary)
+              Text("Please transcribe the video to view segment details")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            }
+            .padding(24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(AppSurface.inputBackground)
+            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+          }
 
-        if let vs = activeVideoState {
-          SegmentsPanelView(
-            videoState: vs,
-            effects: previewEffects,
-            playback: currentPlayback,
-            onSegmentUpdate: onSegmentUpdate,
-            onTranslationUpdate: onTranslationUpdate,
-            onSegmentDelete: onSegmentDelete
-          )
-          .environmentObject(config)
-          .opacity(vs.segments.isEmpty ? 0 : 1)
-          .animation(.easeInOut(duration: 0.25), value: vs.segments.isEmpty)
+          if let vs = activeVideoState {
+            SegmentsPanelView(
+              videoState: vs,
+              effects: previewEffects,
+              playback: currentPlayback,
+              onSegmentUpdate: onSegmentUpdate,
+              onTranslationUpdate: onTranslationUpdate,
+              onSegmentDelete: onSegmentDelete
+            )
+            .environmentObject(config)
+            .opacity(vs.segments.isEmpty ? 0 : 1)
+            .animation(.easeInOut(duration: 0.25), value: vs.segments.isEmpty)
+          }
         }
       }
       .frame(minWidth: 320, idealWidth: 400, maxWidth: 580)
@@ -200,6 +211,17 @@ struct AICutEditorView: View {
       .id(activeVideoURL)
     }
     .background(AppSurface.pageBackground)
+    .sheet(isPresented: $showVideoDubbing) {
+      if let url = activeVideoURL, let state = videoStates[url] {
+        VideoDubbingEditor(
+          videoState: state, sourceURL: url, isTranslating: isTranslating,
+          translationStatus: statusText,
+          onTranslate: onTranslate, onSegmentDelete: onPreviewSegmentDelete,
+          onChanged: { onDubbingChanged(url) }
+        )
+        .environmentObject(config)
+      }
+    }
   }
 
   private var editorPlaceholder: some View {

@@ -18,10 +18,11 @@ public enum VideoCompositionBuilder {
     @MainActor
     public static func build(
       asset: AVURLAsset,
-      ass: String,
+      ass: String?,
       filterSilentSegments: Bool,
-      segments: [Segment]
-    ) async throws -> (AVAsset, AVVideoComposition) {
+      segments: [Segment],
+      dubbedAudioURL: URL? = nil
+    ) async throws -> (AVAsset, AVVideoComposition?) {
       let composition = AVMutableComposition()
 
       // 预取轨道
@@ -30,7 +31,7 @@ public enum VideoCompositionBuilder {
           domain: "VideoCompositionBuilder", code: 1,
           userInfo: [NSLocalizedDescriptionKey: "No video track found."])
       }
-      let audioAssetTrack = try await asset.loadTracks(withMediaType: .audio).first
+      let audioAssetTrack = dubbedAudioURL == nil ? try await asset.loadTracks(withMediaType: .audio).first : nil
 
       // 创建合成轨道
       guard
@@ -78,6 +79,20 @@ public enum VideoCompositionBuilder {
       }
 
       videoCompositionTrack.preferredTransform = transform
+
+      if let dubbedAudioURL {
+        let dubbedAsset = AVURLAsset(url: dubbedAudioURL)
+        guard let dubbedTrack = try await dubbedAsset.loadTracks(withMediaType: .audio).first,
+              let targetTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
+        else { throw AudioExporterError.noAudioTrack }
+        let range = try await dubbedTrack.load(.timeRange)
+        guard range.duration.seconds + 0.02 >= composition.duration.seconds else { throw VideoDubbingError.incomplete }
+        try targetTrack.insertTimeRange(
+          CMTimeRange(start: range.start, duration: min(range.duration, composition.duration)),
+          of: dubbedTrack, at: .zero)
+      }
+
+      guard let ass else { return (composition, nil) }
 
       // 添加 ASS 字幕渲染
       let assRenderer = AssSubtitlesRenderer(

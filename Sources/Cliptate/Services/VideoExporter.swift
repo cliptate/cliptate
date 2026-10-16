@@ -25,12 +25,14 @@ import SwiftAssRenderer
       effects: [String: SegmentEffectState] = [:],
       translationPlacement: SubtitleTranslationPlacement = .below,
       styleConfiguration: SubtitleStylesConfiguration? = nil,
+      dubbedAudioURL: URL? = nil,
+      burnInSubtitles: Bool = true,
       quality: VideoExportQuality
     ) async throws {
       let resolvedStyles = styleConfiguration ?? defaultSubtitleStyles
-      if FileManager.default.fileExists(atPath: outputURL.path) {
-        try FileManager.default.removeItem(at: outputURL)
-      }
+      try Task.checkCancellation()
+      let sourceAccess = videoURL.startAccessingSecurityScopedResource()
+      defer { if sourceAccess { videoURL.stopAccessingSecurityScopedResource() } }
 
       let asset = AVURLAsset(
         url: videoURL,
@@ -55,9 +57,10 @@ import SwiftAssRenderer
 
       let (composition, videoComposition) = try await VideoCompositionBuilder.build(
         asset: asset,
-        ass: ass,
+        ass: burnInSubtitles ? ass : nil,
         filterSilentSegments: filterSilentSegments,
-        segments: segments
+        segments: segments,
+        dubbedAudioURL: dubbedAudioURL
       )
 
       let allPresets = AVAssetExportSession.allExportPresets()
@@ -72,7 +75,7 @@ import SwiftAssRenderer
         )
       }
 
-      let presetName = quality.resolvedPreset(from: availablePresets, burnIn: true)
+      let presetName = quality.resolvedPreset(from: availablePresets, burnIn: burnInSubtitles || dubbedAudioURL != nil)
 
       guard let exportSession = AVAssetExportSession(asset: composition, presetName: presetName)
       else {
@@ -105,7 +108,14 @@ import SwiftAssRenderer
       }
 
       do {
-        try await exportSession.export(to: outputURL, as: targetType)
+        let staging = outputURL.deletingLastPathComponent()
+          .appendingPathComponent("\(UUID().uuidString).\(outputURL.pathExtension)")
+        defer { try? FileManager.default.removeItem(at: staging) }
+        try await exportSession.export(to: staging, as: targetType)
+        try Task.checkCancellation()
+        try FileManager.default.replaceOrMoveFile(at: staging, to: outputURL)
+      } catch is CancellationError {
+        throw CancellationError()
       } catch {
         throw NSError(
           domain: "VideoExporter",

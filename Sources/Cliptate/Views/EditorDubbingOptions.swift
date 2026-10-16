@@ -8,6 +8,7 @@ import UniformTypeIdentifiers
 
 struct EditorDubbingOptions: View {
   @EnvironmentObject private var config: AppConfiguration
+  var showEnableToggle = true
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -16,22 +17,24 @@ struct EditorDubbingOptions: View {
         .foregroundColor(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
-      GroupBox {
-        Toggle(isOn: $config.audioDubbingEnabled) {
-          VStack(alignment: .leading, spacing: 2) {
-            Text("Enable Dubbing")
-              .font(.caption)
-            Text("Generate dubbed audio using TTS voice cloning with translated text during audio export.")
-              .font(.caption2)
-              .foregroundColor(.secondary)
+      if showEnableToggle {
+        GroupBox {
+          Toggle(isOn: $config.audioDubbingEnabled) {
+            VStack(alignment: .leading, spacing: 2) {
+              Text("Enable Dubbing")
+                .font(.caption)
+              Text("Replace the original audio in video and audio exports with translated speech.")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            }
           }
+          .appFeatureSwitch()
+        } label: {
+          Label(
+            String(localized: "Voice Dubbing", comment: "Dubbing enable toggle group box label"),
+            systemImage: "person.wave.2"
+          )
         }
-        .appFeatureSwitch()
-      } label: {
-        Label(
-          String(localized: "Voice Dubbing", comment: "Dubbing enable toggle group box label"),
-          systemImage: "person.wave.2"
-        )
       }
 
       GroupBox {
@@ -87,7 +90,9 @@ struct EditorDubbingOptions: View {
                       .foregroundColor(.secondary)
                   }
                   .buttonStyle(.plain)
-                  .help(String(localized: "Clear reference audio", comment: "Clear reference audio tooltip"))
+                  .help(
+                    String(
+                      localized: "Clear reference audio", comment: "Clear reference audio tooltip"))
                 }
               }
 
@@ -101,9 +106,11 @@ struct EditorDubbingOptions: View {
                   .scrollContentBackground(.hidden)
                   .padding(4)
                   .appInputSurface()
-                Text("Enter the exact transcription of the reference audio for accurate voice cloning.")
-                  .font(.caption2)
-                  .foregroundColor(.secondary)
+                Text(
+                  "Enter the exact transcription of the reference audio for accurate voice cloning."
+                )
+                .font(.caption2)
+                .foregroundColor(.secondary)
               }
             }
             .padding(.top, 4)
@@ -124,7 +131,9 @@ struct EditorDubbingOptions: View {
       panel.allowedContentTypes = [.audio]
       panel.allowsMultipleSelection = false
       panel.canChooseDirectories = false
-      panel.message = String(localized: "Select a reference audio file for voice cloning", comment: "Reference audio picker message")
+      panel.message = String(
+        localized: "Select a reference audio file for voice cloning",
+        comment: "Reference audio picker message")
       panel.begin { response in
         guard response == .OK, let url = panel.url else { return }
         let needsStop = url.startAccessingSecurityScopedResource()

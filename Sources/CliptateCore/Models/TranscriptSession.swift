@@ -64,6 +64,7 @@ public struct TranscriptSession: Identifiable, Equatable, Sendable {
   /// Set of segment identifiers that have been marked as deleted in AI Cut.
   /// Persisted so that deletions survive app restart and history restoration.
   public var aiCutRemovedSegmentIDs: Set<SegmentIdentifier>?
+  public var aiCutDubbedClips: [DubbedClip]?
 
   public init(
     id: UUID = UUID(),
@@ -83,7 +84,8 @@ public struct TranscriptSession: Identifiable, Equatable, Sendable {
     corrections: [TranscriptCorrection]? = nil,
     aiCutLastTranslatedLanguage: Language? = nil,
     aiCutProcessedTranslations: [String: SegmentTranslation]? = nil,
-    aiCutRemovedSegmentIDs: Set<SegmentIdentifier>? = nil
+    aiCutRemovedSegmentIDs: Set<SegmentIdentifier>? = nil,
+    aiCutDubbedClips: [DubbedClip]? = nil
   ) {
     self.id = id
     self.startTime = startTime
@@ -103,6 +105,7 @@ public struct TranscriptSession: Identifiable, Equatable, Sendable {
     self.aiCutLastTranslatedLanguage = aiCutLastTranslatedLanguage
     self.aiCutProcessedTranslations = aiCutProcessedTranslations
     self.aiCutRemovedSegmentIDs = aiCutRemovedSegmentIDs
+    self.aiCutDubbedClips = aiCutDubbedClips
   }
 
   /// Appends a new line to the session at the provided offset from the session start.
@@ -181,6 +184,7 @@ extension TranscriptSession: Codable {
     case source, sourceFileName, sourceURLBookmark
     case ttsAudioBookmark, aiCutSegments, aiCutTranslations, aiCutLastTranslatedLanguage
     case aiCutProcessedTranslations, aiCutRemovedSegmentIDs, aiCutOriginalSegments, corrections
+    case aiCutDubbedClips
   }
 
   public init(from decoder: Decoder) throws {
@@ -232,6 +236,7 @@ extension TranscriptSession: Codable {
       Set<SegmentIdentifier>.self,
       forKey: .aiCutRemovedSegmentIDs
     )
+    aiCutDubbedClips = try container.decodeIfPresent([DubbedClip].self, forKey: .aiCutDubbedClips)
   }
 
   public func encode(to encoder: Encoder) throws {
@@ -254,6 +259,7 @@ extension TranscriptSession: Codable {
     try container.encodeIfPresent(aiCutLastTranslatedLanguage, forKey: .aiCutLastTranslatedLanguage)
     try container.encodeIfPresent(aiCutProcessedTranslations, forKey: .aiCutProcessedTranslations)
     try container.encodeIfPresent(aiCutRemovedSegmentIDs, forKey: .aiCutRemovedSegmentIDs)
+    try container.encodeIfPresent(aiCutDubbedClips, forKey: .aiCutDubbedClips)
   }
 }
 

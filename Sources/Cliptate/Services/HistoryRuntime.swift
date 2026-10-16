@@ -40,6 +40,14 @@ final class HistoryRuntime: ObservableObject {
     store.replace(session)
   }
 
+  func retainDubbingClips(_ clips: [DubbedClip], for sessionID: UUID) throws {
+    guard var session = store.sessions.first(where: { $0.id == sessionID }) else {
+      throw CocoaError(.fileNoSuchFile)
+    }
+    session.aiCutDubbedClips = clips
+    store.replace(session)
+  }
+
   func existingFileTranscriptionSessionID(forSourceURL url: URL) -> UUID? {
     store.existingFileTranscriptionSessionID(forSourceURL: url)
   }

@@ -2,7 +2,7 @@ import AVFoundation
 import Foundation
 
 public class AudioProcessor {
-  public static func loadAndConvertAudio(url: URL) async throws -> [Float] {
+  public static func loadAndConvertAudio(url: URL, timeRange: CMTimeRange? = nil) async throws -> [Float] {
     let asset = AVURLAsset(url: url)
     let assetAudioTrack = try await asset.loadTracks(withMediaType: .audio).first
 
@@ -13,6 +13,7 @@ public class AudioProcessor {
     }
 
     let assetReader = try AVAssetReader(asset: asset)
+    if let timeRange { assetReader.timeRange = timeRange }
 
     let outputSettings: [String: Any] = [
       AVFormatIDKey: kAudioFormatLinearPCM,

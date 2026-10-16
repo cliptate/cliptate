@@ -234,6 +234,46 @@ Repository identity must match the selected model: `mlx-community/Qwen3-0.6B-4bi
 is a text model, while transcription uses repositories such as
 `mlx-community/Qwen3-ASR-0.6B-8bit`.
 
+### Video dubbing
+
+Open **Video Dubbing** in the AI Cut segment panel after transcription. Translate
+the content, choose a downloaded Qwen3-TTS Base model, and generate the missing or
+changed segments. The first version targets single-speaker videos and the existing
+English, Chinese, Japanese, and Korean dubbing language selections. Automatic voice
+reference uses an original speech segment between 1 and 12 seconds; custom reference
+audio requires its matching transcript.
+
+Each sentence retains its output start, including after silence removal. Speech
+may speed up by at most 1.3×; longer translations must be shortened before export.
+Decoder priming silence and excess release silence are removed before fitting;
+short pauses within speech are retained. Empty, silent, or click-only generation
+is reported as a synthesis failure. The adapter retries full waveform decoding
+when voice-clone streaming produces no audible speech.
+The editor supports individual regeneration and a video preview of each fitted
+sentence. Overlong speech can still be heard as an audio preview. Dubbing replaces
+the entire original audio track, including music and ambient sound; it does not
+change lip movement.
+
+Video and audio exports reuse retained sentence audio. Export preflight reports
+missing translations, stale audio, and synthesis failures instead of reverting to
+the original voice. Generation checks cancellation between sentences and preserves
+completed audio. Metadata lives in transcript history; generated WAV files live
+under the active application's `Application Support/.../dubbing-audio` directory,
+outside Git. History removal and expiry remove the associated owned audio.
+
+`VideoDubbingRuntimeTests.realModelSmoke` is opt-in with
+`RUN_DUBBING_MODEL_TESTS=1`. It uses the already downloaded 0.6B Base 4-bit model
+and accepts `DUBBING_TEST_METALLIB_PATH`, `DUBBING_TEST_SOURCE_PATH`,
+`DUBBING_TEST_REFERENCE_PATH`, `DUBBING_TEST_REFERENCE_TEXT`, and optional
+`DUBBING_TEST_OUTPUT_PATH`. The automatic-reference comparison uses the source
+fixture's 6.64–11.76 second speech range. Ordinary tests use injected inference
+and do not download weights.
+
+`DubbedVideoExportTests.realAudioSmoke` can then run with
+`RUN_DUBBING_EXPORT_TESTS=1`, the same source path, and the generated WAV path in
+`DUBBING_TEST_OUTPUT_PATH`. It retains clean and subtitled MP4 exports beside the
+WAV for playback checks and verifies their tracks, duration, and portrait layout.
+
 ### Whisper transcription
 
 The existing MLX Audio Swift 0.1.5 dependency supplies Whisper; no separate

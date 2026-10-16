@@ -172,6 +172,9 @@ final class TranscriptHistoryStore: ObservableObject {
     if result.aiCutOriginalSegments == nil {
       result.aiCutOriginalSegments = existing.aiCutOriginalSegments
     }
+    if result.aiCutDubbedClips == nil && !replacedTranscription && !replacingTranscription {
+      result.aiCutDubbedClips = existing.aiCutDubbedClips
+    }
     return result
   }
 
@@ -334,7 +337,7 @@ final class TranscriptHistoryStore: ObservableObject {
         logger.error("Failed to remove TTS audio file: \(error.localizedDescription)")
       }
     case .fileTranscription:
-      break
+      DubbingAssetStorage.removeAssets(for: session)
     }
   }
 }

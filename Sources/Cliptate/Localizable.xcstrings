@@ -1,6 +1,249 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "The model produced no audible speech. Regenerate or choose another model or voice reference.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "模型未生成可听见的语音，请重新生成，或更换模型、声音参考。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "聞き取れる音声が生成されませんでした。再生成するか、モデルまたは参照音声を変更してください。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "모델이 들을 수 있는 음성을 생성하지 못했습니다. 다시 생성하거나 모델 또는 참조 음성을 변경하세요." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Das Modell hat keine hörbare Sprache erzeugt. Erzeugen Sie den Abschnitt neu oder wählen Sie ein anderes Modell bzw. eine andere Stimmreferenz." } }
+      }
+    },
+    "Speech is out of date. Regenerate this segment.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "配音已过期，请重新生成此片段。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "音声が古くなっています。この区間を再生成してください。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "음성이 변경 전 상태입니다. 이 구간을 다시 생성하세요." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Die Sprachaufnahme ist veraltet. Erzeugen Sie diesen Abschnitt neu." } }
+      }
+    },
+    "Video Dubbing": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "视频配音" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "動画の吹き替え" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "동영상 더빙" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Videosynchronisation" } }
+      }
+    },
+    "Use dubbing for video and audio exports": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "视频和音频导出时使用配音" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "動画と音声の書き出しに吹き替えを使用" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "동영상 및 오디오 내보내기에 더빙 사용" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Synchronstimme für Video- und Audioexporte verwenden" } }
+      }
+    },
+    "Dubbing replaces all original audio, including music and background sound.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "配音将替换全部原音，包括音乐和环境声。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "吹き替えは音楽や環境音を含む元の音声すべてを置き換えます。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "더빙은 음악과 배경음을 포함한 모든 원본 오디오를 대체합니다." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Die Synchronstimme ersetzt den gesamten Originalton einschließlich Musik und Hintergrundgeräuschen." } }
+      }
+    },
+    "Replace the original audio in video and audio exports with translated speech.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "导出视频和音频时，以译文配音替换原音。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "動画と音声の書き出しで元の音声を翻訳した読み上げに置き換えます。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "동영상 및 오디오 내보내기에서 원본 오디오를 번역된 음성으로 대체합니다." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Ersetzt den Originalton in Video- und Audioexporten durch die gesprochene Übersetzung." } }
+      }
+    },
+    "Dubbing settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "配音设置" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "吹き替え設定" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "더빙 설정" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Synchronisationseinstellungen" } }
+      }
+    },
+    "Audio preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "音频试听" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "音声プレビュー" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "오디오 미리 듣기" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Audiovorschau" } }
+      }
+    },
+    "Dubbed video preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "配音视频预览" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "吹き替え動画のプレビュー" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "더빙 동영상 미리 보기" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Vorschau des synchronisierten Videos" } }
+      }
+    },
+    "Generate missing or changed segments": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "生成未完成或已修改的片段" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "未生成・変更済みの区間を生成" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "미완료 또는 변경된 구간 생성" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Fehlende oder geänderte Abschnitte erzeugen" } }
+      }
+    },
+    "Generate": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "生成" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "生成" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "생성" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Erzeugen" } }
+      }
+    },
+    "Regenerate": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "重新生成" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "再生成" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "다시 생성" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Neu erzeugen" } }
+      }
+    },
+    "Ready to preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "可试听" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "プレビュー可能" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "미리 듣기 준비됨" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Bereit zur Vorschau" } }
+      }
+    },
+    "Preparing dubbing…": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在准备配音…" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "吹き替えを準備中…" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "더빙 준비 중…" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Synchronisation wird vorbereitet…" } }
+      }
+    },
+    "Dubbing error": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "配音错误" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "吹き替えエラー" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "더빙 오류" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Synchronisationsfehler" } }
+      }
+    },
+    "Dubbing cancelled. Completed segments are retained.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "配音已取消，已完成的片段已保留。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "吹き替えをキャンセルしました。生成済みの区間は保持されます。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "더빙이 취소되었습니다. 완료된 구간은 유지됩니다." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Synchronisation abgebrochen. Fertige Abschnitte bleiben erhalten." } }
+      }
+    },
+    "Export dubbed video…": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "导出配音视频…" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "吹き替え動画を書き出す…" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "더빙 동영상 내보내기…" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Synchronisiertes Video exportieren…" } }
+      }
+    },
+    "Exporting dubbed video…": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在导出配音视频…" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "吹き替え動画を書き出し中…" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "더빙 동영상 내보내는 중…" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Synchronisiertes Video wird exportiert…" } }
+      }
+    },
+    "Dubbed video exported.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "配音视频已导出。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "吹き替え動画を書き出しました。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "더빙 동영상을 내보냈습니다." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Synchronisiertes Video exportiert." } }
+      }
+    },
+    "Transcribe the video before preparing dubbing.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请先转录视频，再准备配音。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "吹き替えの前に動画を文字起こししてください。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "더빙을 준비하기 전에 동영상을 전사하세요." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Transkribieren Sie das Video vor der Synchronisation." } }
+      }
+    },
+    "Shorten marked translations to fit the video. Speech is never cut off to fit.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请缩短标记出的译文以适配画面，语音不会被强行截断。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "印のある翻訳を動画に収まる長さに短くしてください。音声を途中で切ることはありません。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "표시된 번역을 동영상 길이에 맞게 줄이세요. 음성은 잘리지 않습니다." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Kürzen Sie markierte Übersetzungen passend zum Video. Sprache wird nicht abgeschnitten." } }
+      }
+    },
+    "Resolve the marked dubbing segments before exporting.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请先处理标记出的配音片段，再导出。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "書き出す前に印のある吹き替え区間を修正してください。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "내보내기 전에 표시된 더빙 구간을 수정하세요." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Beheben Sie vor dem Export die markierten Synchronisationsabschnitte." } }
+      }
+    },
+    "No suitable voice reference was found. Select custom reference audio in Dubbing settings.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未找到合适的声音参考，请在配音设置中选择自定义参考音频并填写对应文本。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "適切な参照音声がありません。吹き替え設定で参照音声とその書き起こしを指定してください。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "적절한 참조 음성이 없습니다. 더빙 설정에서 참조 오디오와 해당 텍스트를 지정하세요." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Keine geeignete Stimmreferenz gefunden. Wählen Sie in den Synchronisationseinstellungen Referenzaudio mit Transkript aus." } }
+      }
+    },
+    "Another dubbing task is running. Wait for it to finish or cancel it first.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "另一个配音任务正在运行，请等待完成或先取消该任务。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "別の吹き替え処理が実行中です。完了を待つか、先にキャンセルしてください。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "다른 더빙 작업이 실행 중입니다. 완료될 때까지 기다리거나 먼저 취소하세요." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Eine andere Synchronisation läuft. Warten Sie auf den Abschluss oder brechen Sie sie zuerst ab." } }
+      }
+    },
+    "Translation is too long. Shorten it and regenerate this segment.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "译文过长，请缩短后重新生成此片段。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "翻訳が長すぎます。短くしてこの区間を再生成してください。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "번역이 너무 깁니다. 줄인 후 이 구간을 다시 생성하세요." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Die Übersetzung ist zu lang. Kürzen Sie sie und erzeugen Sie diesen Abschnitt neu." } }
+      }
+    },
+    "Translate this segment before generating speech.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请先翻译此片段，再生成配音。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "音声を生成する前にこの区間を翻訳してください。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "음성을 생성하기 전에 이 구간을 번역하세요." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Übersetzen Sie diesen Abschnitt vor der Spracherzeugung." } }
+      }
+    },
+    "Generate this segment to prepare the dubbed video.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请生成此片段以准备配音视频。" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "吹き替え動画を準備するにはこの区間を生成してください。" } },
+        "ko": { "stringUnit": { "state": "translated", "value": "더빙 동영상을 준비하려면 이 구간을 생성하세요." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Erzeugen Sie diesen Abschnitt zur Vorbereitung des synchronisierten Videos." } }
+      }
+    },
     "Transcript corrected and delivered via AI.": {
       "extractionState": "manual",
       "localizations": {

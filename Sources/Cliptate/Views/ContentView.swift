@@ -120,6 +120,7 @@ class VideoState: ObservableObject {
   @Published var translationSignature: Int? = nil
   @Published var lastTranslatedLanguage: Language? = nil
   @Published var processedTranslations: [String: SegmentTranslation] = [:]
+  @Published var dubbedClips: [DubbedClip] = []
   @Published var presentationSize: CGSize? = nil
   @Published var removedProcessedSegmentIDs: Set<SegmentIdentifier> = []
   /// Processed segments (after padding, splitting, filler removal, etc.) used for video subtitle rendering.
@@ -127,6 +128,11 @@ class VideoState: ObservableObject {
   @Published var processedSegments: [Segment] = []
   var historySessionID: UUID? = nil
   let playback: VideoPlaybackCoordinator = .init()  // Immutable reference
+
+  func retainDubbedClip(_ clip: DubbedClip) {
+    dubbedClips.removeAll { $0.segmentIdentifier == clip.segmentIdentifier }
+    dubbedClips.append(clip)
+  }
 
   init(segments: [Segment] = [], audioDuration: TimeInterval? = nil) {
     self.segments = segments

@@ -235,6 +235,21 @@ actor MLXTTSService {
         language: String?,
         variantPreference: TTSVariantPreference = .automatic
     ) async throws -> [Float] {
+        try await synthesizeDubbingAudio(
+            text: text, modelDefinition: modelDefinition, voiceDescription: voiceDescription,
+            referenceAudioURL: referenceAudioURL, referenceText: referenceText,
+            language: language, variantPreference: variantPreference).samples
+    }
+
+    func synthesizeDubbingAudio(
+        text: String,
+        modelDefinition: MLXTTSModelDefinition,
+        voiceDescription: String?,
+        referenceAudioURL: URL?,
+        referenceText: String?,
+        language: String?,
+        variantPreference: TTSVariantPreference = .automatic
+    ) async throws -> DubbingAudio {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw MLXTTSError.emptyInput }
 
@@ -265,7 +280,7 @@ actor MLXTTSService {
         )
 
         let sampleRate = modelBox.value.sampleRate
-        let samples = try await Self.resolveOutputSamples(
+        var samples = try await Self.resolveOutputSamples(
             using: plan,
             sampleRate: sampleRate,
             refAudio: refAudio,
@@ -286,8 +301,18 @@ actor MLXTTSService {
                 )
             }
         )
+        if isVoiceClone, !DubbingAudio(samples: samples, sampleRate: sampleRate).containsSpeech,
+           let referenceAudioURL {
+            try Task.checkCancellation()
+            logger.warning("Voice clone stream contains no speech; retrying full waveform decoding")
+            let (_, retryReference) = try loadAudioArray(from: referenceAudioURL, sampleRate: sampleRate)
+            let waveform = try await modelBox.value.generate(
+                text: plan.text, voice: voiceDescription, refAudio: retryReference,
+                refText: refText, language: language, generationParameters: plan.generationParameters)
+            samples = Self.finalizeOutputSamples(waveform.asArray(Float.self), sampleRate: sampleRate, isVoiceClone: true)
+        }
         logger.info("synthesizeSamples: \(samples.count) samples (\(String(format: "%.2f", Double(samples.count) / Double(sampleRate)))s)")
-        return samples
+        return DubbingAudio(samples: samples, sampleRate: sampleRate)
     }
 
     /// Streaming synthesize: yields accumulated sample count as chunks arrive.
@@ -466,7 +491,7 @@ actor MLXTTSService {
 
     private static func defaultSentenceTerminator(for language: String?) -> String {
         switch language {
-        case "zh", "ja":
+        case "zh", "ja", "chinese", "japanese":
             return "。"
         default:
             return "."

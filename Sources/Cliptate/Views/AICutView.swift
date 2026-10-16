@@ -355,6 +355,11 @@ struct AICutView: View {
       },
       onSegmentDelete: { displaySegment in
         deleteSegment(displaySegment: displaySegment)
+      },
+      onDubbingChanged: { url in
+        if let state = videoStates[url] {
+          persistDubbingState(for: url, state: state)
+        }
       }
     )
     .environmentObject(config)
@@ -1760,12 +1765,13 @@ struct AICutView: View {
     var failures: [String: String] = [:]
 
     let exporter = VideoExporter()
+    let dubbingEnabled = config.audioDubbingEnabled
 
     for (index, url) in urls.enumerated() {
       applyIfCurrentAICutSession(sessionGeneration) {
         exportProgress.updateProgress(for: .video, current: index, total: urls.count)
         statusText =
-          burnIn
+          (burnIn || dubbingEnabled)
           ? "Exporting video [\(index + 1)/\(urls.count)]: \(url.lastPathComponent)..."
           : "Copying video [\(index + 1)/\(urls.count)]: \(url.lastPathComponent)..."
       }
@@ -1774,7 +1780,7 @@ struct AICutView: View {
 
       do {
         let extensionName: String
-        if burnIn {
+        if burnIn || dubbingEnabled {
           extensionName = format.fileExtension
         } else {
           let originalExt = url.pathExtension
@@ -1782,7 +1788,9 @@ struct AICutView: View {
         }
 
         let fileName: String
-        if mode == .merge {
+        if dubbingEnabled {
+          fileName = "\(baseName.isEmpty ? "Video" : baseName)_\(index + 1)_dubbed"
+        } else if mode == .merge {
           fileName = "Project_video"
         } else {
           fileName = baseName.isEmpty ? "Video_video" : "\(baseName)_video"
@@ -1791,14 +1799,14 @@ struct AICutView: View {
         let outputURL = destinationDirectory.appendingPathComponent(fileName)
           .appendingPathExtension(extensionName)
 
-        if FileManager.default.fileExists(atPath: outputURL.path) {
+        if !dubbingEnabled && FileManager.default.fileExists(atPath: outputURL.path) {
           try FileManager.default.removeItem(at: outputURL)
         }
 
         let needsStop = url.startAccessingSecurityScopedResource()
         defer { if needsStop { url.stopAccessingSecurityScopedResource() } }
 
-        if burnIn {
+        if burnIn || dubbingEnabled {
           let segments = paddedSegments(for: url)
           guard !segments.isEmpty else {
             throw ExportError.noSegments
@@ -1811,6 +1819,14 @@ struct AICutView: View {
           let effects = resolvedEffects(for: url)
           let placement = config.translationPlacement
           let styles = config.subtitleStyles
+          var dubbedAudioURL: URL?
+          defer { if let dubbedAudioURL { try? FileManager.default.removeItem(at: dubbedAudioURL) } }
+          if dubbingEnabled {
+            let preparation = try await prepareDubbing(for: url, sessionGeneration: sessionGeneration)
+            let audioURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).wav")
+            dubbedAudioURL = audioURL
+            try await dubbingRuntime.exportAudio(preparation, to: audioURL, format: .wav)
+          }
 
           try await exporter.exportVideoWithSubtitles(
             videoURL: url,
@@ -1820,6 +1836,8 @@ struct AICutView: View {
             effects: effects,
             translationPlacement: placement,
             styleConfiguration: styles,
+            dubbedAudioURL: dubbedAudioURL,
+            burnInSubtitles: burnIn,
             quality: quality
           )
         } else {
@@ -1832,6 +1850,8 @@ struct AICutView: View {
         }
 
         outputs.append(outputURL)
+      } catch is CancellationError {
+        throw CancellationError()
       } catch let error as ExportError {
         failures[url.lastPathComponent] = error.localizedDescription
       } catch {
@@ -1858,41 +1878,10 @@ struct AICutView: View {
     format: AudioExportFormat,
     sessionGeneration: UInt64
   ) async throws -> (outputs: [URL], failures: [String: String]) {
-    // When dubbing is enabled, attempt DubbingService with graceful fallback
     if config.audioDubbingEnabled {
-      // Check if a voice-clone-capable model can be resolved
-      guard let modelDef = dubbingRuntime.resolveVoiceCloneModel(
-        preferredRepo: config.ttsMLXModelId
-      ) else {
-        // No voice-clone model available at all; fall back to regular export
-        return try await performPlainAudioExport(
-          urls: urls, mode: mode, destinationDirectory: destinationDirectory,
-          format: format, sessionGeneration: sessionGeneration
-        )
-      }
-
-      // Check if segments have translations for dubbing
-      let firstURL = urls.first
-      let hasTranslatableContent = firstURL.map { url in
-        dubbingRuntime.canPerformDubbing(
-          segments: paddedSegments(for: url),
-          ttsLanguage: config.translationTargetLanguage.rawValue
-        )
-      } ?? false
-
-      if hasTranslatableContent {
-        return try await performBatchDubbingExport(
-          urls: urls, mode: mode, destinationDirectory: destinationDirectory,
-          format: format, sessionGeneration: sessionGeneration,
-          resolvedModel: modelDef
-        )
-      } else {
-        // Dubbing enabled but preconditions not met; fall back to regular export
-        return try await performPlainAudioExport(
-          urls: urls, mode: mode, destinationDirectory: destinationDirectory,
-          format: format, sessionGeneration: sessionGeneration
-        )
-      }
+      return try await performBatchDubbingExport(
+        urls: urls, mode: mode, destinationDirectory: destinationDirectory,
+        format: format, sessionGeneration: sessionGeneration)
     }
 
     return try await performPlainAudioExport(
@@ -1960,23 +1949,10 @@ struct AICutView: View {
     mode: ExportMode,
     destinationDirectory: URL,
     format: AudioExportFormat,
-    sessionGeneration: UInt64,
-    resolvedModel: MLXTTSModelDefinition
+    sessionGeneration: UInt64
   ) async throws -> (outputs: [URL], failures: [String: String]) {
     var outputs: [URL] = []
     var failures: [String: String] = [:]
-
-    // Acquire TTS model through ModelCacheManager for proper memory management.
-    // This ensures we reuse the same model instance as the TTS preview page
-    // and prevents redundant model loads.
-    let engine = config.ttsEngine
-    let modelID = resolvedModel.huggingFaceRepo
-    _ = try await ModelCacheManager.shared.ensureTTSModel(engine: engine, modelID: modelID)
-    defer {
-      Task {
-        await ModelCacheManager.shared.releaseTTSModel(engine: engine, modelID: modelID)
-      }
-    }
 
     for (index, url) in urls.enumerated() {
       applyIfCurrentAICutSession(sessionGeneration) {
@@ -1988,13 +1964,10 @@ struct AICutView: View {
         continue
       }
 
-      let totalDuration = videoStates[url]?.audioDuration
-        ?? segments.last?.endTime ?? 0
-
       let baseName = sanitizedFileName(from: url.deletingPathExtension().lastPathComponent)
       let fileName: String
       if mode == .merge {
-        fileName = "Project_dubbed"
+        fileName = "\(baseName.isEmpty ? "Video" : baseName)_\(index + 1)_dubbed"
       } else {
         fileName = baseName.isEmpty ? "Video_dubbed" : "\(baseName)_dubbed"
       }
@@ -2006,44 +1979,11 @@ struct AICutView: View {
       defer { if needsStop { url.stopAccessingSecurityScopedResource() } }
 
       do {
-        // Resolve custom voice reference if configured
-        var customRefURL: URL? = nil
-        var customRefText: String? = nil
-        if config.dubbingVoiceReferenceMode == .custom {
-          customRefURL = resolveReferenceAudioURL()
-          customRefText = config.ttsReferenceText.isEmpty ? nil : config.ttsReferenceText
-        }
-
-        let result = try await dubbingRuntime.generateDubbedAudio(
-          sourceMediaURL: url,
-          segments: segments,
-          totalDuration: totalDuration,
-          ttsModelDefinition: resolvedModel,
-          ttsLanguage: config.translationTargetLanguage.rawValue,
-          outputURL: outputURL,
-          outputFormat: format,
-          presetSpeaker: config.ttsPresetSpeaker.isEmpty ? nil : config.ttsPresetSpeaker,
-          customReferenceAudioURL: customRefURL,
-          customReferenceText: customRefText,
-          progress: { progress in
-            Task { @MainActor in
-              switch progress.phase {
-              case .extractingReference:
-                self.statusText = String(localized: "Extracting voice reference...", comment: "Dubbing status message")
-              case .synthesizing:
-                let samplesInfo = progress.generatedSamples > 0
-                  ? String(localized: " (\(String(format: "%.1f", Double(progress.generatedSamples) / 24000.0))s generated)", comment: "Dubbing status: seconds of audio generated")
-                  : ""
-                self.statusText = String(localized: "Dubbing segment [\(progress.currentSegment)/\(progress.totalSegments)]\(samplesInfo)...", comment: "Dubbing status message")
-              case .composing:
-                self.statusText = String(localized: "Composing dubbed audio...", comment: "Dubbing status message")
-              case .exporting:
-                self.statusText = String(localized: "Exporting dubbed audio...", comment: "Dubbing status message")
-              }
-            }
-          }
-        )
-        outputs.append(result.audioFileURL)
+        let preparation = try await prepareDubbing(for: url, sessionGeneration: sessionGeneration)
+        try await dubbingRuntime.exportAudio(preparation, to: outputURL, format: format)
+        outputs.append(outputURL)
+      } catch is CancellationError {
+        throw CancellationError()
       } catch {
         failures[url.lastPathComponent] = error.localizedDescription
       }
@@ -2058,6 +1998,32 @@ struct AICutView: View {
     }
 
     return (outputs, failures)
+  }
+
+  @MainActor
+  private func prepareDubbing(for url: URL, sessionGeneration: UInt64) async throws -> DubbingPreparation {
+    guard let state = videoStates[url] else { throw ExportError.noSegments }
+    let segments = paddedSegments(for: url)
+    let settings = try VideoDubbingRequest.make(sourceURL: url, state: state, segments: segments, configuration: config)
+    let duration = try await AVURLAsset(url: url).load(.duration).seconds
+    let request = VideoDubbingRequest(
+      sourceMediaURL: settings.sourceMediaURL, segments: settings.segments, totalDuration: duration,
+      filterSilentSegments: settings.filterSilentSegments, model: settings.model, language: settings.language,
+      referenceAudioURL: settings.referenceAudioURL, referenceText: settings.referenceText,
+      assetDirectory: settings.assetDirectory, referenceSegments: settings.referenceSegments)
+    guard sessionGeneration == aiCutSessionGeneration else { throw CancellationError() }
+    statusText = String(localized: "Preparing dubbing…")
+    let preparation = try await dubbingRuntime.prepare(request: request, cachedClips: state.dubbedClips) { clip in
+      applyIfCurrentAICutSession(sessionGeneration) {
+        state.retainDubbedClip(clip)
+        persistDubbingState(for: url, state: state)
+      }
+    }
+    guard sessionGeneration == aiCutSessionGeneration else { throw CancellationError() }
+    if let issue = preparation.issues.first {
+      throw NSError(domain: "VideoDubbing", code: 1, userInfo: [NSLocalizedDescriptionKey: issue.message])
+    }
+    return preparation
   }
 
   private func exportSingleVideo(url: URL) {
@@ -2449,6 +2415,15 @@ struct AICutView: View {
     return state.segmentEffects.adjusted(for: config.effectConfiguration)
   }
 
+  @MainActor
+  private func persistDubbingState(for url: URL, state: VideoState) {
+    markTranslationsChanged(for: url, state: state)
+    if let id = state.historySessionID {
+      do { try historyRuntime.retainDubbingClips(state.dubbedClips, for: id) }
+      catch { statusText = error.localizedDescription }
+    }
+  }
+
   /// Persists current segment text edits to the history store, keeping translations and deletions in sync.
   @MainActor
   private func markSegmentsChanged(for url: URL, state: VideoState) {
@@ -2624,26 +2599,6 @@ struct AICutView: View {
     let components = raw.components(separatedBy: invalid)
     let sanitized = components.filter { !$0.isEmpty }.joined(separator: "_")
     return sanitized.isEmpty ? "Export" : sanitized
-  }
-
-  /// Resolve custom reference audio URL from security-scoped bookmark or raw path.
-  private func resolveReferenceAudioURL() -> URL? {
-    if let bookmark = config.ttsReferenceAudioBookmark {
-      var isStale = false
-      if let url = try? URL(
-        resolvingBookmarkData: bookmark,
-        options: .withSecurityScope,
-        relativeTo: nil,
-        bookmarkDataIsStale: &isStale
-      ) {
-        _ = url.startAccessingSecurityScopedResource()
-        return url
-      }
-    }
-    let path = config.ttsReferenceAudioPath
-    guard !path.isEmpty else { return nil }
-    let url = URL(fileURLWithPath: path)
-    return FileManager.default.fileExists(atPath: path) ? url : nil
   }
 
   /// 针对指定 URL 生成 padding 后 segments（不存在则空）

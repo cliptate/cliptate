@@ -1119,10 +1119,11 @@ private struct HistoryDetailView: View {
       let state = VideoState(segments: segments)
       state.originalSegments = session.aiCutOriginalSegments ?? segments
       let maxEnd = segments.map(\.endTime).max() ?? 0
-      state.audioDuration = maxEnd
+      state.audioDuration = max(maxEnd, session.endTime?.timeIntervalSince(session.startTime) ?? maxEnd)
       state.lastTranslatedLanguage = session.aiCutLastTranslatedLanguage
       state.translationSignature = segments.isEmpty ? nil : SegmentSignature.compute(for: segments)
       state.historySessionID = session.id
+      state.dubbedClips = session.aiCutDubbedClips ?? []
       if let persisted = session.aiCutProcessedTranslations, !persisted.isEmpty {
         state.processedTranslations = persisted
       } else {
