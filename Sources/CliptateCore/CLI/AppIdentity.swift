@@ -3,7 +3,7 @@ import Foundation
 
 /// The installed application's identity selects its storage and local CLI namespace.
 public enum AppIdentity: String, Sendable {
-  case production = "com.voicepink.voicepinkpro"
+  case production = "com.cliptate.app"
   case development = "com.cliptate.dev"
 
   public init(bundleIdentifier: String?) {

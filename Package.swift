@@ -33,6 +33,7 @@ let package = Package(
         .library(name: "CliptateCore", targets: ["CliptateCore"])
     ],
     dependencies: [
+        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", exact: "13.0.1"),
         .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0"),
         .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.4.0"),
         .package(url: "https://github.com/sindresorhus/LaunchAtLogin-Modern.git", from: "1.1.0"),
@@ -57,6 +58,8 @@ let package = Package(
             name: "Cliptate",
             dependencies: [
                 "CliptateCore",
+                .product(name: "FirebaseCore", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseAnalyticsCore", package: "firebase-ios-sdk"),
                 "KeyboardShortcuts",
                 .product(name: "Sparkle", package: "Sparkle"),
                 .product(name: "LaunchAtLogin", package: "LaunchAtLogin-Modern"),
@@ -84,7 +87,7 @@ let package = Package(
                 .process("Localizable.xcstrings")
             ],
             swiftSettings: channelSwiftSettings,
-            linkerSettings: releaseLinkerSettings
+            linkerSettings: releaseLinkerSettings + [.unsafeFlags(["-Xlinker", "-ObjC"])]
         ),
         .testTarget(name: "CliptateCoreTests", dependencies: ["CliptateCore"]),
         .testTarget(

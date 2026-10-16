@@ -33,7 +33,7 @@ class BuildChannelTests(unittest.TestCase):
                     permissions = app_bundle.entitlements(values)
                     self.assertFalse(info["ITSAppUsesNonExemptEncryption"])
                     self.assertEqual(info["CFBundleIdentifier"], "com.cliptate.dev" if configuration == "Debug"
-                                     else "com.voicepink.voicepinkpro")
+                                     else "com.cliptate.app")
                     self.assertEqual(info["CFBundleExecutable"], "Cliptate Dev" if configuration == "Debug" else "Cliptate")
                     scheme = info["CFBundleURLTypes"][0]["CFBundleURLSchemes"][0]
                     self.assertEqual(scheme.endswith("-disabled"), store)
@@ -77,6 +77,17 @@ class BuildChannelTests(unittest.TestCase):
 
 
 class BundleAssemblyTests(unittest.TestCase):
+    def test_firebase_configuration_matches_the_bundled_identity(self):
+        for configuration in ["Debug", "Release"]:
+            with self.subTest(configuration=configuration), tempfile.TemporaryDirectory() as directory:
+                app, _, _ = self.assemble(directory, "NO", configuration)
+                info = plistlib.loads((app / "Contents/Info.plist").read_bytes())
+                firebase = plistlib.loads((app / "Contents/Resources/GoogleService-Info.plist").read_bytes())
+                self.assertEqual(firebase["BUNDLE_ID"], info["CFBundleIdentifier"])
+                self.assertEqual(firebase["PROJECT_ID"], "cliptate-9d41b")
+                self.assertFalse(info["FirebaseAppDelegateProxyEnabled"])
+                self.assertFalse(info["FIREBASE_ANALYTICS_COLLECTION_ENABLED"])
+
     def assemble(self, directory, channel, configuration="Debug", fail_signing=False):
         work = Path(directory)
         bin_path = work / "bin"

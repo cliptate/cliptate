@@ -345,6 +345,11 @@ struct ContentView: View {
     .onChange(of: selectedVideoURLs) { _, newValue in
       securityScopeManager.sync(with: newValue)
     }
+    .onChange(of: currentSection, initial: true) { _, section in
+      if let section {
+        AnalyticsRuntime.shared.record(.featureOpened(section))
+      }
+    }
     .onChange(of: shortcutTranscriber.state) { _, newValue in
       if newValue == .idle {
         shortcutFinalizeIfNeeded()

@@ -11,8 +11,8 @@ import os.log
 
 @main
 struct CliptateApp: App {
+  @NSApplicationDelegateAdaptor(CliptateApplicationDelegate.self) private var appDelegate
   #if !APP_STORE
-  @NSApplicationDelegateAdaptor(CLIApplicationDelegate.self) private var cliDelegate
   @StateObject private var cliLifecycle = CLIApplicationLifecycle.shared
   #endif
   @StateObject private var config: AppConfiguration

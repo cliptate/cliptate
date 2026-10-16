@@ -1423,6 +1423,15 @@ struct AICutView: View {
         return
       }
 
+      let analyticsStarted = Date()
+      var analyticsOutcome: AnalyticsOutcome = .failed
+      defer {
+        AnalyticsRuntime.shared.record(.operationFinished(
+          .export,
+          outcome: Task.isCancelled ? .cancelled : analyticsOutcome,
+          durationSeconds: Date().timeIntervalSince(analyticsStarted)))
+      }
+
       let mediaFiles: [MediaFile]
       do {
         mediaFiles = try await buildMediaFiles(for: transcribedURLs)
@@ -1567,6 +1576,8 @@ struct AICutView: View {
           failureMessages.append("Audio export failed – \(error.localizedDescription)")
         }
       }
+
+      analyticsOutcome = failureMessages.isEmpty ? .succeeded : .failed
 
       applyIfCurrentAICutSession(sessionGeneration) {
         let finalSummary = completedSections.joined(separator: ", ")
@@ -2090,6 +2101,15 @@ struct AICutView: View {
         return
       }
 
+      let analyticsStarted = Date()
+      var analyticsOutcome: AnalyticsOutcome = .failed
+      defer {
+        AnalyticsRuntime.shared.record(.operationFinished(
+          .export,
+          outcome: Task.isCancelled ? .cancelled : analyticsOutcome,
+          durationSeconds: Date().timeIntervalSince(analyticsStarted)))
+      }
+
       let mediaFiles: [MediaFile]
       do {
         mediaFiles = try await buildMediaFiles(for: [url])
@@ -2226,6 +2246,8 @@ struct AICutView: View {
       if request.includeFCPXML, let fcpxml = fcpxmlOutputs.first {
         await openInFinalCutPro(fcpxmlURL: fcpxml, sessionGeneration: sessionGeneration)
       }
+
+      analyticsOutcome = failureMessages.isEmpty ? .succeeded : .failed
 
       applyIfCurrentAICutSession(sessionGeneration) {
         if failureMessages.isEmpty {

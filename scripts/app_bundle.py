@@ -42,7 +42,7 @@ def settings(root=ROOT, environment=None):
         "CONFIGURATION": configuration,
         "CLIPTATE_APP_STORE": channel,
         "PRODUCT_NAME": "Cliptate Dev" if development else "Cliptate",
-        "PRODUCT_BUNDLE_IDENTIFIER": "com.cliptate.dev" if development else "com.voicepink.voicepinkpro",
+        "PRODUCT_BUNDLE_IDENTIFIER": "com.cliptate.dev" if development else "com.cliptate.app",
         "CLIPTATE_CLI_URL_SCHEME": ("cliptate-dev-cli" if development else "cliptate-cli")
         + ("-disabled" if channel == "YES" else ""),
     })
@@ -76,6 +76,13 @@ def info_plist(values, root=ROOT):
         "LSMinimumSystemVersion": "15.0",
         "LSApplicationCategoryType": "public.app-category.utilities",
         "NSHighResolutionCapable": True,
+        "FirebaseAppDelegateProxyEnabled": False,
+        "FirebaseAutomaticScreenReportingEnabled": False,
+        "FIREBASE_ANALYTICS_COLLECTION_ENABLED": False,
+        "GOOGLE_ANALYTICS_REGISTRATION_WITH_AD_NETWORK_ENABLED": False,
+        "GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_STORAGE": False,
+        "GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_USER_DATA": False,
+        "GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS": False,
     })
     return info
 
@@ -104,6 +111,16 @@ def copy_resources(bin_path, resources):
         if bundle.name in {"Cliptate_CliptateTests.bundle", "Cliptate_CliptateCoreTests.bundle"}:
             continue
         shutil.copytree(bundle, resources / bundle.name, symlinks=True)
+
+
+def copy_firebase_configuration(values, resources):
+    source = ROOT / "config/firebase" / values["CONFIGURATION"] / "GoogleService-Info.plist"
+    if not source.exists():
+        return
+    config = plistlib.loads(source.read_bytes())
+    if config.get("BUNDLE_ID") != values["PRODUCT_BUNDLE_IDENTIFIER"]:
+        raise ValueError("Firebase configuration does not match the app bundle identifier")
+    shutil.copy2(source, resources / "GoogleService-Info.plist")
 
 
 def compile_resources(resources, work):
@@ -196,6 +213,7 @@ def build_app(values, destination, identity):
         shutil.copy2(bin_path / "Cliptate", executable)
         relocate(executable)
         copy_resources(bin_path, resources)
+        copy_firebase_configuration(values, resources)
         info = info_plist(values)
         info.update(compile_resources(resources, work))
         compile_metal(resources, work)

@@ -36719,6 +36719,64 @@
           }
         }
       }
+    },
+    "Share usage statistics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享使用统计"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用状況の統計を共有"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사용 통계 공유"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nutzungsstatistiken teilen"
+          }
+        }
+      }
+    },
+    "Send app activity and performance data to Google Analytics. Audio, video, transcripts, and file names are never included." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向 Google Analytics 发送应用使用情况和性能数据。不包含音视频、转写文本或文件名。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリの利用状況とパフォーマンスデータを Google Analytics に送信します。音声、動画、文字起こし、ファイル名は含まれません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱 활동 및 성능 데이터를 Google Analytics로 전송합니다. 오디오, 동영상, 전사 텍스트 및 파일 이름은 포함되지 않습니다."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App-Aktivitäten und Leistungsdaten an Google Analytics senden. Audio, Videos, Transkripte und Dateinamen werden nicht übermittelt."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

@@ -72,6 +72,8 @@ extension AIProvider {
 /// 全局应用配置，集中管理可调参数（模型、语言、padding 等）
 @MainActor
 final class AppConfiguration: ObservableObject {
+  @Published var analyticsCollectionEnabled: Bool
+
   static let shared = AppConfiguration()
   static let defaultOpenAIEndpoint = "https://api.openai.com/v1"
   nonisolated static let defaultSystemCorrectionPrompt =
@@ -81,6 +83,7 @@ final class AppConfiguration: ObservableObject {
 
   init() {
     let defaults = Self.defaultSnapshot
+    analyticsCollectionEnabled = defaults.analyticsCollectionEnabled
     transcriberType = defaults.transcriberType
     modelVariant = defaults.modelVariant
     language = defaults.language
@@ -563,6 +566,7 @@ extension AppConfiguration {
   }
 
   struct Snapshot: Equatable, Codable, Sendable {
+    var analyticsCollectionEnabled: Bool = true
     var transcriberType: TranscriberType
     var modelVariant: ModelVariant
     var language: Language
@@ -649,6 +653,7 @@ extension AppConfiguration.Snapshot {
   /// so old persisted snapshots still decode correctly.
   init(from decoder: any Decoder) throws {
     let c = try decoder.container(keyedBy: CodingKeys.self)
+    analyticsCollectionEnabled = try c.decodeIfPresent(Bool.self, forKey: .analyticsCollectionEnabled) ?? true
     transcriberType = try c.decode(TranscriberType.self, forKey: .transcriberType)
     modelVariant = try c.decode(ModelVariant.self, forKey: .modelVariant)
     language = try c.decode(Language.self, forKey: .language)
@@ -809,6 +814,7 @@ extension AppConfiguration {
 
   func makeSnapshot() -> Snapshot {
     Snapshot(
+      analyticsCollectionEnabled: analyticsCollectionEnabled,
       transcriberType: transcriberType,
       modelVariant: modelVariant,
       language: language,
@@ -889,6 +895,7 @@ extension AppConfiguration {
   }
 
   func applySnapshot(_ snap: Snapshot) {
+    analyticsCollectionEnabled = snap.analyticsCollectionEnabled
     transcriberType = snap.transcriberType
     modelVariant = snap.modelVariant
     language = snap.language

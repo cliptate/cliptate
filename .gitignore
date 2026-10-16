@@ -26,6 +26,7 @@ config/Local.json
 *.gguf
 
 # Local tooling and editor state.
+/anti-slop/
 .vscode/
 .idea/
 .worktrees/

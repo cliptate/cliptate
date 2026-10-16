@@ -55,6 +55,13 @@ into a distributable `.app`. `config/app.json` owns version and update defaults;
   across reshaped segments.
 - **Subscription:** RevenueCat, access control, and paywall code are included. SDK
   configuration is supplied locally, independently from source distribution.
+- **Usage analytics:** `AnalyticsRuntime` applies the restored collection preference and
+  accepts typed launch, navigation, transcription, and export events.
+  `FirebaseAnalyticsClient` owns the SDK adapter and accepts only the matching
+  bundled Firebase configuration. `AppConfiguration` owns the setting; snapshots
+  and presets preserve it. The SDK starts from the application delegate after
+  configuration restoration, in both distribution channels. See the
+  [analytics configuration](../development.md#usage-analytics).
 - **Application updates:** `AppUpdateManager` owns one Sparkle updater shared by
   the app menu, status item, and settings. Distribution metadata and receipt checks
   live in `AppUpdateConfiguration`; update preferences belong to Sparkle. Release

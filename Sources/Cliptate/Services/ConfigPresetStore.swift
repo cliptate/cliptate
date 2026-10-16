@@ -7,6 +7,7 @@ import SwiftUI
 struct ConfigPreset: Identifiable, Codable, Equatable {
   struct Payload: Codable, Equatable {
     enum CodingKeys: String, CodingKey {
+      case analyticsCollectionEnabled
       case transcriberType
       case modelVariant
       case language
@@ -55,6 +56,7 @@ struct ConfigPreset: Identifiable, Codable, Equatable {
       case voiceToTextCustomDictionary
     }
 
+    var analyticsCollectionEnabled: Bool?
     var transcriberType: TranscriberType
     var modelVariant: ModelVariant
     var language: Language
@@ -102,6 +104,7 @@ struct ConfigPreset: Identifiable, Codable, Equatable {
     var voiceToTextCustomDictionary: [String]
 
     init(
+      analyticsCollectionEnabled: Bool? = nil,
       transcriberType: TranscriberType,
       modelVariant: ModelVariant,
       language: Language,
@@ -148,6 +151,7 @@ struct ConfigPreset: Identifiable, Codable, Equatable {
       micIndicatorStyle: MicIndicatorStyle = .pulseBlue,
       voiceToTextCustomDictionary: [String] = []
     ) {
+      self.analyticsCollectionEnabled = analyticsCollectionEnabled
       self.transcriberType = transcriberType
       self.modelVariant = modelVariant
       self.language = language
@@ -198,6 +202,7 @@ struct ConfigPreset: Identifiable, Codable, Equatable {
 
     init(from decoder: Decoder) throws {
       let container = try decoder.container(keyedBy: CodingKeys.self)
+      analyticsCollectionEnabled = try container.decodeIfPresent(Bool.self, forKey: .analyticsCollectionEnabled)
       transcriberType = try container.decode(TranscriberType.self, forKey: .transcriberType)
       modelVariant = try container.decode(ModelVariant.self, forKey: .modelVariant)
       language = try container.decode(Language.self, forKey: .language)
@@ -297,6 +302,7 @@ struct ConfigPreset: Identifiable, Codable, Equatable {
 
     func encode(to encoder: Encoder) throws {
       var container = encoder.container(keyedBy: CodingKeys.self)
+      try container.encodeIfPresent(analyticsCollectionEnabled, forKey: .analyticsCollectionEnabled)
       try container.encode(transcriberType, forKey: .transcriberType)
       try container.encode(modelVariant, forKey: .modelVariant)
       try container.encode(language, forKey: .language)
@@ -551,6 +557,7 @@ final class ConfigPresetStore: ObservableObject, ConfigPresetStoreProtocol {
   // MARK: - Payload helpers
   func payload(from config: AppConfiguration) -> ConfigPreset.Payload {
     ConfigPreset.Payload(
+      analyticsCollectionEnabled: config.analyticsCollectionEnabled,
       transcriberType: config.transcriberType,
       modelVariant: config.modelVariant,
       language: config.language,
@@ -599,6 +606,9 @@ final class ConfigPresetStore: ObservableObject, ConfigPresetStoreProtocol {
   }
 
   func applyPayload(_ payload: ConfigPreset.Payload, to config: AppConfiguration) {
+    if let enabled = payload.analyticsCollectionEnabled {
+      config.analyticsCollectionEnabled = enabled
+    }
     config.transcriberType = payload.transcriberType
     config.modelVariant = payload.modelVariant
     config.language = payload.language

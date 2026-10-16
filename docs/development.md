@@ -42,7 +42,7 @@ graph. Full Xcode remains required for the SDK and resource/Metal compiler tools
 Open `Package.swift` for IDE editing; use the script to run the bundled application.
 Debug builds produce **Cliptate Dev.app** with bundle identifier `com.cliptate.dev`.
 Release builds retain **Cliptate.app** and the production identifier
-`com.voicepink.voicepinkpro`; CI packaging always selects Release. Products are in
+`com.cliptate.app`; CI packaging always selects Release. Products are in
 `.build/app/Build/Products/<configuration>`; `APP_BUILD_DIR` overrides the products
 root. Existing `DERIVED_DATA_PATH` overrides still select `<path>/Build/Products`.
 
@@ -340,7 +340,7 @@ and [Documents folder privacy policy](https://developer.apple.com/documentation/
 ## Apple signing and notarization
 
 For this application's existing identity, use the Qi Li team `FB4W45V73V` and keep
-the production bundle identifier `com.voicepink.voicepinkpro`. Create a
+the production bundle identifier `com.cliptate.app`. Create a
 **Developer ID Application** certificate with the G2 intermediary in the
 [Apple Developer certificate portal](https://developer.apple.com/account/resources/certificates/list).
 Apple Development and Mac App Distribution certificates cannot replace this
@@ -449,8 +449,12 @@ For an App Store build, set it to `YES` (or omit it for Release). Explicit `YES`
 also restores the App Store entitlements, App Sandbox, and disabled CLI URL in
 Debug. Channel selection is passed to SwiftPM and used for bundle permissions by
 the same build invocation. App Store builds remain sandboxed.
-Direct builds copy missing configuration and history from the previous sandbox
-container once without removing originals or replacing current direct-build data.
+Direct builds copy missing configuration and history from the current or legacy
+`com.voicepink.voicepinkpro` sandbox container once without removing originals or
+replacing current direct-build data. The Cliptate data directory stays unchanged.
+Legacy direct-build preferences migrate once into the new `com.cliptate.app` domain;
+Cliptate Dev never imports production data. Existing migration markers prevent
+deleted files or preferences from being restored on later launches.
 
 The direct app includes a signed native `cliptate` executable. See [CLI usage and
 installation](cli.md) for transcription, TTS, and dictionary commands. The CLI shares
@@ -483,6 +487,52 @@ distribution should choose their own identifier and product IDs.
 Both build entry points preserve the `APP_STORE` capability gate and support
 explicit channel selection. Consult [ADR 0001](adr/0001-accessibility-gate-for-app-store.md)
 before changing the gate.
+
+## Usage analytics
+
+Firebase Analytics uses `FirebaseAnalyticsCore` without advertising identifiers.
+Usage statistics default to enabled and can be disabled in Settings with
+**Share usage statistics**. Disabling stops event delivery and resets locally held
+Analytics data; the preference survives snapshots and preset serialization. Old
+presets without the field retain the current choice. Audio, video, transcript text,
+file names, paths, and raw errors are never event parameters. The Firebase SDK also
+collects its standard application/device metadata and an app-instance identifier;
+these statistics are pseudonymous rather than a promise of complete anonymity.
+
+`config/firebase/Debug/GoogleService-Info.plist` registers `com.cliptate.dev` and
+`config/firebase/Release/GoogleService-Info.plist` registers `com.cliptate.app` in
+Firebase project `cliptate-9d41b`. These files contain public client configuration,
+not server credentials. The bundler selects the matching file, checks its bundle
+identifier, and copies it to the main app resources. A source build without a
+matching configuration runs with Analytics unavailable. Tests use injected event
+destinations and never initialize Firebase. SDK collection defaults off in the
+bundle until the restored application preference is applied at launch.
+
+Events are `app_launch`, `feature_open`, `transcription_finished`, and
+`export_finished`. Completion events carry `outcome`, `duration_ms`, and a fixed
+`failure_category` for failures/cancellation. Default parameters include
+`app_version`, `distribution`, and `build_environment`. Development and production
+use separate Firebase apps/data streams within the same Google Analytics property;
+filter reports by stream or `build_environment` when comparing production usage.
+
+To verify a development build in Firebase DebugView:
+
+```bash
+./scripts/build-and-run.sh build
+open -n ".build/app/Build/Products/Debug/Cliptate Dev.app" --args -FIRDebugEnabled
+```
+
+Use only generated fixtures when testing workflow events. DebugView events are
+excluded from normal Analytics reporting. Normal reports can take time to aggregate.
+
+The production bundle ID changed from `com.voicepink.voicepinkpro` to
+`com.cliptate.app`. macOS treats this as a new application for privacy permissions.
+The release verifier accepts only this explicit transition and still verifies both
+code signatures and their signing authority; later same-ID updates must retain
+compatible privacy identities. App Store releases require a new App Store Connect
+app record and matching billing configuration. Existing product IDs and legacy
+storage keys remain unchanged. Sandboxed App Store data does not automatically
+move between app containers.
 
 ## Repository layout
 

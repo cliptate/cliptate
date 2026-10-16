@@ -55,6 +55,16 @@ struct AISettingsView: View {
           appearanceSection
           Divider()
           startupSection
+          Divider()
+          VStack(alignment: .leading, spacing: 6) {
+            Toggle("Share usage statistics", isOn: $config.analyticsCollectionEnabled)
+              .onChange(of: config.analyticsCollectionEnabled) {
+                try? ConfigurationRuntime.shared.flush(using: config)
+              }
+            Text("Send app activity and performance data to Google Analytics. Audio, video, transcripts, and file names are never included.")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+          }
         }
         .padding(14)
         .background(AppSurface.settingsBackground, in: RoundedRectangle(cornerRadius: 10))

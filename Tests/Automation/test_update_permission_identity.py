@@ -17,7 +17,28 @@ spec.loader.exec_module(update_identity)
 
 
 class UpdatePermissionIdentityTests(unittest.TestCase):
-    def verify(self, compatible, identifier="com.voicepink.voicepinkpro"):
+    def test_brand_transition_preserves_signing_authority_and_reports_new_consent(self):
+        for same_team in [True, False]:
+            with self.subTest(same_team=same_team), tempfile.TemporaryDirectory() as directory:
+                previous, current = Path(directory) / "old.app", Path(directory) / "new.app"
+                requirements = {}
+                for app, identifier, team in [
+                    (previous, "com.voicepink.voicepinkpro", "TEAM_A"),
+                    (current, "com.cliptate.app", "TEAM_A" if same_team else "TEAM_B"),
+                ]:
+                    (app / "Contents").mkdir(parents=True)
+                    (app / "Contents/Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier": identifier}))
+                    requirements[app] = f'identifier "{identifier}" and anchor apple generic and certificate leaf[subject.OU] = "{team}"'
+                with patch.object(update_identity.subprocess, "run"), \
+                        patch.object(update_identity, "designated_requirement", side_effect=requirements.__getitem__, create=True), \
+                        patch.object(update_identity, "satisfies", side_effect=lambda app, requirement: requirements[app] == requirement, create=True):
+                    if same_team:
+                        self.assertFalse(update_identity.verify(previous, current))
+                    else:
+                        with self.assertRaisesRegex(ValueError, "signing authority"):
+                            update_identity.verify(previous, current)
+
+    def verify(self, compatible, identifier="com.cliptate.app"):
         with tempfile.TemporaryDirectory() as directory:
             apps = [Path(directory) / "old.app", Path(directory) / "new.app"]
             for app in apps:

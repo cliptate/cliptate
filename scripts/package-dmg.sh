@@ -20,7 +20,7 @@ if [[ ! -f "$INFO_PLIST" ]]; then
   exit 1
 fi
 BUNDLE_IDENTIFIER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$INFO_PLIST")"
-if [[ "$BUNDLE_IDENTIFIER" != com.voicepink.voicepinkpro ]]; then
+if [[ "$BUNDLE_IDENTIFIER" != com.cliptate.app ]]; then
   echo 'Official DMG packaging requires the production app identity. Build CONFIGURATION=Release.' >&2
   exit 1
 fi

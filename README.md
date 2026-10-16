@@ -112,6 +112,8 @@ The CLI uses the app's selected models and configuration, launching the app in t
 
 ## Privacy and models
 
+Usage statistics are enabled by default and can be turned off in Settings. Google Analytics receives app activity and performance metadata, never audio, video, transcripts, or file names.
+
 - **Local speech processing:** transcription, VAD, speaker diarization, and TTS inference run on your Mac. Downloaded speech models can be used offline.
 - **Optional online AI:** correction and keyword extraction send text to the provider you configure. Keep these features disabled for an offline speech workflow.
 - **Translation:** Apple Translation uses language resources that may need downloading; availability depends on the language pair.

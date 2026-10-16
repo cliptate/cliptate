@@ -23,7 +23,7 @@ class DevelopmentPermissionIdentityTests(unittest.TestCase):
                 (app / "Contents").mkdir(parents=True)
                 (app / "Contents/Info.plist").write_bytes(plistlib.dumps({
                     "CFBundleIdentifier": ("com.cliptate.dev" if development and app == built_app
-                                           else "com.voicepink.voicepinkpro"),
+                                           else "com.cliptate.app"),
                 }))
             commands = {
                 "xcrun": "exit 0\n",
@@ -36,7 +36,7 @@ class DevelopmentPermissionIdentityTests(unittest.TestCase):
                 "codesign": '''
 if [[ "$1" == -d ]]; then
   if [[ "$CLIPTATE_TEST_COMPATIBLE" == YES || "$*" == *"/installed/Cliptate.app"* ]]; then
-    echo 'designated => identifier "com.voicepink.voicepinkpro" and anchor apple generic'
+    echo 'designated => identifier "com.cliptate.app" and anchor apple generic'
   else
     echo 'CDHash=0123456789abcdef0123456789abcdef01234567' >&2
   fi

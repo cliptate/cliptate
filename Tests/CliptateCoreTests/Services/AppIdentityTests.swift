@@ -9,7 +9,7 @@ struct AppIdentityTests {
     let production = AppIdentity.production
     let development = AppIdentity(bundleIdentifier: "com.cliptate.dev")
     #expect(development == .development)
-    #expect(production.rawValue == "com.voicepink.voicepinkpro")
+    #expect(production.rawValue == "com.cliptate.app")
     #expect(production.applicationSupportDirectory().lastPathComponent == "Cliptate")
     #expect(development.applicationSupportDirectory().lastPathComponent == "Cliptate Dev")
     #expect(production.applicationSupportDirectory() != development.applicationSupportDirectory())
