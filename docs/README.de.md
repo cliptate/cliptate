@@ -65,19 +65,19 @@ Release-Pakete sind mit Developer ID signiert und von Apple notarisiert. Eine SH
 
 ### Der erste Workflow
 
-- **Aufnahmen und Videos:** Öffnen Sie **AI Cut**, importieren Sie Dateien und wählen Sie Transkriptionsmodell und Sprache. Prüfen Sie Text und Pausenschnitte vor dem Export.
-- **Live-Diktat:** Wählen Sie unter **Voice To Text** ein Modell und ein Tastaturkürzel und erlauben Sie den Mikrofonzugriff. Direkte Downloads verwenden die Bedienungshilfen-Berechtigung zur Texteingabe in andere Apps; alternativ können Sie über die Zwischenablage einfügen.
-- **Sprachsynthese:** Wählen Sie ein TTS-Modell, geben Sie Text ein und verwenden Sie eine vom Modell unterstützte Preset-Stimme, Referenzaufnahme oder Stimmbeschreibung.
+- **Aufnahmen und Videos:** Öffnen Sie **Dateitranskription**, importieren Sie Dateien und wählen Sie Transkriptionsmodell und Sprache. Prüfen Sie Text und Pausenschnitte vor dem Export.
+- **Live-Diktat:** Wählen Sie unter **Sprachdiktat** ein Modell und ein Tastaturkürzel und erlauben Sie den Mikrofonzugriff. Direkte Downloads verwenden die Bedienungshilfen-Berechtigung zur Texteingabe in andere Apps; alternativ können Sie über die Zwischenablage einfügen.
+- **Sprachsynthese:** Öffnen Sie **Sprachgenerierung**, wählen Sie ein TTS-Modell, geben Sie Text ein und verwenden Sie eine vom Modell unterstützte Preset-Stimme, Referenzaufnahme oder Stimmbeschreibung.
 
 ## Funktionen
 
 | Workflow | Möglichkeiten |
 | --- | --- |
-| **Offline-Transkription** | Audio und Video mit Parakeet, Qwen3 ASR, FireRed oder Cohere im Stapel transkribieren. Wählen Sie ein Modell passend zu Sprache und Hardware. |
-| **Diktat** | Streaming-Transkription, eigenes Wörterbuch und ein konfigurierbares Tastaturkürzel. |
-| **AI Cut** | Pausen mit Sprachaktivitätserkennung (VAD) erkennen, Segmente prüfen und einen Rohschnitt exportieren. |
+| **Dateitranskription** | Audio und Video mit Parakeet, Qwen3 ASR, FireRed oder Cohere im Stapel transkribieren. Wählen Sie ein Modell passend zu Sprache und Hardware. |
+| **Sprachdiktat** | Streaming-Transkription, eigenes Wörterbuch und ein konfigurierbares Tastaturkürzel. |
+| **Pausen kürzen** | In Dateitranskription Pausen mit Sprachaktivitätserkennung (VAD) erkennen, Segmente prüfen und einen Rohschnitt exportieren. |
 | **Sprecherzuordnung** | Sortformer unterscheidet Sprecher in unterstützten Transkriptionsabläufen. Silero VAD erkennt Sprache, identifiziert aber keine Sprecher. |
-| **Sprachsynthese** | Qwen3 TTS bietet Preset-Stimmen, Stimmklonen, Emotions- und Stilvorgaben sowie Stimmdesign. Verfügbare Einstellungen hängen vom Modell ab. |
+| **Sprachgenerierung** | Qwen3 TTS bietet Preset-Stimmen, Stimmklonen, Emotions- und Stilvorgaben sowie Stimmdesign. Verfügbare Einstellungen hängen vom Modell ab. |
 | **Korrektur und Übersetzung** | Optionale Online-KI korrigiert Text und hebt Schlüsselwörter hervor. Apple Übersetzen übersetzt Untertitel für unterstützte Sprachpaare. |
 | **Kommandozeile** | Dateien transkribieren, WAV-Sprache erzeugen und das Wörterbuch aus Skripten oder KI-Agenten verwalten. |
 
@@ -95,7 +95,7 @@ Untertitel und gerenderte Medien lassen sich je nach Formatunterstützung in DaV
 
 ## Kommandozeile
 
-Direkte Downloads enthalten die CLI. Verschieben Sie die App zuerst nach Programme. Öffnen Sie **Einstellungen → Kommandozeile (Settings → Command Line)** und führen Sie den kopierten Installationsbefehl im Terminal aus. Fügen Sie `~/.local/bin` gemäß der [CLI-Anleitung](cli.md) zum `PATH` Ihrer Shell hinzu.
+Direkte Downloads enthalten die CLI. Verschieben Sie die App zuerst nach Programme. Öffnen Sie **Einstellungen → Befehlszeile** und führen Sie den kopierten Installationsbefehl im Terminal aus. Fügen Sie `~/.local/bin` gemäß der [CLI-Anleitung](cli.md) zum `PATH` Ihrer Shell hinzu.
 
 ```bash
 cliptate transcribe interview.mp4 --format srt --output interview.srt

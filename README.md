@@ -69,19 +69,19 @@ Release packages use Developer ID signing and Apple notarization. Each download 
 
 ### Your first workflow
 
-- **Recorded audio or video:** open **AI Cut**, import files, select a transcription model and language, then review the transcript and pause cuts before exporting.
-- **Live dictation:** open **Voice To Text**, choose a model, configure a shortcut, and grant microphone access. Direct builds use Accessibility permission to deliver text into other apps; clipboard paste is the fallback.
-- **Speech synthesis:** select a TTS model, enter text, and choose a preset voice, reference audio, or voice description supported by that model.
+- **Recorded audio or video:** open **File Transcription**, import files, select a transcription model and language, then review the transcript and pause cuts before exporting.
+- **Live dictation:** open **Voice Dictation**, choose a model, configure a shortcut, and grant microphone access. Direct builds use Accessibility permission to deliver text into other apps; clipboard paste is the fallback.
+- **Speech synthesis:** open **Voice Generation**, select a TTS model, enter text, and choose a preset voice, reference audio, or voice description supported by that model.
 
 ## Features
 
 | Workflow | What you can do |
 | --- | --- |
-| **Offline transcription** | Batch-transcribe audio and video with Parakeet, Qwen3 ASR, FireRed, or Cohere models; choose an engine suited to your language and hardware. |
-| **Voice dictation** | Stream speech to text, use a custom vocabulary dictionary, and invoke dictation with a configurable shortcut. |
-| **AI Cut** | Detect pauses with voice activity detection (VAD), review segments, and export a rough cut. |
+| **File Transcription** | Batch-transcribe audio and video with Parakeet, Qwen3 ASR, FireRed, or Cohere models; choose an engine suited to your language and hardware. |
+| **Voice Dictation** | Stream speech to text, use a custom vocabulary dictionary, and invoke dictation with a configurable shortcut. |
+| **Pause trimming** | In File Transcription, detect pauses with voice activity detection (VAD), review segments, and export a rough cut. |
 | **Speaker labels** | Use Sortformer diarization to distinguish speakers in supported transcription pipelines. Silero VAD detects speech without identifying speakers. |
-| **Speech synthesis** | Use Qwen3 TTS for preset voices, voice cloning, emotion/style prompts, and voice design. Available controls depend on the selected model. |
+| **Voice Generation** | Use Qwen3 TTS for preset voices, voice cloning, emotion/style prompts, and voice design. Available controls depend on the selected model. |
 | **Correction and translation** | Use an optional online AI provider for transcript correction and keyword emphasis; translate subtitles with Apple Translation for supported language pairs. |
 | **Command line** | Transcribe files, generate WAV speech, and manage custom vocabulary from scripts or AI agents. |
 
